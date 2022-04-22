@@ -1,0 +1,6 @@
+{
+  "*.{ts,js}": "eslint --cache",
+  "*.css": "stylelint",
+  "*.scss": "stylelint --custom-syntax postcss-scss",
+  "*.{ts,scss,html,md,js,css}": "prettier --check"
+}

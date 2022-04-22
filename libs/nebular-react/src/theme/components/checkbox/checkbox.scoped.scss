@@ -1,0 +1,30 @@
+/**
+ * @license
+ * Copyright Akveo. All Rights Reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+@import '../../styles/core/mixins';
+
+.nb-checkbox {
+  .label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    min-height: inherit;
+  }
+
+  .custom-checkbox {
+    flex-shrink: 0;
+  }
+}
+
+.nb-checkbox.nb-transition {
+  .custom-checkbox {
+    @include nb-component-animation(background-color, border, box-shadow);
+  }
+  .text {
+    @include nb-component-animation(color);
+  }
+}

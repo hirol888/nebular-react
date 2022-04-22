@@ -1,0 +1,25 @@
+{
+  "presets": [
+    [
+      "@nrwl/react/babel",
+      {
+        "runtime": "automatic",
+        "useBuiltIns": "usage"
+      }
+    ]
+  ],
+  "env": {
+    "test": {
+      "plugins": []
+    },
+    "development": {
+      "plugins": ["babel-plugin-react-scoped-css"]
+    },
+    "production": {
+      "plugins": []
+    },
+    "build": {
+      "plugins": []
+    }
+  }
+}

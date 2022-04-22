@@ -1,7 +1,8 @@
 {
   "version": 2,
   "projects": {
-    "nebular": "apps/nebular",
-    "nebular-e2e": "apps/nebular-e2e"
+    "nebular-react": "libs/nebular-react",
+    "nebular-react-playground": "apps/nebular-react-playground",
+    "nebular-react-playground-e2e": "apps/nebular-react-playground-e2e"
   }
 }

@@ -1,0 +1,16 @@
+.layout-theme-toggle {
+  display: block;
+}
+
+.theme-radio-label {
+  margin-right: 0.25rem;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.theme-radio {
+  margin: 0.125rem 0.125rem 0 0;
+  vertical-align: top;
+}

@@ -1,0 +1,43 @@
+{
+  "root": "libs/nebular-react",
+  "sourceRoot": "libs/nebular-react/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nrwl/web:rollup",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/nebular-react",
+        "tsConfig": "libs/nebular-react/tsconfig.lib.json",
+        "project": "libs/nebular-react/package.json",
+        "entryFile": "libs/nebular-react/src/index.ts",
+        "external": ["react/jsx-runtime"],
+        "rollupConfig": "libs/nebular-react/rollup.config.js",
+        "compiler": "babel",
+        "assets": [
+          {
+            "glob": "libs/nebular-react/README.md",
+            "input": ".",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["libs/nebular-react/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/nebular-react"],
+      "options": {
+        "jestConfig": "libs/nebular-react/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "*.{ts,js}": "eslint --cache --fix",
+  "*.css": "stylelint --fix",
+  "*.scss": "stylelint --custom-syntax postcss-scss --fix",
+  "*.{ts,scss,html,md,js,css}": "prettier --write"
+}

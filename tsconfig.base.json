@@ -7,14 +7,18 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
+    "types": ["reflect-metadata"],
     "lib": ["es2017", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@nebular-react": ["libs/nebular-react/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

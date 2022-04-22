@@ -1,0 +1,30 @@
+.component-list-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.component-list-container.column {
+  flex-direction: column;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.component-block:not(:last-child) {
+  margin-right: 1rem;
+}
+
+.component-link {
+  display: block;
+
+  &.selected {
+    background: #ccc;
+  }
+
+  &:focus {
+    transform: scale(1.02);
+  }
+
+  &.active {
+    color: #00f;
+  }
+}

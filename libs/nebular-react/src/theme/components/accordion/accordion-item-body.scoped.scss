@@ -1,0 +1,20 @@
+/**
+ * @license
+ * Copyright Akveo. All Rights Reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+.nb-accordion-item-body {
+  overflow: hidden;
+  visibility: visible;
+
+  .item-body {
+    display: block;
+  }
+
+  &.collapsed {
+    .item-body {
+      display: none;
+    }
+  }
+}

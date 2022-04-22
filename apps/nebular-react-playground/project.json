@@ -1,0 +1,90 @@
+{
+  "root": "apps/nebular-react-playground",
+  "sourceRoot": "apps/nebular-react-playground/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/web:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "compiler": "babel",
+        "outputPath": "dist/apps/nebular-react-playground",
+        "index": "apps/nebular-react-playground/src/index.html",
+        "baseHref": "/",
+        "main": "apps/nebular-react-playground/src/main.tsx",
+        "polyfills": "apps/nebular-react-playground/src/polyfills.ts",
+        "tsConfig": "apps/nebular-react-playground/tsconfig.app.json",
+        "assets": [
+          "apps/nebular-react-playground/src/favicon.ico",
+          "apps/nebular-react-playground/src/assets"
+        ],
+        "styles": ["apps/nebular-react-playground/src/styles/styles.scss"],
+        "scripts": [],
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs/nebular-react/src"]
+        },
+        "webpackConfig": "apps/nebular-react-playground/webpack.config.js"
+      },
+      "configurations": {
+        "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/nebular-react-playground/src/environments/environment.ts",
+              "with": "apps/nebular-react-playground/src/environments/environment.prod.ts"
+            }
+          ],
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false
+        },
+        "development": {
+          "optimization": false,
+          "sourceMap": true,
+          "namedChunks": true,
+          "extractLicenses": false,
+          "vendorChunk": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/web:dev-server",
+      "options": {
+        "buildTarget": "nebular-react-playground:build",
+        "hmr": true
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "nebular-react-playground:build:production",
+          "hmr": false
+        },
+        "development": {
+          "buildTarget": "nebular-react-playground:build:development",
+          "hmr": true
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "apps/nebular-react-playground/**/*.{ts,tsx,js,jsx}"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/nebular-react-playground"],
+      "options": {
+        "jestConfig": "apps/nebular-react-playground/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

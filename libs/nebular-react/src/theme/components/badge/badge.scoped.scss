@@ -1,0 +1,45 @@
+/**
+ * @license
+ * Copyright Akveo. All Rights Reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+@import '../../styles/core/mixins';
+
+.nb-badge {
+  position: absolute;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.nb-badge.position-top {
+  top: 0;
+}
+
+.nb-badge.position-right {
+  right: 0;
+}
+
+.nb-badge.position-bottom {
+  bottom: 0;
+}
+
+.nb-badge.position-left {
+  left: 0;
+}
+
+.nb-badge.position-center {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.nb-badge.position-start {
+  @include nb-ltr(left, 0);
+  @include nb-rtl(right, 0);
+}
+
+.nb-badge.position-end {
+  @include nb-ltr(right, 0);
+  @include nb-rtl(left, 0);
+}

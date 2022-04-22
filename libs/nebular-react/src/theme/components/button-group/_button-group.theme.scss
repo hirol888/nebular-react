@@ -1,0 +1,158 @@
+/**
+ * @license
+ * Copyright Akveo. All Rights Reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
+@mixin nb-buttons-group-theme() {
+  .nb-button-group {
+    display: inline-flex;
+
+    .nb-button-toggle {
+      @include nb-ltr() {
+        &:first-child:not(:last-child) {
+          .nb-button {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+        }
+        &:last-child:not(:first-child) {
+          .nb-button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+        }
+      }
+      @include nb-rtl() {
+        &:first-child:not(:last-child) {
+          .nb-button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+        }
+        &:last-child:not(:first-child) {
+          .nb-button {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+        }
+      }
+
+      &:not(:first-child):not(:last-child) {
+        .nb-button {
+          border-radius: 0;
+        }
+      }
+
+      .nb-button {
+        &.appearance-filled,
+        &.appearance-ghost {
+          // Makes border same color as background. We need to keep the border so that buttons inside and outside
+          // the group have the same height.
+          border-color: transparent;
+        }
+        &.appearance-filled {
+          @each $status in nb-get-statuses() {
+            &.status-#{$status} {
+              color: nb-theme(button-group-filled-button-#{$status}-text-color);
+            }
+          }
+        }
+      }
+
+      &:not(:first-child) {
+        .nb-button {
+          &.appearance-filled {
+            @each $status in nb-get-statuses() {
+              &.status-#{$status} {
+                @include nb-ltr(
+                  border-left-color,
+                  nb-theme(button-group-filled-#{$status}-divider-color)
+                );
+                @include nb-rtl(
+                  border-right-color,
+                  nb-theme(button-group-filled-#{$status}-divider-color)
+                );
+              }
+            }
+          }
+
+          &.appearance-ghost {
+            @include nb-ltr(
+              border-left-color,
+              nb-theme(button-group-ghost-divider-color)
+            );
+            @include nb-rtl(
+              border-right-color,
+              nb-theme(button-group-ghost-divider-color)
+            );
+          }
+        }
+      }
+    }
+
+    .nb-button {
+      @include nb-ltr() {
+        &:first-child:not(:last-child) {
+          border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
+        }
+        &:last-child:not(:first-child) {
+          border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+      }
+      @include nb-rtl() {
+        &:first-child:not(:last-child) {
+          border-top-left-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+        &:last-child:not(:first-child) {
+          border-top-right-radius: 0;
+          border-bottom-right-radius: 0;
+        }
+      }
+
+      &:not(:first-child):not(:last-child) {
+        border-radius: 0;
+      }
+
+      &.appearance-filled,
+      &.appearance-ghost {
+        // Makes border same color as background. We need to keep the border so that buttons inside and outside
+        // the group have the same height.
+        border-color: transparent;
+      }
+
+      &.appearance-filled {
+        @each $status in nb-get-statuses() {
+          &.status-#{$status}:not(:first-child) {
+            @include nb-ltr(
+              border-left-color,
+              nb-theme(button-group-filled-#{$status}-divider-color)
+            );
+            @include nb-rtl(
+              border-right-color,
+              nb-theme(button-group-filled-#{$status}-divider-color)
+            );
+          }
+
+          &.status-#{$status} {
+            color: nb-theme(button-group-filled-button-#{$status}-text-color);
+          }
+        }
+      }
+
+      &.appearance-ghost:not(:first-child) {
+        @include nb-ltr(
+          border-left-color,
+          nb-theme(button-group-ghost-divider-color)
+        );
+        @include nb-rtl(
+          border-right-color,
+          nb-theme(button-group-ghost-divider-color)
+        );
+      }
+    }
+  }
+}
