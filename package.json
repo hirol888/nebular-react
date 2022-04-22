@@ -4,8 +4,19 @@
   "license": "MIT",
   "scripts": {
     "start": "nx serve --port 4300 --open",
-    "build": "nx build",
-    "test": "nx test"
+    "build": "env BABEL_ENV=build nx run nebular-react:build && nx run nebular-react-playground:build:production",
+    "build:lib": "env BABEL_ENV=build nx run nebular-react:build",
+    "lint:es": "nx run nebular-react-playground:lint && nx run nebular-react:lint",
+    "lint:es:fix": "nx run nebular-react-playground:lint --fix && nx run nebular-react:lint --fix",
+    "lint:styles": "stylelint ./libs/nebular-react/src/**/*.scss ./apps/nebular-react-playground/src/**/*.scss --custom-syntax postcss-scss",
+    "lint:styles:fix": "stylelint ./libs/nebular-react/src/**/*.scss ./apps/nebular-react-playground/src/**/*.scss --fix --custom-syntax postcss-scss",
+    "lint": "npm-run-all -p lint:es lint:styles",
+    "lint:fix": "npm-run-all -p lint:es:fix lint:styles:fix",
+    "lint:fix:staged": "lint-staged --config ./.lintstagedrc-fix.json",
+    "test": "nx run nebular-react:test",
+    "test:coverage": "rimraf coverage && nx run nebular-react:test --watchAll=false --coverage --coverageReporters=json",
+    "version:bump": "gulp version",
+    "prepare": "husky install"
   },
   "private": true,
   "dependencies": {
