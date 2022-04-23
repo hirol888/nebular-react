@@ -5,14 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { NbComponentSize } from '../component';
 import { NbOption, NbOptionRef } from './Option';
 import { NbOptionGroup } from './OptionGroup';
-
-export const OptionListContext = React.createContext<{
-  multiple: boolean;
-  handleOptionChange?: (selected: boolean, optionId: string, value: any) => void;
-}>({
-  multiple: false,
-  handleOptionChange: undefined
-});
+import { OptionListContext } from './OptionList.context';
 
 export type NbOptionListProps = {
   size?: NbComponentSize;

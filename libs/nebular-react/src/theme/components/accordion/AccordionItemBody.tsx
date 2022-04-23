@@ -10,7 +10,7 @@ import { useSpring, animated, easings } from 'react-spring';
 import { useMeasure } from 'react-use';
 import * as _ from 'lodash';
 import './accordion-item-body.scoped.scss';
-import { AccordionItemContext } from './AccordionItem';
+import { AccordionItemContext } from './Accordion.context';
 
 /**
  * Component intended to be used within `<NbAccordionItem>` component

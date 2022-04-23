@@ -6,6 +6,7 @@
 
 import classNames from 'classnames';
 import React, { Children, isValidElement, useImperativeHandle } from 'react';
+import { AccordionContext } from './Accordion.context';
 import { NbAccordionItem, NbAccordionItemRef } from './AccordionItem';
 
 export type NbAccordionRef = {
@@ -34,21 +35,6 @@ export type NbAccordionProps = {
    */
   multiple?: boolean;
 };
-
-/**
- * Accordion context
- */
-export const AccordionContext = React.createContext<{
-  /**
-   *  Allow multiple items to be expanded at the same time.
-   * @type {boolean}
-   */
-  multiple: boolean;
-  /**
-   *  Close all other items when it is not multiple.
-   */
-  closeOthers: (excludedId: string) => void;
-}>({ multiple: false, closeOthers: () => ({}) });
 
 /**
  * An accordion allows to toggle the display of sections of content

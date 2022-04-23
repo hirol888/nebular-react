@@ -6,13 +6,10 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NbComponentOrCustomStatus } from '../component';
 import { NbIconLibraries } from './icon-libraries';
 import './icon.scoped.scss';
-import { TYPES } from 'libs/nebular-react/src/ioc-types';
-import { container } from 'libs/nebular-react/src/ioc';
-import { InversifyContext, useInjection } from 'libs/nebular-react/src/ioc-provider';
 
 export interface NbIconConfig {
   icon: string;

@@ -9,7 +9,7 @@ import React, { useContext } from 'react';
 import { useSpring, easings, animated } from 'react-spring';
 import { NbIcon } from '../icon';
 import './accordion-item-header.scoped.scss';
-import { AccordionItemContext } from './AccordionItem';
+import { AccordionItemContext } from './Accordion.context';
 
 /**
  * Component intended to be used within `<NbAccordionItem>` component

@@ -3,7 +3,7 @@ import React, { useContext, useImperativeHandle, useLayoutEffect, useState } fro
 import { NbButton } from '../button';
 import { NbButtonProps } from '../button/Button';
 import { NbComponentOrCustomStatus } from '../component';
-import { ButtonGroupContext } from './ButtonGroup';
+import { ButtonGroupContext } from './ButtonGroup.context';
 
 export type NbButtonToggleProps = NbButtonProps & {
   id: string;

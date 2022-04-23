@@ -8,8 +8,8 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { NbMenuItemModel } from './menu.service';
 import { NbMenu } from './Menu';
-import { Provider } from 'inversify-react';
 import { container } from '@nebular-react';
+import { Provider } from 'libs/nebular-react/src/ioc-provider';
 
 describe('NbMenu', () => {
   let unmount: () => void;
@@ -42,11 +42,7 @@ describe('NbMenu', () => {
       <Provider container={container}>
         <NbMenu
           data-testid="menu"
-          items={[
-            { title: 'Visible item' },
-            { title: 'Hidden item', hidden: true },
-            { title: 'Visible item2' }
-          ]}
+          items={[{ title: 'Visible item' }, { title: 'Hidden item', hidden: true }, { title: 'Visible item2' }]}
           tagName="menu"
         ></NbMenu>
       </Provider>
@@ -63,19 +59,14 @@ describe('NbMenu', () => {
         {' '}
         <NbMenu
           data-testid="menu"
-          items={[
-            { title: 'Menu item not selected' },
-            { title: 'Menu item selected', selected: true }
-          ]}
+          items={[{ title: 'Menu item not selected' }, { title: 'Menu item selected', selected: true }]}
           tagName="menu"
         ></NbMenu>
       </Provider>
     ));
 
     const activeItem = screen.getByTestId('menu').querySelector('a.active');
-    expect(activeItem?.querySelector('span')).toHaveTextContent(
-      'Menu item selected'
-    );
+    expect(activeItem?.querySelector('span')).toHaveTextContent('Menu item selected');
   });
 
   // TODO get selected menu item

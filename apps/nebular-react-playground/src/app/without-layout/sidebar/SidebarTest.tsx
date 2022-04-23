@@ -1,6 +1,4 @@
 import { NbLayout, NbLayoutColumn, NbLayoutFooter, NbLayoutHeader, NbSidebar, NbSidebarService } from '@nebular-react';
-import { useInjection } from 'libs/nebular-react/src/ioc-provider';
-import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import NbSidebarHeader from 'libs/nebular-react/src/theme/components/sidebar/SidebarHeader';
 
 const SidebarTest: React.FC = () => {

@@ -9,8 +9,7 @@ import { NbDialogConfig } from './dialog-config';
 import * as _ from 'lodash';
 import { useObservable, useSubscription } from 'observable-hooks';
 import { filter, fromEvent, switchMap } from 'rxjs';
-import { NbDialogContainer } from '..';
-import { NbDialogContainerRef } from './DialogContainer';
+import { NbDialogContainer, NbDialogContainerRef } from './DialogContainer';
 
 export type NbDialogRef = {
   open: (config?: NbDialogConfig) => void;

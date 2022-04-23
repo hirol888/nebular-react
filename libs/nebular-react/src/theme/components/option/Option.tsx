@@ -5,7 +5,7 @@ import { OptionGroupContext } from './OptionGroup';
 import { CheckboxRef, NbCheckbox } from '../checkbox';
 import { ENTER, FocusableOption, Highlightable, SPACE } from 'libs/nebular-react/src/core/cdk';
 import './option.scoped.scss';
-import { OptionListContext } from './OptionList';
+import { OptionListContext } from './OptionList.context';
 
 export interface NbOptionRef extends FocusableOption, Highlightable {
   getValue(): any;

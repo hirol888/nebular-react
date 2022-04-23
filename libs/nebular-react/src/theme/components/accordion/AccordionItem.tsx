@@ -7,29 +7,9 @@
 import classNames from 'classnames';
 import React, { Children, isValidElement, useContext, useImperativeHandle, useState } from 'react';
 import './accordion-item.scoped.scss';
-import { AccordionContext } from './Accordion';
 import { NbAccordionItemHeader } from './AccordionItemHeader';
 import { NbAccordionItemBody } from './AccordionItemBody';
-
-/**
- * Accordion item context
- */
-export const AccordionItemContext = React.createContext<{
-  /**
-   * Item is collapsed (`true` by default)
-   * @type {boolean}
-   */
-  collapsed: boolean;
-  /**
-   * Item is disabled and cannot be opened.
-   * @type {boolean}
-   */
-  disabled: boolean;
-  /**
-   * Open/close the item
-   */
-  toggle: () => void;
-}>({ collapsed: true, disabled: false, toggle: () => ({}) });
+import { AccordionContext, AccordionItemContext } from './Accordion.context';
 
 export type NbAccordionItemRef = {
   /**

@@ -6,6 +6,7 @@ import { NbSidebar } from './Sidebar';
 import { NbSidebarService } from './sidebar.service';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'libs/nebular-react/src/ioc-provider';
 
 const menuItems: NbMenuItemModel[] = [
   {

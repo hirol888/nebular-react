@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import { NbComponentOrCustomStatus, NbComponentShape, NbComponentSize } from '../component';
 import { NbButtonAppearance } from '../button/Button';
 import classNames from 'classnames';
+import { ButtonGroupContext } from './ButtonGroup.context';
 
 export type NbButtonToggleAppearance = Exclude<NbButtonAppearance, 'hero'>;
 
@@ -18,11 +19,6 @@ export type NbButtonGroupProps = {
   multiple?: boolean;
   onPressedChange?: (value: any[]) => void;
 };
-
-export const ButtonGroupContext = React.createContext<{
-  disabled: boolean;
-  handlePressedChange?: (event: { id: string; pressed: boolean; value?: any }) => void;
-}>({ disabled: false });
 
 const NbButtonGroup: React.FC<NbButtonGroupProps & React.HTMLAttributes<HTMLDivElement>> = ({
   size = 'medium',
