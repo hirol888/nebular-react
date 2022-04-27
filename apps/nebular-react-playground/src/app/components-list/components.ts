@@ -5,10 +5,7 @@ export const filterComponents = (searchString: string) => {
     return PLAYGROUND_COMPONENTS;
   }
 
-  const filterBySearchString = (
-    components: ComponentLink[],
-    componentLink: ComponentLink
-  ) => {
+  const filterBySearchString = (components: ComponentLink[], componentLink: ComponentLink) => {
     if (componentLink.name?.toLowerCase().includes(searchString)) {
       components.push(componentLink);
       return components;
@@ -349,62 +346,62 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'calendar',
     children: [
       {
-        path: 'calendar-bounding-month.component',
-        link: '/calendar/calendar-bounding-month.component',
+        path: 'calendar-bounding-month',
+        link: '/calendar/calendar-bounding-month',
         component: 'CalendarBoundingMonthComponent',
         name: 'Calendar Bounding Month'
       },
       {
-        path: 'calendar-custom-day-cell-showcase.component',
-        link: '/calendar/calendar-custom-day-cell-showcase.component',
+        path: 'calendar-custom-day-cell-showcase',
+        link: '/calendar/calendar-custom-day-cell-showcase',
         component: 'CalendarCustomDayCellShowcaseComponent',
         name: 'Calendar Custom Day Cell Showcase'
       },
       {
-        path: 'calendar-filter.component',
-        link: '/calendar/calendar-filter.component',
+        path: 'calendar-filter',
+        link: '/calendar/calendar-filter',
         component: 'CalendarFilterComponent',
         name: 'Calendar Filter'
       },
       {
-        path: 'calendar-min-max.component',
-        link: '/calendar/calendar-min-max.component',
+        path: 'calendar-min-max',
+        link: '/calendar/calendar-min-max',
         component: 'CalendarMinMaxComponent',
         name: 'Calendar Min Max'
       },
       {
-        path: 'calendar-range-showcase.component',
-        link: '/calendar/calendar-range-showcase.component',
+        path: 'calendar-range-showcase',
+        link: '/calendar/calendar-range-showcase',
         component: 'CalendarRangeShowcaseComponent',
         name: 'Calendar Range Showcase'
       },
       {
-        path: 'calendar-showcase.component',
-        link: '/calendar/calendar-showcase.component',
+        path: 'calendar-showcase',
+        link: '/calendar/calendar-showcase',
         component: 'CalendarShowcaseComponent',
         name: 'Calendar Showcase'
       },
       {
-        path: 'calendar-size.component',
-        link: '/calendar/calendar-size.component',
+        path: 'calendar-size',
+        link: '/calendar/calendar-size',
         component: 'CalendarSizeComponent',
         name: 'Calendar Size'
       },
       {
-        path: 'calendar-start-view.component',
-        link: '/calendar/calendar-start-view.component',
+        path: 'calendar-start-view',
+        link: '/calendar/calendar-start-view',
         component: 'CalendarStartViewComponent',
         name: 'Calendar Start View'
       },
       {
-        path: 'calendar-without-navigation.component',
-        link: '/calendar/calendar-without-navigation.component',
+        path: 'calendar-without-navigation',
+        link: '/calendar/calendar-without-navigation',
         component: 'CalendarWithoutNavigationComponent',
         name: 'Calendar Without Navigation'
       },
       {
-        path: 'calendar-week-number.component',
-        link: '/calendar/calendar-week-number.component',
+        path: 'calendar-week-number',
+        link: '/calendar/calendar-week-number',
         component: 'CalendarWeekNumberComponent',
         name: 'Calendar Week Number'
       }
@@ -414,8 +411,8 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'calendar-kit',
     children: [
       {
-        path: 'calendar-kit-full-calendar.component',
-        link: '/calendar-kit/calendar-kit-full-calendar.component',
+        path: 'calendar-kit-full-calendar',
+        link: '/calendar-kit/calendar-kit-full-calendar',
         component: 'CalendarKitFullCalendarShowcaseComponent',
         name: 'Calendar Kit Full Calendar Showcase'
       }

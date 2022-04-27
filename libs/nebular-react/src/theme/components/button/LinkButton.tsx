@@ -11,8 +11,7 @@ import { NbIcon } from '../icon';
 import { BaseButtonProps } from './Button';
 import { isIconExist, useTabIndexState } from './button.hooks';
 
-export interface NbLinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface NbLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   reloadDocument?: boolean;
   replace?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -525,6 +524,7 @@ const NbLinkButton: React.FC<NbLinkButtonProps & NbLinkProps> = ({
   tabIndex,
   useRoute = false,
   to = '/',
+  className,
   children,
   ...otherProps
 }) => {
@@ -547,6 +547,7 @@ const NbLinkButton: React.FC<NbLinkButtonProps & NbLinkProps> = ({
               `size-${size}`,
               `shape-${shape}`,
               `status-${status}`,
+              className,
               {
                 'full-width': fullWidth,
                 'btn-disabled': disabled,

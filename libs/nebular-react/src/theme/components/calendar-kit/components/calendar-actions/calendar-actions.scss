@@ -1,0 +1,11 @@
+@import '../../../../styles/core/mixins';
+
+.nb-calendar-actions {
+  display: flex;
+  justify-content: space-between;
+
+  .apply-text-button {
+    @include nb-ltr(margin-left, auto);
+    @include nb-rtl(margin-right, auto);
+  }
+}

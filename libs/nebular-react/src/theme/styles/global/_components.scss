@@ -6,8 +6,8 @@
 
 @import '../../components/layout/layout.theme';
 @import '../../components/sidebar/sidebar.theme';
-// @import '../../components/calendar-kit/calendar-kit.theme';
-// @import '../../components/calendar/calendar.component.theme';
+@import '../../components/calendar-kit/calendar-kit.theme';
+@import '../../components/calendar/calendar.theme';
 @import '../../components/card/card.theme';
 @import '../../components/card/flip-card/flip-card.theme';
 @import '../../components/card/reveal-card/reveal-card.theme';
@@ -49,8 +49,8 @@
 @mixin nb-theme-components() {
   @include nb-layout-theme();
   @include nb-sidebar-theme();
-  // @include nb-calendar-kit-theme();
-  // @include nb-calendar-theme();
+  @include nb-calendar-kit-theme();
+  @include nb-calendar-theme();
   @include nb-card-theme();
   @include nd-reveal-card-theme();
   @include nd-flip-card-theme();

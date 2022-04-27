@@ -549,6 +549,7 @@ const NbButton: React.FC<NbButtonProps & React.HTMLAttributes<HTMLDivElement>> =
   disabled = false,
   tabIndex,
   onClick,
+  className,
   children,
   ...otherProps
 }) => {
@@ -575,6 +576,7 @@ const NbButton: React.FC<NbButtonProps & React.HTMLAttributes<HTMLDivElement>> =
         `size-${size}`,
         `shape-${shape}`,
         `status-${status}`,
+        className,
         {
           'full-width': fullWidth,
           'btn-disabled': disabled,

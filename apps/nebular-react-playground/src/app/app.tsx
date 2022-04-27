@@ -105,6 +105,19 @@ import {
   ButtonGroupStatuses,
   ButtonGroupValueChange
 } from './with-layout/button-group';
+import { CalendarKitFullCalendar } from './with-layout/calendar-kit';
+import {
+  CalendarBoundingMonth,
+  CalendarCustomDayCellShowcase,
+  CalendarFilter,
+  CalendarMinMax,
+  CalendarRangeShowcase,
+  CalendarShowcase,
+  CalendarSize,
+  CalendarStartView,
+  CalendarWeekNumber,
+  CalendarWithoutNavigation
+} from './with-layout/calendar';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -268,6 +281,30 @@ export function App() {
           element={WithLayout(ButtonGroupValueChange, onRouteChange)}
         />
         {/* End Button Group */}
+        {/* Calendar */}
+        <Route path="/calendar/calendar-bounding-month" element={WithLayout(CalendarBoundingMonth, onRouteChange)} />
+        <Route
+          path="/calendar/calendar-custom-day-cell-showcase"
+          element={WithLayout(CalendarCustomDayCellShowcase, onRouteChange)}
+        />
+        <Route path="/calendar/calendar-filter" element={WithLayout(CalendarFilter, onRouteChange)} />
+        <Route path="/calendar/calendar-min-max" element={WithLayout(CalendarMinMax, onRouteChange)} />
+        <Route path="/calendar/calendar-range-showcase" element={WithLayout(CalendarRangeShowcase, onRouteChange)} />
+        <Route path="/calendar/calendar-showcase" element={WithLayout(CalendarShowcase, onRouteChange)} />
+        <Route path="/calendar/calendar-size" element={WithLayout(CalendarSize, onRouteChange)} />
+        <Route path="/calendar/calendar-start-view" element={WithLayout(CalendarStartView, onRouteChange)} />
+        <Route path="/calendar/calendar-week-number" element={WithLayout(CalendarWeekNumber, onRouteChange)} />
+        <Route
+          path="/calendar/calendar-without-navigation"
+          element={WithLayout(CalendarWithoutNavigation, onRouteChange)}
+        />
+        {/* End Calendar */}
+        {/* Calendar Kit */}
+        <Route
+          path="/calendar-kit/calendar-kit-full-calendar"
+          element={WithLayout(CalendarKitFullCalendar, onRouteChange)}
+        />
+        {/* End Calendar Kit */}
         {/* Card */}
         <Route path="/card/card-accents" element={WithLayout(CardAccents, onRouteChange)} />
         <Route path="/card/card-colors" element={WithLayout(CardColors, onRouteChange)} />
