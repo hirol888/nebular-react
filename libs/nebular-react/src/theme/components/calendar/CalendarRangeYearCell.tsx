@@ -1,20 +1,21 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
-import { CalendarPickerContext, NbCalendarCellProps, NbCalRange, useDateService } from '../calendar-kit';
+import { Moment } from 'moment';
+import { useCalendarPickerContext, NbCalendarCellProps, NbCalRange } from '../calendar-kit';
+import { useDateService } from '../calendar-kit/hooks';
 
-const NbCalendarRangeYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, size, selectedValue, min, max } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarRangeYearCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, size, selectedValue, min, max, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
   const inRange = (): boolean => {
-    return hasRange() && isInRange(date, selectedValue as NbCalRange);
+    return hasRange() && isInRange(date, selectedValue as NbCalRange<D>);
   };
 
   const hasRange = (): boolean => {
-    return !!(selectedValue && (selectedValue as NbCalRange).start && (selectedValue as NbCalRange).end);
+    return !!(selectedValue && (selectedValue as NbCalRange<D>).start && (selectedValue as NbCalRange<D>).end);
   };
 
-  const isInRange = (date: Date | undefined, { start, end }: NbCalRange): boolean => {
+  const isInRange = (date: D | undefined, { start, end }: NbCalRange<D>): boolean => {
     if (date && start && end) {
       const cellYear = dateService.getYear(date);
       const startYear = dateService.getYear(start);
@@ -27,11 +28,11 @@ const NbCalendarRangeYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect
   };
 
   const rangeStart = (): boolean => {
-    return hasRange() && !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange).start);
+    return hasRange() && !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange<D>).start);
   };
 
   const rangeEnd = (): boolean => {
-    return hasRange() && !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange).end);
+    return hasRange() && !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange<D>).end);
   };
 
   const isSelected = (): boolean => {
@@ -40,7 +41,7 @@ const NbCalendarRangeYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect
     }
 
     if (selectedValue) {
-      return !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange).start);
+      return !!dateService.isSameYearSafe(date, (selectedValue as NbCalRange<D>).start);
     }
 
     return false;
@@ -62,12 +63,12 @@ const NbCalendarRangeYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect
     return !!(date && max && dateService.compareDates(yearStart(), max) > 0);
   };
 
-  const yearStart = (): Date => {
-    return dateService.getYearStart(date!);
+  const yearStart = (): D => {
+    return dateService.getYearStart(date!) as D;
   };
 
-  const yearEnd = (): Date => {
-    return dateService.getYearEnd(date!);
+  const yearEnd = (): D => {
+    return dateService.getYearEnd(date!) as D;
   };
 
   const year = dateService.getYear(date!);
@@ -96,6 +97,6 @@ const NbCalendarRangeYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect
       <div className="cell-content">{year}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarRangeYearCell };

@@ -1,33 +1,40 @@
+import { Moment } from 'moment';
 import React from 'react';
 import {
-  DEFAULT_LOCALE,
+  NbDateTypes,
   NbCalendarCellProps,
   NbCalendarSize,
   NbCalendarViewModeValues,
-  NbCalRange
+  NbCalRange,
+  NbPickerType
 } from '../calendar-kit';
+import { DEFAULT_LOCALE } from '../calendar-kit/hooks/date-moment';
 import { NbBaseCalendar } from './BaseCalendar';
+import { NbCalendarRangeDayCell } from './CalendarRangeDayCell';
+import { NbCalendarRangeMonthCell } from './CalendarRangeMonthCell';
+import { NbCalendarRangeYearCell } from './CalendarRangeYearCell';
 
-export type NbCalendarRangeProps = {
+export type NbCalendarRangeProps<D extends Date | Moment> = {
   locale?: string;
-  range?: NbCalRange;
-  min?: Date;
-  max?: Date;
-  filter?: (date: Date) => boolean;
+  range?: NbCalRange<D>;
+  min?: D;
+  max?: D;
+  filter?: (date: D) => boolean;
   startView?: NbCalendarViewModeValues;
   boundingMonth?: boolean;
-  visibleDate?: Date;
+  visibleDate?: D;
   showNavigation?: boolean;
   size?: NbCalendarSize;
   showWeekNumber?: boolean;
   weekNumberSymbol?: string;
-  rangeChange?: (range: NbCalRange) => void;
-  dayCellType?: React.FC<NbCalendarCellProps>;
-  monthCellType?: React.FC<NbCalendarCellProps>;
-  yearCellType?: React.FC<NbCalendarCellProps>;
+  rangeChange?: (range: NbCalRange<D>) => void;
+  dayCellType?: React.FC<NbCalendarCellProps<D>>;
+  monthCellType?: React.FC<NbCalendarCellProps<D>>;
+  yearCellType?: React.FC<NbCalendarCellProps<D>>;
+  dateType?: NbDateTypes;
 };
 
-const NbCalendarRange: React.FC<NbCalendarRangeProps> = ({
+function NbCalendarRange<D extends Date | Moment>({
   locale = DEFAULT_LOCALE,
   range = { start: null, end: null },
   min,
@@ -43,13 +50,14 @@ const NbCalendarRange: React.FC<NbCalendarRangeProps> = ({
   rangeChange,
   dayCellType,
   monthCellType,
-  yearCellType
-}) => {
+  yearCellType,
+  dateType = NbDateTypes.Date
+}: NbCalendarRangeProps<D>) {
   return (
     <NbBaseCalendar
       locale={locale}
       date={range}
-      dateChange={(range) => rangeChange && rangeChange(range as NbCalRange)}
+      dateChange={(range) => rangeChange && rangeChange(range as NbCalRange<D>)}
       min={min}
       max={max}
       filter={filter}
@@ -60,11 +68,13 @@ const NbCalendarRange: React.FC<NbCalendarRangeProps> = ({
       size={size}
       showWeekNumber={showWeekNumber}
       weekNumberSymbol={weekNumberSymbol}
-      dayCellType={dayCellType}
-      monthCellType={monthCellType}
-      yearCellType={yearCellType}
+      dayCellType={dayCellType ?? NbCalendarRangeDayCell}
+      monthCellType={monthCellType ?? NbCalendarRangeMonthCell}
+      yearCellType={yearCellType ?? NbCalendarRangeYearCell}
+      dateType={dateType}
+      pickerType={NbPickerType.Range}
     />
   );
-};
+}
 
 export { NbCalendarRange };

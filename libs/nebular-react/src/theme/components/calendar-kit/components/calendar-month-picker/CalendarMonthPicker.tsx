@@ -1,19 +1,20 @@
 import classNames from 'classnames';
-import React, { useContext, useLayoutEffect, useState } from 'react';
+import { Moment } from 'moment';
+import { useLayoutEffect, useState } from 'react';
 import { batch } from '../../helpers';
 import { MONTHS_IN_VIEW, MONTHS_IN_COLUMN, useDateService } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
+import { useCalendarPickerContext } from '../../model';
 import { NbCalendarPicker } from '../calendar-picker';
 import { NbCalendarMonthCell } from './CalendarMonthCell';
 
-export type NbCalendarMonthPickerProps = {
-  month: Date;
+export type NbCalendarMonthPickerProps<D> = {
+  month: D;
 };
 
-const NbCalendarMonthPicker: React.FC<NbCalendarMonthPickerProps> = ({ month }) => {
-  const { locale, size, monthChange, monthCellType } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
-  const [monthsValue, setMonthsValue] = useState<Date[][]>();
+function NbCalendarMonthPicker<D extends Date | Moment>({ month }: NbCalendarMonthPickerProps<D>) {
+  const { locale, size, monthChange, monthCellType, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
+  const [monthsValue, setMonthsValue] = useState<D[][]>();
 
   useLayoutEffect(() => {
     const _date = dateService.getDate(month);
@@ -26,7 +27,7 @@ const NbCalendarMonthPicker: React.FC<NbCalendarMonthPickerProps> = ({ month }) 
     }
 
     const _months = batch(months, MONTHS_IN_COLUMN);
-    setMonthsValue(_months);
+    setMonthsValue(_months as D[][]);
   }, [month]);
 
   return (
@@ -38,6 +39,6 @@ const NbCalendarMonthPicker: React.FC<NbCalendarMonthPickerProps> = ({ month }) 
       <NbCalendarPicker cellType={monthCellType ?? NbCalendarMonthCell} data={monthsValue} onSelect={monthChange} />
     </div>
   );
-};
+}
 
 export { NbCalendarMonthPicker };

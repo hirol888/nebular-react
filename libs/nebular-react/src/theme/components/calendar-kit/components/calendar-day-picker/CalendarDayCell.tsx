@@ -1,16 +1,11 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import { Moment } from 'moment';
 import { useDateService } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
+import { useCalendarPickerContext, NbCalendarCellProps } from '../../model';
 
-export type NbCalendarCellProps = {
-  date?: Date;
-  onSelect?: (date: Date) => void;
-};
-
-const NbCalendarDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, selectedValue, visibleDate, min, max, size, filter } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarDayCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>): JSX.Element {
+  const { locale, selectedValue, visibleDate, min, max, size, filter, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
   const day = date && dateService.getDate(date);
 
   const smallerThanMin = (): boolean => {
@@ -42,7 +37,7 @@ const NbCalendarDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) =>
       className={classNames('nb-calendar-day-cell', 'day-cell', {
         today: dateService.isSameDaySafe(date, dateService.today()),
         'bounding-month': !dateService.isSameMonthSafe(date, visibleDate),
-        selected: dateService.isSameDaySafe(date, selectedValue as Date),
+        selected: dateService.isSameDaySafe(date, selectedValue as D),
         empty: !date,
         disabled: isDisabled(),
         'size-large': size === 'large'
@@ -52,6 +47,6 @@ const NbCalendarDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) =>
       <div className="cell-content">{day}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarDayCell };

@@ -1,10 +1,11 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
-import { CalendarPickerContext, NbCalendarCellProps, NbCalRange, useDateService } from '../calendar-kit';
+import { Moment } from 'moment';
+import { useCalendarPickerContext, NbCalendarCellProps, NbCalRange } from '../calendar-kit';
+import { useDateService } from '../calendar-kit/hooks';
 
-const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, size, selectedValue, min, max } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarRangeMonthCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, size, selectedValue, min, max, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
   const isSelected = (): boolean => {
     if (inRange()) {
@@ -12,7 +13,7 @@ const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelec
     }
 
     if (selectedValue) {
-      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange).start);
+      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange<D>).start);
     }
 
     return false;
@@ -20,16 +21,16 @@ const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelec
 
   const inRange = (): boolean => {
     if (hasRange()) {
-      return isInRange(date, selectedValue as NbCalRange);
+      return isInRange(date, selectedValue as NbCalRange<D>);
     }
     return false;
   };
 
   const hasRange = (): boolean => {
-    return !!(selectedValue && (selectedValue as NbCalRange).start && (selectedValue as NbCalRange).end);
+    return !!(selectedValue && (selectedValue as NbCalRange<D>).start && (selectedValue as NbCalRange<D>).end);
   };
 
-  const isInRange = (date: Date | undefined, { start, end }: NbCalRange): boolean => {
+  const isInRange = (date: D | undefined, { start, end }: NbCalRange<D>): boolean => {
     if (date && start && end) {
       const cellMonth = dateService.getMonthStart(date);
       const startMonth = dateService.getMonthStart(start);
@@ -46,14 +47,14 @@ const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelec
 
   const rangeStart = (): boolean => {
     if (hasRange()) {
-      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange).start);
+      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange<D>).start);
     }
     return false;
   };
 
   const rangeEnd = (): boolean => {
     if (hasRange()) {
-      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange).end);
+      return !!dateService.isSameMonthSafe(date, (selectedValue as NbCalRange<D>).end);
     }
     return false;
   };
@@ -74,12 +75,12 @@ const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelec
     return !!(date && max && dateService.compareDates(monthStart(), max) > 0);
   };
 
-  const monthStart = (): Date => {
-    return dateService.getMonthStart(date!);
+  const monthStart = (): D => {
+    return dateService.getMonthStart(date!) as D;
   };
 
-  const monthEnd = (): Date => {
-    return dateService.getMonthEnd(date!);
+  const monthEnd = (): D => {
+    return dateService.getMonthEnd(date!) as D;
   };
 
   const month = dateService.getMonthName(date!);
@@ -108,6 +109,6 @@ const NbCalendarRangeMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelec
       <div className="cell-content">{month}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarRangeMonthCell };

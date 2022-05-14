@@ -1,36 +1,33 @@
 import {
   NbButton,
   NbCalendar,
-  NbCalendarDayCell,
-  NbCalendarMonthCell,
   NbCalendarRange,
-  NbCalendarRangeDayCell,
-  NbCalendarRangeMonthCell,
-  NbCalendarRangeYearCell,
   NbCalendarSize,
-  NbCalendarYearCell,
   NbCalRange,
   NbCard,
   NbCardBody,
-  NbCardHeader,
-  useDateService
+  NbCardHeader
 } from '@nebular-react';
+import { useDateService } from 'libs/nebular-react/src/theme/components/calendar-kit/hooks';
 import React, { useState } from 'react';
 
 const CalendarWeekNumber: React.FC = () => {
   const dateService = useDateService();
   const date = new Date();
-  const range = { start: dateService.addDays(date, -1), end: dateService.addDays(date, 1) };
+  const range: NbCalRange<Date> = {
+    start: dateService.addDays(date, -1) as Date,
+    end: dateService.addDays(date, 1) as Date
+  };
   const [selectedDate, setSelectedDate] = useState<Date>(date);
   const [size, setSize] = useState<NbCalendarSize>('medium');
   const [showWeekNumber, setShowWeekNumber] = useState<boolean>(false);
-  const [selectedRange, setSelectedRange] = useState<NbCalRange>(range);
+  const [selectedRange, setSelectedRange] = useState<NbCalRange<Date>>(range);
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
   };
 
-  const handleRangeChange = (range: NbCalRange) => {
+  const handleRangeChange = (range: NbCalRange<Date>) => {
     setSelectedRange(range);
   };
 
@@ -57,23 +54,12 @@ const CalendarWeekNumber: React.FC = () => {
           <NbButton onClick={toggleWeekNumber}>{showWeekNumber ? 'hide' : 'show'} week number column</NbButton>
         </div>
         <div className="example-items-rows">
-          <NbCalendar
-            date={date}
-            showWeekNumber={showWeekNumber}
-            size={size}
-            dateChange={handleDateChange}
-            dayCellType={NbCalendarDayCell}
-            monthCellType={NbCalendarMonthCell}
-            yearCellType={NbCalendarYearCell}
-          />
-          <NbCalendarRange
+          <NbCalendar<Date> date={date} showWeekNumber={showWeekNumber} size={size} dateChange={handleDateChange} />
+          <NbCalendarRange<Date>
             range={range}
             showWeekNumber={showWeekNumber}
             size={size}
             rangeChange={handleRangeChange}
-            dayCellType={NbCalendarRangeDayCell}
-            monthCellType={NbCalendarRangeMonthCell}
-            yearCellType={NbCalendarRangeYearCell}
           />
         </div>
       </NbCardBody>

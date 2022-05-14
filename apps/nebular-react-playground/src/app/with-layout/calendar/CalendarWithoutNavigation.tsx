@@ -1,12 +1,4 @@
-import {
-  NbCalendar,
-  NbCalendarDayCell,
-  NbCalendarMonthCell,
-  NbCalendarYearCell,
-  NbCard,
-  NbCardBody,
-  NbCardHeader
-} from '@nebular-react';
+import { NbCalendar, NbCard, NbCardBody, NbCardHeader } from '@nebular-react';
 import React, { useState } from 'react';
 
 const CalendarWithoutNavigation: React.FC = () => {
@@ -23,15 +15,7 @@ const CalendarWithoutNavigation: React.FC = () => {
         <h1 className="h5">Selected date: {selectedDate?.toLocaleDateString()}</h1>
       </NbCardHeader>
       <NbCardBody>
-        <NbCalendar
-          date={date}
-          showNavigation={false}
-          showWeekNumber={true}
-          dateChange={handleDateChange}
-          dayCellType={NbCalendarDayCell}
-          monthCellType={NbCalendarMonthCell}
-          yearCellType={NbCalendarYearCell}
-        />
+        <NbCalendar<Date> date={date} showNavigation={false} showWeekNumber={true} dateChange={handleDateChange} />
       </NbCardBody>
     </NbCard>
   );

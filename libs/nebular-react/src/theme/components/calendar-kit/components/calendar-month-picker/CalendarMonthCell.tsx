@@ -1,12 +1,11 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import { Moment } from 'moment';
 import { useDateService } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
-import { NbCalendarCellProps } from '../calendar-day-picker';
+import { NbCalendarCellProps, useCalendarPickerContext } from '../../model';
 
-const NbCalendarMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, selectedValue, min, max, size } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarMonthCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, selectedValue, min, max, size, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
   const month = dateService.getMonthName(date!);
 
   const smallerThanMin = (): boolean | undefined => {
@@ -32,7 +31,7 @@ const NbCalendarMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) 
   return (
     <div
       className={classNames('nb-calendar-month-cell', 'month-cell', {
-        selected: dateService.isSameMonthSafe(date, selectedValue as Date),
+        selected: dateService.isSameMonthSafe(date, selectedValue as D),
         today: dateService.isSameMonthSafe(date, dateService.today()),
         disabled: isDisabled(),
         'size-large': size === 'large'
@@ -42,6 +41,6 @@ const NbCalendarMonthCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) 
       <div className="cell-content">{month}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarMonthCell };

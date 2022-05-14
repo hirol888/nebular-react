@@ -14,9 +14,15 @@ const CalendarKitFullCalendar: React.FC = () => {
     <NbCard>
       <NbCardBody>
         <CalendarPickerContext.Provider
-          value={{ selectedValue, visibleDate: month, dateChange: handleSelect, monthCellType: CalendarKitMonthCell }}
+          value={{
+            locale: 'en-US',
+            selectedValue,
+            visibleDate: month,
+            dateChange: handleSelect,
+            monthCellType: CalendarKitMonthCell
+          }}
         >
-          <NbCalendarMonthPicker month={month} />
+          <NbCalendarMonthPicker<Date> month={month} />
         </CalendarPickerContext.Provider>
       </NbCardBody>
     </NbCard>

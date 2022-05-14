@@ -1,7 +1,21 @@
-
-import { injectable } from "inversify";
-import { debounceTime, delay, EMPTY, filter, fromEvent, map, merge, Observable, repeat, share, Subject, switchMap, takeUntil, takeWhile } from "rxjs";
-import { _getEventTarget } from "../platform";
+import { injectable } from 'inversify';
+import {
+  debounceTime,
+  delay,
+  EMPTY,
+  filter,
+  fromEvent,
+  map,
+  merge,
+  Observable,
+  repeat,
+  share,
+  Subject,
+  switchMap,
+  takeUntil,
+  takeWhile
+} from 'rxjs';
+import { _getEventTarget } from '../platform';
 
 export type NbTriggerValues = 'noop' | 'click' | 'hover' | 'hint' | 'focus';
 export enum NbTrigger {
@@ -9,7 +23,7 @@ export enum NbTrigger {
   CLICK = 'click',
   HOVER = 'hover',
   HINT = 'hint',
-  FOCUS = 'focus',
+  FOCUS = 'focus'
 }
 
 /**
@@ -41,16 +55,16 @@ export abstract class NbTriggerStrategyBase implements NbTriggerStrategy {
   }
 
   protected isOnHost({ target }: Event): boolean {
-    return this.host.contains(target as Node);
+    return this.host.outerHTML.indexOf((target as HTMLElement).outerHTML) > 0;
   }
 
   protected isOnContainer(event: Event): boolean {
     const _pane = document.getElementById(this.paneId);
-    return _pane ? _pane.contains(_getEventTarget(event)) : false;
+    return _pane ? _pane.outerHTML.indexOf((_getEventTarget(event) as HTMLElement).outerHTML) > 0 : false;
   }
 
   protected isSourceDisabled() {
-    return this.source.hasAttribute('disabled') || this.source.classList.contains('disabled')
+    return this.source.hasAttribute('disabled') || this.source.classList.contains('disabled');
   }
 
   protected paneAppended() {
@@ -64,11 +78,7 @@ export abstract class NbTriggerStrategyBase implements NbTriggerStrategy {
   abstract show$: Observable<Event>;
   abstract hide$: Observable<Event>;
 
-  constructor(
-    protected host: HTMLElement,
-    protected paneId: string,
-    protected source: HTMLElement
-  ) { }
+  constructor(protected host: HTMLElement, protected paneId: string, protected source: HTMLElement) {}
 }
 
 /**
@@ -86,19 +96,19 @@ export class NbClickTriggerStrategy extends NbTriggerStrategyBase {
     filter(() => !this.isSourceDisabled()),
     map((event: Event) => [!this.paneAppended() && this.isOnHost(event), event] as [boolean, Event]),
     share(),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   readonly show$: Observable<Event> = this.click$.pipe(
     filter(([shouldShow]) => shouldShow),
     map(([, event]) => event),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   readonly hide$: Observable<Event> = this.click$.pipe(
     filter(([shouldShow, event]) => !shouldShow && !this.isOnContainer(event)),
     map(([, event]) => event),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 }
 
@@ -114,7 +124,7 @@ export class NbHoverTriggerStrategy extends NbTriggerStrategyBase {
     delay(100),
     takeUntil(fromEvent(this.host, 'mouseleave')),
     repeat(),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   hide$: Observable<Event> = fromEvent<Event>(this.host, 'mouseleave').pipe(
@@ -122,10 +132,10 @@ export class NbHoverTriggerStrategy extends NbTriggerStrategyBase {
       fromEvent<Event>(document, 'mousemove').pipe(
         debounceTime(100),
         // takeWhile(() => !!this.container()),
-        filter((event) => this.isNotOnHostOrContainer(event)),
-      ),
+        filter((event) => this.isNotOnHostOrContainer(event))
+      )
     ),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 }
 
@@ -141,7 +151,7 @@ export class NbHintTriggerStrategy extends NbTriggerStrategyBase {
     delay(100),
     takeUntil(fromEvent(this.host, 'mouseleave')),
     repeat(),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   hide$: Observable<Event> = fromEvent(this.host, 'mouseleave').pipe(takeUntil(this.destroyed$));
@@ -157,15 +167,13 @@ export class NbFocusTriggerStrategy extends NbTriggerStrategyBase {
     switchMap(() =>
       fromEvent<Event>(document, 'focusin').pipe(
         takeWhile(() => this.paneAppended()),
-        filter((event) => this.isNotOnHostOrContainer(event)),
-      ),
+        filter((event) => this.isNotOnHostOrContainer(event))
+      )
     ),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
-  protected clickIn$: Observable<Event> = fromEvent<Event>(this.host, 'click').pipe(
-    takeUntil(this.destroyed$),
-  );
+  protected clickIn$: Observable<Event> = fromEvent<Event>(this.host, 'click').pipe(takeUntil(this.destroyed$));
 
   protected clickOut$: Observable<Event> = fromEvent<Event>(document, 'click').pipe(
     /**
@@ -178,19 +186,19 @@ export class NbFocusTriggerStrategy extends NbTriggerStrategyBase {
       }
       return false;
     }),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   protected tabKeyPress$: Observable<Event> = fromEvent<Event>(document, 'keydown').pipe(
     filter((event: Event) => (event as KeyboardEvent).keyCode === 9),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   show$: Observable<Event> = merge(fromEvent<Event>(this.host, 'focusin'), this.clickIn$).pipe(
     debounceTime(100),
     takeUntil(fromEvent(this.host, 'focusout')),
     repeat(),
-    takeUntil(this.destroyed$),
+    takeUntil(this.destroyed$)
   );
 
   hide$ = merge(this.focusOut$, this.tabKeyPress$, this.clickOut$).pipe(takeUntil(this.destroyed$));

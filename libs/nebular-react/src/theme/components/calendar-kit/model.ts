@@ -1,5 +1,6 @@
+import { Moment } from 'moment';
 import React from 'react';
-import { NbCalendarCellProps } from './components';
+import { DEFAULT_LOCALE } from './hooks/date-moment';
 
 export type NbCalendarSize = 'medium' | 'large';
 
@@ -10,25 +11,83 @@ export type NbCalendarDay = {
   isHoliday: boolean;
 };
 
-export interface NbCalRange {
-  start: Date | null;
-  end?: Date | null;
+export interface NbCalRange<D extends Date | Moment> {
+  start: D | null;
+  end?: D | null;
 }
 
-export type CalendarPickerContextProps = {
-  locale?: string;
-  min?: Date;
-  max?: Date;
-  filter?: (date: Date) => boolean;
-  size?: NbCalendarSize;
-  selectedValue?: Date | NbCalRange;
-  visibleDate?: Date;
-  dateChange?: (date: Date) => void;
-  monthChange?: (date: Date) => void;
-  yearChange?: (date: Date) => void;
-  dayCellType?: React.FC<NbCalendarCellProps>;
-  monthCellType?: React.FC<NbCalendarCellProps>;
-  yearCellType?: React.FC<NbCalendarCellProps>;
+export type NbCalendarCellProps<D extends Date | Moment> = {
+  date?: D;
+  onSelect?: (date: D) => void;
 };
 
-export const CalendarPickerContext = React.createContext<CalendarPickerContextProps>({});
+export enum NbDateTypes {
+  Date,
+  Moment
+}
+
+export enum NbPickerType {
+  Date,
+  Range
+}
+
+export type CalendarPickerContextProps<D extends Date | Moment> = {
+  locale: string;
+  min?: D;
+  max?: D;
+  filter?: (date: D) => boolean;
+  size?: NbCalendarSize;
+  selectedValue: D | NbCalRange<D> | null;
+  visibleDate?: D;
+  dateChange?: (date: D) => void;
+  monthChange?: (date: D) => void;
+  yearChange?: (date: D) => void;
+  dayCellType?: React.FC<NbCalendarCellProps<D>>;
+  monthCellType?: React.FC<NbCalendarCellProps<D>>;
+  yearCellType?: React.FC<NbCalendarCellProps<D>>;
+  dateType: NbDateTypes;
+  pickerType: NbPickerType;
+};
+
+export const CalendarPickerContext = React.createContext<Partial<CalendarPickerContextProps<any>>>({});
+
+export function createCalendarPickerContext<D extends Date | Moment>(
+  locale: string = DEFAULT_LOCALE,
+  dateType = NbDateTypes.Date,
+  pickerType = NbPickerType.Date
+) {
+  return React.createContext<CalendarPickerContextProps<D>>({ locale, selectedValue: null, dateType, pickerType });
+}
+
+export function useCalendarPickerContext<D extends Date | Moment>() {
+  const context = React.useContext<CalendarPickerContextProps<D>>(
+    CalendarPickerContext as unknown as React.Context<CalendarPickerContextProps<D>>
+  );
+  if (!context) {
+    throw new Error('useCalendarPickerContext must be used under CalendarPickerContextProvider');
+  }
+
+  return context;
+}
+
+// export function CalendarPickerContextProvider<D extends Date | Moment>({
+//   locale = DEFAULT_LOCALE,
+//   min,
+//   max,
+//   filter,
+//   size,
+//   selectedValue,
+//   visibleDate,
+//   dateChange,
+//   monthChange,
+//   yearChange,
+//   dayCellType,
+//   monthCellType,
+//   yearCellType,
+//   dateType = DateTypes.Date,
+//   children
+// }: React.PropsWithChildren<CalendarPickerContextProps<D>>) {
+//   return <CalendarPickerContext.Provider value={{ locale, min, max, filter, size, selectedValue, visibleDate, dateChange, monthChange, yearChange, dayCellType, monthCellType, yearCellType, dateType}}>{children}</CalendarPickerContext.Provider>
+// }
+
+// export const CalendarPickerContext = React.createContext<CalendarPickerContextProps>({});

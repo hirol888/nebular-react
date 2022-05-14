@@ -1,18 +1,18 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
-import { CalendarPickerContext } from '../../model';
-import { NbCalendarCellProps } from '../calendar-day-picker';
+import React from 'react';
+import { useCalendarPickerContext, NbCalendarCellProps } from '../../model';
 import { NbCalendarPickerRow } from './CalendarPickerRow';
 import * as _ from 'lodash';
+import { Moment } from 'moment';
 
-export type NbCalendarPickerProps = {
-  data: (Date | null)[][] | undefined;
-  cellType: React.FC<NbCalendarCellProps>;
-  onSelect?: (date: Date) => void;
+export type NbCalendarPickerProps<D extends Date | Moment> = {
+  data: (D | null)[][] | undefined;
+  cellType: React.FC<NbCalendarCellProps<D>>;
+  onSelect?: (date: D) => void;
 };
 
-const NbCalendarPicker: React.FC<NbCalendarPickerProps> = ({ data, cellType, onSelect }) => {
-  const { size } = useContext(CalendarPickerContext);
+function NbCalendarPicker<D extends Date | Moment>({ data, cellType, onSelect }: NbCalendarPickerProps<D>) {
+  const { size } = useCalendarPickerContext<D>();
 
   return (
     <div
@@ -32,6 +32,6 @@ const NbCalendarPicker: React.FC<NbCalendarPickerProps> = ({ data, cellType, onS
       })}
     </div>
   );
-};
+}
 
 export { NbCalendarPicker };

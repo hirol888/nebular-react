@@ -30,7 +30,7 @@
 @import '../../components/button/button.theme';
 @import '../../components/button-group/button-toggle.theme';
 @import '../../components/button-group/button-group.theme';
-// @import '../../components/list/list.component.theme';
+@import '../../components/list/list.theme';
 @import '../../components/input/input.theme';
 @import '../../../core/cdk/overlay/overlay.theme';
 // @import '../../components/popover/popover.component.theme';
@@ -39,11 +39,11 @@
 @import '../../components/option/option-list.theme';
 // @import '../../components/toastr/toast.component.theme';
 // @import '../../components/tooltip/tooltip.component.theme';
-// @import '../../components/datepicker/datepicker-container.component.theme';
+@import '../../components/datepicker/datepicker-container.theme';
 // @import '../../components/radio/radio.component.theme';
 // @import '../../components/tree-grid/tree-grid.component.theme';
 @import '../../components/icon/icon.theme';
-// @import '../../components/form-field/form-field.component.theme';
+@import '../../components/form-field/form-field.theme';
 // @import '../../components/timepicker/timepicker.component.theme';
 
 @mixin nb-theme-components() {
@@ -73,7 +73,7 @@
   @include nb-buttons-theme();
   @include nb-buttons-toggle-theme();
   @include nb-buttons-group-theme();
-  // @include nb-list-theme();
+  @include nb-list-theme();
   @include nb-input-theme();
   @include nb-overlay-theme();
   // @include nb-popover-theme();
@@ -82,10 +82,10 @@
   @include nb-option-list-theme();
   // @include nb-toast-theme();
   // @include nb-tooltip-theme();
-  // @include nb-datepicker-theme();
+  @include nb-datepicker-theme();
   // @include nb-radio-theme();
   // @include nb-tree-grid-theme();
   @include nb-icon-theme();
-  // @include nb-form-field-theme();
+  @include nb-form-field-theme();
   // @include nb-tags-theme();
 }

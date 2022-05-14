@@ -44,7 +44,12 @@ const TYPES = {
   NbIconLibraries: Symbol.for('NbIconLibraries'),
   NbSidebarService: Symbol.for('NbSidebarService'),
   NbMenuService: Symbol.for('NbMenuService'),
-  NbMenuInternalService: Symbol.for('NbMenuInternalService')
-}
+  NbMenuInternalService: Symbol.for('NbMenuInternalService'),
 
-export { TYPES }
+  /**
+   * constants
+   */
+  LOCALE: Symbol.for('LOCALE')
+};
+
+export { TYPES };

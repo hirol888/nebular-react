@@ -1,23 +1,24 @@
 import classNames from 'classnames';
-import React, { useContext, useEffect, useState } from 'react';
-import { useDateService } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
+import { useEffect, useState } from 'react';
+import { useCalendarPickerContext } from '../../model';
 import * as _ from 'lodash';
 import './calendar-week-number.scss';
+import { Moment } from 'moment';
+import { useDateService } from '../../hooks';
 
-export type NbCalendarWeekNumberProps = {
-  data: (Date | null)[][];
+export type NbCalendarWeekNumberProps<D extends Date | Moment> = {
+  data: (D | null)[][];
   weekNumberSymbol?: string;
 };
 
-const NbCalendarWeekNumber: React.FC<NbCalendarWeekNumberProps> = ({ data, weekNumberSymbol }) => {
+function NbCalendarWeekNumber<D extends Date | Moment>({ data, weekNumberSymbol }: NbCalendarWeekNumberProps<D>) {
   const [weekNumbers, setWeekNumbers] = useState<number[]>([]);
-  const { locale, size } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+  const { locale, size, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
   useEffect(() => {
-    const _weekNumbers = data.map((week: (Date | null)[]) => {
-      const lastDay = [...week].reverse().find((day: Date | null) => !!day);
+    const _weekNumbers = data.map((week: (D | null)[]) => {
+      const lastDay = [...week].reverse().find((day: D | null) => !!day);
       return dateService.getWeekNumber(lastDay!);
     });
 
@@ -42,6 +43,6 @@ const NbCalendarWeekNumber: React.FC<NbCalendarWeekNumberProps> = ({ data, weekN
       })}
     </div>
   );
-};
+}
 
 export { NbCalendarWeekNumber };

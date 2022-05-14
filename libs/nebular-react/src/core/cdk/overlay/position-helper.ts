@@ -1,28 +1,67 @@
-import { injectable } from "inversify";
-import { NbLayoutDirectionService } from "../../services";
+import { injectable } from 'inversify';
+import { NbLayoutDirectionService } from '../../services';
 
+export type NbAdjustmentValues = 'noop' | 'clockwise' | 'counterclockwise' | 'vertical' | 'horizontal';
+export enum NbAdjustment {
+  NOOP = 'noop',
+  CLOCKWISE = 'clockwise',
+  COUNTERCLOCKWISE = 'counterclockwise',
+  VERTICAL = 'vertical',
+  HORIZONTAL = 'horizontal'
+}
 
+// eslint-disable-next-line max-len
+export type NbPositionValues =
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'start'
+  | 'end'
+  | 'top-end'
+  | 'top-start'
+  | 'bottom-end'
+  | 'bottom-start'
+  | 'end-top'
+  | 'end-bottom'
+  | 'start-top'
+  | 'start-bottom';
+export enum NbPosition {
+  TOP = 'top',
+  BOTTOM = 'bottom',
+  LEFT = 'left',
+  RIGHT = 'right',
+  START = 'start',
+  END = 'end',
+  TOP_END = 'top-end',
+  TOP_START = 'top-start',
+  BOTTOM_END = 'bottom-end',
+  BOTTOM_START = 'bottom-start',
+  END_TOP = 'end-top',
+  END_BOTTOM = 'end-bottom',
+  START_TOP = 'start-top',
+  START_BOTTOM = 'start-bottom'
+}
 
 export enum NbGlobalLogicalPosition {
   TOP_START = 'top-start',
   TOP_END = 'top-end',
   BOTTOM_START = 'bottom-start',
-  BOTTOM_END = 'bottom-end',
+  BOTTOM_END = 'bottom-end'
 }
 
 export enum NbGlobalPhysicalPosition {
   TOP_RIGHT = 'top-right',
   TOP_LEFT = 'top-left',
   BOTTOM_RIGHT = 'bottom-right',
-  BOTTOM_LEFT = 'bottom-left',
+  BOTTOM_LEFT = 'bottom-left'
 }
 
 export type NbGlobalPosition = NbGlobalPhysicalPosition | NbGlobalLogicalPosition;
 
 @injectable()
 export class NbPositionHelper {
-  constructor(protected layoutDirection: NbLayoutDirectionService) {
-  }
+  constructor(protected layoutDirection: NbLayoutDirectionService) {}
 
   toLogicalPosition(position: NbGlobalPosition): NbGlobalLogicalPosition {
     if (Object.values(NbGlobalLogicalPosition).includes(position as NbGlobalLogicalPosition)) {
@@ -51,15 +90,16 @@ export class NbPositionHelper {
   isTopPosition(position: NbGlobalPosition) {
     const logicalPosition = this.toLogicalPosition(position);
 
-    return logicalPosition === NbGlobalLogicalPosition.TOP_END
-      || logicalPosition === NbGlobalLogicalPosition.TOP_START;
+    return logicalPosition === NbGlobalLogicalPosition.TOP_END || logicalPosition === NbGlobalLogicalPosition.TOP_START;
   }
 
   isRightPosition(position: NbGlobalPosition) {
     const physicalPosition = this.toPhysicalPosition(position);
 
-    return physicalPosition === NbGlobalPhysicalPosition.TOP_RIGHT
-      || physicalPosition === NbGlobalPhysicalPosition.BOTTOM_RIGHT;
+    return (
+      physicalPosition === NbGlobalPhysicalPosition.TOP_RIGHT ||
+      physicalPosition === NbGlobalPhysicalPosition.BOTTOM_RIGHT
+    );
   }
 
   protected toLogicalPositionWhenLtr(position: NbGlobalPhysicalPosition): NbGlobalLogicalPosition {
@@ -113,4 +153,21 @@ export class NbPositionHelper {
         return NbGlobalPhysicalPosition.BOTTOM_LEFT;
     }
   }
+}
+
+export function getContainerPositionClasses(position: NbPosition) {
+  return {
+    'nb-overlay-top': position === NbPosition.TOP,
+    'nb-overlay-top-start': position === NbPosition.TOP_START,
+    'nb-overlay-top-end': position === NbPosition.TOP_END,
+    'nb-overlay-right': position === NbPosition.RIGHT || position === NbPosition.END,
+    'nb-overlay-end-top': position === NbPosition.END_TOP,
+    'nb-overlay-end-bottom': position === NbPosition.END_BOTTOM,
+    'nb-overlay-bottom': position === NbPosition.BOTTOM,
+    'nb-overlay-bottom-start': position === NbPosition.BOTTOM_START,
+    'nb-overlay-bottom-end': position === NbPosition.BOTTOM_END,
+    'nb-overlay-left': position === NbPosition.LEFT || position === NbPosition.START,
+    'nb-overlay-start-top': position === NbPosition.START_TOP,
+    'nb-overlay-start-bottom': position === NbPosition.START_BOTTOM
+  };
 }

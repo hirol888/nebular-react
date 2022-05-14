@@ -1,25 +1,16 @@
-import {
-  NbCalendarRange,
-  NbCalendarRangeDayCell,
-  NbCalendarRangeMonthCell,
-  NbCalendarRangeYearCell,
-  NbCalRange,
-  NbCard,
-  NbCardBody,
-  NbCardHeader,
-  useDateService
-} from '@nebular-react';
+import { NbCalendarRange, NbCalRange, NbCard, NbCardBody, NbCardHeader } from '@nebular-react';
+import { useDateService } from 'libs/nebular-react/src/theme/components/calendar-kit/hooks';
 import React, { useState } from 'react';
 
 const CalendarRangeShowcase: React.FC = () => {
-  const dateService = useDateService('en-US');
-  const range = {
-    start: dateService.addDays(dateService.getMonthStart(new Date()), 3),
-    end: dateService.addDays(dateService.getMonthEnd(new Date()), -3)
+  const dateService = useDateService();
+  const range: NbCalRange<Date> = {
+    start: dateService.addDays(dateService.getMonthStart(new Date()), 3) as Date,
+    end: dateService.addDays(dateService.getMonthEnd(new Date()), -3) as Date
   };
-  const [selectedRange, setSelectedRange] = useState<NbCalRange>({ start: null, end: null });
+  const [selectedRange, setSelectedRange] = useState<NbCalRange<Date>>({ start: null, end: null });
 
-  const handleRangeChange = (range: NbCalRange) => {
+  const handleRangeChange = (range: NbCalRange<Date>) => {
     setSelectedRange(range);
   };
 
@@ -31,13 +22,7 @@ const CalendarRangeShowcase: React.FC = () => {
         </h1>
       </NbCardHeader>
       <NbCardBody>
-        <NbCalendarRange
-          range={range}
-          rangeChange={handleRangeChange}
-          dayCellType={NbCalendarRangeDayCell}
-          monthCellType={NbCalendarRangeMonthCell}
-          yearCellType={NbCalendarRangeYearCell}
-        />
+        <NbCalendarRange<Date> range={range} rangeChange={handleRangeChange} />
       </NbCardBody>
     </NbCard>
   );

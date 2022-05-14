@@ -118,6 +118,15 @@ import {
   CalendarWeekNumber,
   CalendarWithoutNavigation
 } from './with-layout/calendar';
+import {
+  DatepickerFilter,
+  DatepickerShowcase,
+  DatepickerValidation,
+  RangepickerShowcase
+} from './with-layout/datepicker';
+import { FormFieldInput, FormFieldPassword, FormFieldShowcase } from './with-layout/form-field';
+import { SimpleListShowcase } from './with-layout/list';
+import { InfiniteListScrollModes, InfiniteListShowcase } from './with-layout/infinite-list';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -321,6 +330,12 @@ export function App() {
         <Route path="/checkbox/checkbox-statuses" element={WithLayout(CheckboxStatuses, onRouteChange)} />
         <Route path="/checkbox/checkbox-test" element={WithLayout(CheckboxTest, onRouteChange)} />
         {/* End Checkbox */}
+        {/* Datepicker */}
+        <Route path="/datepicker/datepicker-filter" element={WithLayout(DatepickerFilter, onRouteChange)} />
+        <Route path="/datepicker/datepicker-showcase" element={WithLayout(DatepickerShowcase, onRouteChange)} />
+        <Route path="/datepicker/datepicker-validation" element={WithLayout(DatepickerValidation, onRouteChange)} />
+        <Route path="/datepicker/rangepicker-showcase" element={WithLayout(RangepickerShowcase, onRouteChange)} />
+        {/* End Datepicker */}
         {/* Dialog */}
         <Route path="/dialog/dialog-auto-focus" element={WithLayout(DialogAutoFocus, onRouteChange)} />
         <Route path="/dialog/dialog-backdrop-click" element={WithLayout(DialogBackdropClick, onRouteChange)} />
@@ -329,16 +344,35 @@ export function App() {
         <Route path="/dialog/dialog-scroll" element={WithLayout(DialogScroll, onRouteChange)} />
         <Route path="/dialog/dialog-showcase" element={WithLayout(DialogShowcase, onRouteChange)} />
         {/* End Dialog */}
+        {/* FormField */}
+        <Route path="/form-field/form-field-input" element={WithLayout(FormFieldInput, onRouteChange)} />
+        <Route path="/form-field/form-field-password" element={WithLayout(FormFieldPassword, onRouteChange)} />
+        <Route path="/form-field/form-field-showcase" element={WithLayout(FormFieldShowcase, onRouteChange)} />
+        {/* End FormField */}
         {/* Icon */}
         <Route path="/icon/icon-showcase" element={WithLayout(IconShowcase, onRouteChange)} />
         <Route path="/icon/icon-colors" element={WithLayout(IconColors, onRouteChange)} />
         {/* End Icon */}
+        {/* Infinite List */}
+        {/* <Route
+          path="/infinite-list/infinite-list-placeholders"
+          element={WithLayout(InfiniteListPlaceholders, onRouteChange)}
+        /> */}
+        <Route
+          path="/infinite-list/infinite-list-scroll-modes"
+          element={WithLayout(InfiniteListScrollModes, onRouteChange)}
+        />
+        <Route path="/infinite-list/infinite-list-showcase" element={WithLayout(InfiniteListShowcase, onRouteChange)} />
+        {/* End Infinite List */}
         {/* Input */}
-        <Route path="/input/input-colors" element={<InputColors />} />
-        <Route path="/input/input-shapes" element={<InputShapes />} />
-        <Route path="/input/input-showcase" element={<InputShowcase />} />
-        <Route path="/input/input-sizes" element={<InputSizes />} />
+        <Route path="/input/input-colors" element={WithLayout(InputColors, onRouteChange)} />
+        <Route path="/input/input-shapes" element={WithLayout(InputShapes, onRouteChange)} />
+        <Route path="/input/input-showcase" element={WithLayout(InputShowcase, onRouteChange)} />
+        <Route path="/input/input-sizes" element={WithLayout(InputSizes, onRouteChange)} />
         {/* End Input */}
+        {/* List */}
+        <Route path="/list/simple-list-showcase" element={WithLayout(SimpleListShowcase, onRouteChange)} />
+        {/* End List */}
         {/* Menu */}
         <Route path="/menu/menu-showcase" element={WithLayout(MenuShowcase, onRouteChange)} />
         {/* End Menu */}

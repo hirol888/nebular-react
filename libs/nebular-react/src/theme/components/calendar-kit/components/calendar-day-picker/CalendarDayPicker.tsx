@@ -1,32 +1,34 @@
 import classNames from 'classnames';
-import React, { useContext, useLayoutEffect, useState } from 'react';
-import { useCalendarModel } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
+import { useLayoutEffect, useState } from 'react';
+import { useCalendarPickerContext } from '../../model';
 import { NbCalendarDaysNames } from '../calendar-days-names';
 import { NbCalendarPicker } from '../calendar-picker';
 import { NbCalendarWeekNumber } from '../calendar-week-number';
 import { NbCalendarDayCell } from './CalendarDayCell';
 import './calendar-day-picker.scss';
+import { Moment } from 'moment';
+import { useCalendarModelService } from '../../hooks';
 
-export type NbCalendarDayPickerProps = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type NbCalendarDayPickerProps<D> = {
   boundingMonths?: boolean;
   showWeekNumber?: boolean;
   weekNumberSymbol?: string;
 };
 
-const NbCalendarDayPicker: React.FC<NbCalendarDayPickerProps> = ({
+function NbCalendarDayPicker<D extends Date | Moment>({
   boundingMonths = true,
   showWeekNumber = false,
   weekNumberSymbol
-}) => {
-  const { locale, visibleDate, size, dateChange, dayCellType } = useContext(CalendarPickerContext);
-  const [weeks, setWeeks] = useState<(Date | null)[][]>([]);
-  const calendarModel = useCalendarModel(locale);
+}: NbCalendarDayPickerProps<D>) {
+  const { locale, visibleDate, size, dateChange, dayCellType, dateType } = useCalendarPickerContext<D>();
+  const [weeks, setWeeks] = useState<(D | null)[][]>([]);
+  const calendarModelService = useCalendarModelService(locale, dateType);
 
   useLayoutEffect(() => {
     if (visibleDate || boundingMonths) {
-      const _weeks = calendarModel.createDaysGrid(visibleDate!, boundingMonths);
-      setWeeks(_weeks);
+      const _weeks = calendarModelService.createDaysGrid(visibleDate!, boundingMonths);
+      setWeeks(_weeks as D[][]);
     }
   }, [visibleDate, boundingMonths]);
 
@@ -43,6 +45,6 @@ const NbCalendarDayPicker: React.FC<NbCalendarDayPickerProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export { NbCalendarDayPicker };

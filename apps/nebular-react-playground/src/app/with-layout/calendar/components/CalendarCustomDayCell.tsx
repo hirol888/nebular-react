@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CalendarPickerContext, NbCalendarCellProps, useDateService } from '@nebular-react';
+import { NbCalendarCellProps, useCalendarPickerContext } from '@nebular-react';
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import { useDateService } from 'libs/nebular-react/src/theme/components/calendar-kit/hooks';
+import { Moment } from 'moment';
 
-const CalendarCustomDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, selectedValue, visibleDate, min, max, size, filter } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function CalendarCustomDayCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, selectedValue, visibleDate, min, max, size, filter, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
   const day = date && dateService.getDate(date);
 
   const smallerThanMin = (): boolean => {
@@ -37,7 +38,7 @@ const CalendarCustomDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }
       className={classNames('nb-calendar-day-cell', 'day-cell', {
         today: dateService.isSameDaySafe(date, dateService.today()),
         'bounding-month': !dateService.isSameMonthSafe(date, visibleDate),
-        selected: dateService.isSameDaySafe(date, selectedValue as Date),
+        selected: dateService.isSameDaySafe(date, selectedValue as D),
         empty: !date,
         disabled: isDisabled(),
         'size-large': size === 'large'
@@ -47,13 +48,13 @@ const CalendarCustomDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }
       <div className="cell-content" style={{ flexDirection: 'column' }}>
         <div>{day}</div>
         <span
-          className={classNames('caption', { 'text-control': dateService.isSameDaySafe(date, selectedValue as Date) })}
+          className={classNames('caption', { 'text-control': dateService.isSameDaySafe(date, selectedValue as D) })}
         >
           {(day! + 100) * day!}$
         </span>
       </div>
     </div>
   );
-};
+}
 
 export { CalendarCustomDayCell };

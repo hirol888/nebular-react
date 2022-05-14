@@ -1,27 +1,38 @@
+import { Moment } from 'moment';
 import React from 'react';
-import { DEFAULT_LOCALE, NbCalendarCellProps, NbCalendarSize, NbCalendarViewModeValues } from '../calendar-kit';
+import {
+  NbDateTypes,
+  NbCalendarCellProps,
+  NbCalendarSize,
+  NbCalendarViewModeValues,
+  NbCalendarDayCell,
+  NbCalendarMonthCell,
+  NbCalendarYearCell
+} from '../calendar-kit';
+import { DEFAULT_LOCALE } from '../calendar-kit/hooks/date-moment';
 import { NbBaseCalendar } from './BaseCalendar';
 
-export type NbCalendarProps = {
+export type NbCalendarProps<D extends Date | Moment> = {
   locale?: string;
   boundingMonth?: boolean;
   startView?: NbCalendarViewModeValues;
-  min?: Date;
-  max?: Date;
-  filter?: (date: Date) => boolean;
+  min?: D;
+  max?: D;
+  filter?: (date: D) => boolean;
   size?: NbCalendarSize;
-  visibleDate?: Date;
+  visibleDate?: D;
   showNavigation?: boolean;
-  date: Date;
+  date?: D;
   showWeekNumber?: boolean;
   weekNumberSymbol?: string;
-  dateChange?: (date: Date) => void;
-  dayCellType?: React.FC<NbCalendarCellProps>;
-  monthCellType?: React.FC<NbCalendarCellProps>;
-  yearCellType?: React.FC<NbCalendarCellProps>;
+  dateChange?: (date: D) => void;
+  dayCellType?: React.FC<NbCalendarCellProps<D>>;
+  monthCellType?: React.FC<NbCalendarCellProps<D>>;
+  yearCellType?: React.FC<NbCalendarCellProps<D>>;
+  dateType?: NbDateTypes;
 };
 
-const NbCalendar: React.FC<NbCalendarProps> = ({
+function NbCalendar<D extends Date | Moment>({
   locale = DEFAULT_LOCALE,
   boundingMonth = true,
   startView = 'date',
@@ -37,8 +48,9 @@ const NbCalendar: React.FC<NbCalendarProps> = ({
   dateChange,
   dayCellType,
   monthCellType,
-  yearCellType
-}) => {
+  yearCellType,
+  dateType = NbDateTypes.Date
+}: NbCalendarProps<D>) {
   return (
     <NbBaseCalendar
       locale={locale}
@@ -53,12 +65,13 @@ const NbCalendar: React.FC<NbCalendarProps> = ({
       showNavigation={showNavigation}
       showWeekNumber={showWeekNumber}
       weekNumberSymbol={weekNumberSymbol}
-      dateChange={(date) => dateChange && dateChange(date as Date)}
-      dayCellType={dayCellType}
-      monthCellType={monthCellType}
-      yearCellType={yearCellType}
+      dateChange={(date) => dateChange && dateChange(date as D)}
+      dayCellType={dayCellType ?? NbCalendarDayCell}
+      monthCellType={monthCellType ?? NbCalendarMonthCell}
+      yearCellType={yearCellType ?? NbCalendarYearCell}
+      dateType={dateType}
     />
   );
-};
+}
 
 export { NbCalendar };

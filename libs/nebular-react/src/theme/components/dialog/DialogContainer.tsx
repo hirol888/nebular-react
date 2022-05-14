@@ -1,5 +1,4 @@
 import { NbFocusTrap, NbFocusTrapFactoryService } from 'libs/nebular-react/src/core/cdk';
-import { mergeRefs } from 'libs/nebular-react/src/core/helpers/helpers';
 import { useInjection } from 'libs/nebular-react/src/ioc-provider';
 import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
@@ -11,6 +10,7 @@ export type NbDialogContainerProps = {
 
 export type NbDialogContainerRef = {
   restoreFocus: () => void;
+  elementRef: React.RefObject<HTMLDivElement>;
 };
 
 const NbDialogContainer = React.forwardRef<
@@ -40,10 +40,11 @@ const NbDialogContainer = React.forwardRef<
       if (config.autoFocus && focusTrap) {
         focusTrap.restoreFocus();
       }
-    }
+    },
+    elementRef: containerRef
   }));
 
-  return <div ref={mergeRefs(ref, containerRef)}>{children}</div>;
+  return <div ref={containerRef}>{children}</div>;
 });
 
 export { NbDialogContainer };

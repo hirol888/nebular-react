@@ -1,12 +1,4 @@
-import {
-  NbCalendar,
-  NbCalendarDayCell,
-  NbCalendarMonthCell,
-  NbCalendarYearCell,
-  NbCard,
-  NbCardBody,
-  NbCardHeader
-} from '@nebular-react';
+import { NbCalendar, NbCard, NbCardBody, NbCardHeader } from '@nebular-react';
 import React, { useState } from 'react';
 
 const CalendarShowcase: React.FC = () => {
@@ -23,13 +15,7 @@ const CalendarShowcase: React.FC = () => {
         <h1 className="h5">Selected date: {selectedDate?.toLocaleDateString()}</h1>
       </NbCardHeader>
       <NbCardBody>
-        <NbCalendar
-          date={date}
-          dateChange={handleDateChange}
-          dayCellType={NbCalendarDayCell}
-          monthCellType={NbCalendarMonthCell}
-          yearCellType={NbCalendarYearCell}
-        />
+        <NbCalendar<Date> date={date} dateChange={handleDateChange} />
       </NbCardBody>
     </NbCard>
   );

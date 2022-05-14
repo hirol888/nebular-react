@@ -1,6 +1,8 @@
 import { DAYS_IN_WEEK, DEFAULT_LOCALE } from './date-moment';
 import { batch, range } from '../helpers';
 import { useDateService } from './date';
+import { NbDateTypes } from '../model';
+import { Moment } from 'moment';
 
 export const YEARS_IN_VIEW = 12;
 export const YEARS_IN_ROW = 4;
@@ -8,8 +10,8 @@ export const MONTHS_IN_VIEW = 12;
 export const MONTHS_IN_COLUMN = 4;
 const MINUTES_AND_SECONDS = 60;
 
-export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
-  const dateService = useDateService(_locale);
+export function useCalendarModelService(_locale: string = DEFAULT_LOCALE, dateType: NbDateTypes = NbDateTypes.Date) {
+  const dateService = useDateService(_locale, dateType);
 
   const getYearsInView = (): number => {
     return YEARS_IN_VIEW;
@@ -19,7 +21,7 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
     return YEARS_IN_ROW;
   };
 
-  const getViewYears = (viewYear: Date): Date[][] => {
+  const getViewYears = (viewYear: Date | Moment): (Date | Moment)[][] => {
     const year = dateService.getYear(viewYear);
     let viewStartYear: number;
     if (year >= 0) {
@@ -32,12 +34,12 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
     return batch(years, YEARS_IN_ROW);
   };
 
-  const getHoursRange = (step: number = MINUTES_AND_SECONDS): Date[] => {
-    let date: Date = getResetTime();
+  const getHoursRange = (step: number = MINUTES_AND_SECONDS): (Date | Moment)[] => {
+    let date: Date | Moment = getResetTime();
 
     const endDate = dateService.addDays(date, 1);
 
-    const result: Date[] = [];
+    const result: (Date | Moment)[] = [];
 
     while (dateService.compareDates(date, endDate) < 0) {
       result.push(date);
@@ -47,7 +49,7 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
     return result;
   };
 
-  const getResetTime = (): Date => {
+  const getResetTime = (): Date | Moment => {
     let _today = dateService.today();
     _today = dateService.setHours(_today, 0);
     _today = dateService.setMinutes(_today, 0);
@@ -77,27 +79,27 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
     return `${dateService.getDateFormat()} ${dateService.getTwentyFourHoursFormat()}`;
   };
 
-  const createDaysGrid = (activeMonth: Date, boundingMonth = true): (Date | null)[][] => {
+  const createDaysGrid = (activeMonth: Date | Moment, boundingMonth = true): (Date | Moment | null)[][] => {
     const weeks = createDates(activeMonth);
     return withBoundingMonths(weeks, activeMonth, boundingMonth);
   };
 
   // #region private
-  const copyWithYear = (year: number, date: Date): Date => {
+  const copyWithYear = (year: number, date: Date | Moment): Date | Moment => {
     return dateService.createDate(year, dateService.getMonth(date), dateService.getDate(date));
   };
 
-  const createDates = (activeMonth: Date): Date[][] => {
+  const createDates = (activeMonth: Date | Moment): (Date | Moment)[][] => {
     const days = createDateRangeForMonth(activeMonth);
     const startOfWeekDayDiff = getStartOfWeekDayDiff(activeMonth);
     return batch(days, DAYS_IN_WEEK, startOfWeekDayDiff);
   };
 
   const withBoundingMonths = (
-    weeks: (Date | null)[][],
-    activeMonth: Date,
+    weeks: (Date | Moment | null)[][],
+    activeMonth: Date | Moment,
     boundingMonth: boolean
-  ): (Date | null)[][] => {
+  ): (Date | Moment | null)[][] => {
     let withBoundingMonths = weeks;
 
     if (isShouldAddPrevBoundingMonth(withBoundingMonths)) {
@@ -112,10 +114,10 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
   };
 
   const addPrevBoundingMonth = (
-    weeks: (Date | null)[][],
-    activeMonth: Date,
+    weeks: (Date | Moment | null)[][],
+    activeMonth: Date | Moment,
     boundingMonth: boolean
-  ): (Date | null)[][] => {
+  ): (Date | Moment | null)[][] => {
     const firstWeek = weeks.shift();
     const requiredItems: number = DAYS_IN_WEEK - firstWeek!.length;
     firstWeek!.unshift(...createPrevBoundingDays(activeMonth, boundingMonth, requiredItems));
@@ -123,10 +125,10 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
   };
 
   const addNextBoundingMonth = (
-    weeks: (Date | null)[][],
-    activeMonth: Date,
+    weeks: (Date | Moment | null)[][],
+    activeMonth: Date | Moment,
     boundingMonth: boolean
-  ): (Date | null)[][] => {
+  ): (Date | Moment | null)[][] => {
     const lastWeek = weeks.pop();
     const requiredItems: number = DAYS_IN_WEEK - lastWeek!.length;
     lastWeek!.push(...createNextBoundingDays(activeMonth, boundingMonth, requiredItems));
@@ -134,10 +136,10 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
   };
 
   const createPrevBoundingDays = (
-    activeMonth: Date,
+    activeMonth: Date | Moment,
     boundingMonth: boolean,
     requiredItems: number
-  ): (Date | null)[] => {
+  ): (Date | Moment | null)[] => {
     const month = dateService.addMonths(activeMonth, -1);
     const daysInMonth = dateService.getNumberOfDaysInMonth(month);
     return createDateRangeForMonth(month)
@@ -146,34 +148,34 @@ export function useCalendarModel(_locale: string = DEFAULT_LOCALE) {
   };
 
   const createNextBoundingDays = (
-    activeMonth: Date,
+    activeMonth: Date | Moment,
     boundingMonth: boolean,
     requiredItems: number
-  ): (Date | null)[] => {
+  ): (Date | Moment | null)[] => {
     const month = dateService.addMonths(activeMonth, 1);
     return createDateRangeForMonth(month)
       .slice(0, requiredItems)
       .map((date) => (boundingMonth ? date : null));
   };
 
-  const getStartOfWeekDayDiff = (date: Date): number => {
+  const getStartOfWeekDayDiff = (date: Date | Moment): number => {
     const startOfMonth = dateService.getMonthStart(date);
     return getWeekStartDiff(startOfMonth);
   };
 
-  const getWeekStartDiff = (date: Date): number => {
+  const getWeekStartDiff = (date: Date | Moment): number => {
     return (DAYS_IN_WEEK - dateService.getFirstDayOfWeek() + dateService.getDayOfWeek(date)) % DAYS_IN_WEEK;
   };
 
-  const isShouldAddPrevBoundingMonth = (weeks: (Date | null)[][]): boolean => {
+  const isShouldAddPrevBoundingMonth = (weeks: (Date | Moment | null)[][]): boolean => {
     return weeks[0].length < DAYS_IN_WEEK;
   };
 
-  const isShouldAddNextBoundingMonth = (weeks: (Date | null)[][]): boolean => {
+  const isShouldAddNextBoundingMonth = (weeks: (Date | Moment | null)[][]): boolean => {
     return weeks[weeks.length - 1].length < DAYS_IN_WEEK;
   };
 
-  const createDateRangeForMonth = (date: Date): Date[] => {
+  const createDateRangeForMonth = (date: Date | Moment): (Date | Moment)[] => {
     const daysInMonth: number = dateService.getNumberOfDaysInMonth(date);
     return range(daysInMonth, (i) => {
       const year = dateService.getYear(date);

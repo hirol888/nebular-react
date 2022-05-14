@@ -10,7 +10,7 @@ import {
   NbTrigger,
   Portal
 } from 'libs/nebular-react/src/core/cdk';
-import { mergeRefs } from 'libs/nebular-react/src/core/helpers/helpers';
+import { mergedRefs } from 'libs/nebular-react/src/core/helpers/helpers';
 import React, { useEffect, useRef, useState } from 'react';
 import { NbComponentSize } from '../component';
 import { NbInput, NbInputProps } from '../input';
@@ -176,7 +176,7 @@ const NbAutocomplete = React.forwardRef<
     return (
       <>
         <NbInput
-          ref={mergeRefs(ref, componentRef)}
+          ref={mergedRefs(ref, componentRef)}
           className={classNames('nb-auto-complete', className, {
             'nb-autocomplete-position-top': overlayPosition === NbPosition.TOP,
             'nb-autocomplete-position-bottom': overlayPosition === NbPosition.BOTTOM

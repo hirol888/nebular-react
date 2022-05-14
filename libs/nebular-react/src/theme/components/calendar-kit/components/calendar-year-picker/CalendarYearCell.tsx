@@ -1,12 +1,11 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import { Moment } from 'moment';
 import { useDateService } from '../../hooks';
-import { CalendarPickerContext } from '../../model';
-import { NbCalendarCellProps } from '../calendar-day-picker';
+import { useCalendarPickerContext, NbCalendarCellProps } from '../../model';
 
-const NbCalendarYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, selectedValue, min, max, size } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarYearCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, selectedValue, min, max, size, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
   const smallerThanMin = (): boolean | undefined => {
     return date && min && dateService.compareDates(dateService.getYearEnd(date), min) < 0;
@@ -33,7 +32,7 @@ const NbCalendarYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) =
   return (
     <div
       className={classNames('nb-calendar-year-cell', 'year-cell', {
-        selected: dateService.isSameYearSafe(date, selectedValue as Date),
+        selected: dateService.isSameYearSafe(date, selectedValue as D),
         today: dateService.isSameYearSafe(date, dateService.today()),
         disabled: isDisabled(),
         'size-large': size === 'large'
@@ -43,6 +42,6 @@ const NbCalendarYearCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) =
       <div className="cell-content">{year}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarYearCell };

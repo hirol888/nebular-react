@@ -35,23 +35,17 @@
       }
 
       &:focus {
-        background-color: nb-theme(
-          select-outline-#{$status}-focus-background-color
-        );
+        background-color: nb-theme(select-outline-#{$status}-focus-background-color);
         border-color: nb-theme(select-outline-#{$status}-focus-border-color);
       }
       &:hover {
-        background-color: nb-theme(
-          select-outline-#{$status}-hover-background-color
-        );
+        background-color: nb-theme(select-outline-#{$status}-hover-background-color);
         border-color: nb-theme(select-outline-#{$status}-hover-border-color);
       }
 
       &.disabled {
         color: nb-theme(select-outline-#{$status}-disabled-text-color);
-        background-color: nb-theme(
-          select-outline-#{$status}-disabled-background-color
-        );
+        background-color: nb-theme(select-outline-#{$status}-disabled-background-color);
         border-color: nb-theme(select-outline-#{$status}-disabled-border-color);
 
         .nb-icon {
@@ -65,14 +59,10 @@
       }
 
       &.top {
-        border-top-color: nb-theme(
-          select-outline-#{$status}-adjacent-border-color
-        );
+        border-top-color: nb-theme(select-outline-#{$status}-adjacent-border-color);
       }
       &.bottom {
-        border-bottom-color: nb-theme(
-          select-outline-#{$status}-adjacent-border-color
-        );
+        border-bottom-color: nb-theme(select-outline-#{$status}-adjacent-border-color);
       }
     }
   }
@@ -84,9 +74,6 @@
       @include nb-rtl(padding-left, nb-theme(select-icon-offset));
     }
 
-    @include nb-form-field-with-prefix(
-      'nb-select.appearance-outline.size-#{$size} .select-button',
-      $size
-    );
+    @include nb-form-field-with-prefix('.nb-select.appearance-outline.size-#{$size} .select-button', $size);
   }
 }

@@ -1,24 +1,24 @@
-import React from 'react';
-import { NbCalendarViewModeValues } from '../../model';
+import { useCalendarPickerContext, NbCalendarViewModeValues } from '../../model';
 import { NbButton } from '../../../button';
 import { NbIcon } from '../../../icon';
-import { DEFAULT_LOCALE, useCalendarModel, useDateService } from '../../hooks';
+import { useCalendarModelService, useDateService } from '../../hooks';
+import { Moment } from 'moment';
 
-export type NbCalendarViewModeProps = {
+export type NbCalendarViewModeProps<D> = {
   locale?: string;
-  date?: Date;
+  date?: D;
   viewMode?: NbCalendarViewModeValues;
   changeMode?: () => void;
 };
 
-const NbCalendarViewMode: React.FC<NbCalendarViewModeProps> = ({
-  locale = DEFAULT_LOCALE,
+function NbCalendarViewMode<D extends Date | Moment>({
   date,
   viewMode = 'date',
   changeMode
-}) => {
-  const calendarModel = useCalendarModel(locale);
-  const dateService = useDateService(locale);
+}: NbCalendarViewModeProps<D>) {
+  const { locale, dateType } = useCalendarPickerContext<D>();
+  const calendarModelService = useCalendarModelService(locale, dateType);
+  const dateService = useDateService(locale, dateType);
 
   const getText = (): string => {
     if (!date) {
@@ -47,12 +47,12 @@ const NbCalendarViewMode: React.FC<NbCalendarViewModeProps> = ({
   };
 
   const getFirstYear = (): string => {
-    const years = calendarModel.getViewYears(date!);
+    const years = calendarModelService.getViewYears(date!);
     return dateService.getYear(years[0][0]).toString();
   };
 
   const getLastYear = (): string => {
-    const years = calendarModel.getViewYears(date!);
+    const years = calendarModelService.getViewYears(date!);
     const lastRow = years[years.length - 1];
     const lastYear = lastRow[lastRow.length - 1];
 
@@ -67,6 +67,6 @@ const NbCalendarViewMode: React.FC<NbCalendarViewModeProps> = ({
       </NbButton>
     </div>
   );
-};
+}
 
 export { NbCalendarViewMode };

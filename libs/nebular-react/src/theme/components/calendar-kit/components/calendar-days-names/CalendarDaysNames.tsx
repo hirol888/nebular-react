@@ -1,15 +1,16 @@
-import React, { useContext } from 'react';
-import { useMoment } from '../../hooks';
-import { CalendarPickerContext, NbCalendarDay } from '../../model';
+import { useDateService } from '../../hooks';
+import { NbCalendarDay } from '../../model';
 import classNames from 'classnames';
 import * as _ from 'lodash';
 import './calendar-days-names.scss';
+import { useCalendarPickerContext } from '../../model';
+import { Moment } from 'moment';
 
-const NbCalendarDaysNames: React.FC = () => {
-  const momentDate = useMoment();
-  const { size } = useContext(CalendarPickerContext);
+function NbCalendarDaysNames<D extends Date | Moment>() {
+  const { locale, size, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
-  const days: NbCalendarDay[] = momentDate.getDayOfWeekNames().map((name, index) => {
+  const days: NbCalendarDay[] = dateService.getDayOfWeekNames().map((name, index) => {
     return { name: name, isHoliday: index % 6 === 0 };
   });
 
@@ -28,6 +29,6 @@ const NbCalendarDaysNames: React.FC = () => {
       })}
     </div>
   );
-};
+}
 
 export { NbCalendarDaysNames };

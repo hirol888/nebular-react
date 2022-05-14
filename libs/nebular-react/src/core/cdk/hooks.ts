@@ -1,13 +1,26 @@
-import { useObservable, useSubscription } from "observable-hooks";
-import React, { useEffect, useState } from "react";
-import { filter, switchMap } from "rxjs";
-import { useInjection, useInjectionTagged } from "../../ioc-provider";
-import { TYPES } from "../../ioc-types";
-import { NbOptionListRef, NbOptionRef } from "../../theme";
-import { FocusableOption, Highlightable, ListKeyManager } from "./a11y";
-import { KeyManagerBuilder, NbKeyManagerType } from "./a11y/key-manager/key-manager-builder";
-import { NbScrollStrategyOptions } from "./adapter";
-import { NbAdjustableConnectedPositionStrategy, NbAdjustment, NbGlobalPositionStrategy, NbOverlayBuilder, NbPosition, NbPositionBuilderService, NbPositionStrategy, NbScrollStrategy, NbTrigger, NbTriggerStrategy, NbTriggerStrategyBuilder, OverlayReference } from "./overlay";
+import { useObservable, useSubscription } from 'observable-hooks';
+import React, { useEffect, useState } from 'react';
+import { filter, switchMap } from 'rxjs';
+import { useInjection, useInjectionTagged } from '../../ioc-provider';
+import { TYPES } from '../../ioc-types';
+import { NbOptionListRef, NbOptionRef } from '../../theme';
+import { FocusableOption, Highlightable, ListKeyManager } from './a11y';
+import { KeyManagerBuilder, NbKeyManagerType } from './a11y/key-manager/key-manager-builder';
+import { NbScrollStrategyOptions } from './adapter';
+import {
+  NbAdjustableConnectedPositionStrategy,
+  NbAdjustment,
+  NbGlobalPositionStrategy,
+  NbOverlayBuilder,
+  NbPosition,
+  NbPositionBuilderService,
+  NbPositionStrategy,
+  NbScrollStrategy,
+  NbTrigger,
+  NbTriggerStrategy,
+  NbTriggerStrategyBuilder,
+  OverlayReference
+} from './overlay';
 
 /**
  * Position strategy hook
@@ -86,14 +99,17 @@ export function useOverlay(
   const refKeydownEvents$ = useObservable(
     (input$) =>
       input$.pipe(
-        filter(([renderedValue, positionStrategyValue, scrollStrategyValue]) => renderedValue && !!positionStrategyValue && !!scrollStrategyValue),
+        filter(
+          ([renderedValue, positionStrategyValue, scrollStrategyValue]) =>
+            renderedValue && !!positionStrategyValue && !!scrollStrategyValue
+        ),
         switchMap(([, positionStrategyValue, scrollStrategyValue, hasBackdropValue]) => {
           const _overlayRef = overlayBuilder.create({
             positionStrategy: positionStrategyValue,
             scrollStrategy: scrollStrategyValue,
-            panelClass: optionsPanelClass,
+            panelClass: optionsPanelClass ?? '',
             hasBackdrop: hasBackdropValue,
-            backdropClass
+            backdropClass: backdropClass ?? ''
           });
           setOverlayRef(_overlayRef);
 
@@ -115,11 +131,7 @@ export function useOverlay(
 }
 
 export function useBlockOrNoopScrollStrategy(hasScroll = false) {
-  const scrollStrategyOptions = useInjectionTagged<NbScrollStrategyOptions>(
-    TYPES.NbScrollStrategyOptions,
-    'nb',
-    true
-  );
+  const scrollStrategyOptions = useInjectionTagged<NbScrollStrategyOptions>(TYPES.NbScrollStrategyOptions, 'nb', true);
   const _scrollStrategy = hasScroll ? scrollStrategyOptions.noop() : scrollStrategyOptions.block();
   const [scrollStrategy, setScrollStrategy] = useState<NbScrollStrategy>(_scrollStrategy);
 
@@ -127,6 +139,12 @@ export function useBlockOrNoopScrollStrategy(hasScroll = false) {
     setScrollStrategy(_scrollStrategy);
   }, [hasScroll]);
 
+  return scrollStrategy;
+}
+
+export function useRepositionScrollStrategy() {
+  const scrollStrategyOptions = useInjectionTagged<NbScrollStrategyOptions>(TYPES.NbScrollStrategyOptions, 'nb', true);
+  const [scrollStrategy] = useState<NbScrollStrategy>(scrollStrategyOptions.reposition());
   return scrollStrategy;
 }
 
@@ -148,7 +166,7 @@ export function useKeyManager<T extends FocusableOption & Highlightable & NbOpti
   isOpen: boolean,
   keyManagerType: NbKeyManagerType,
   handleTabOut?: () => void,
-  setActiveOption?: () => void,
+  setActiveOption?: () => void
 ): ListKeyManager<T> | undefined {
   const keyManagerBuilder = useInjection<KeyManagerBuilder>(TYPES.KeyManagerBuilder);
   const [keyManager, setKeyManager] = useState<ListKeyManager<T>>();
@@ -281,7 +299,7 @@ export function useOptionRefs(
     [rendered, optionListRef.current?.optionRefs$, children]
   );
   useSubscription(optionRefs$, (opRefs) => {
-    setOptionRefs(opRefs)
+    setOptionRefs(opRefs);
   });
 
   return optionRefs;
@@ -293,18 +311,15 @@ export function useGlobalPositionStrategy(rendered: boolean) {
 
   useEffect(() => {
     if (rendered) {
-      const _positionStrategy = positionBuilder
-        .global()
-        .centerVertically()
-        .centerHorizontally();
+      const _positionStrategy = positionBuilder.global().centerVertically().centerHorizontally();
 
       setPositionStrategy(_positionStrategy);
     }
 
     return () => {
       positionStrategy?.dispose();
-    }
-  }, [rendered])
+    };
+  }, [rendered]);
 
   return positionStrategy;
 }

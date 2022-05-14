@@ -1,8 +1,9 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import { Moment } from 'moment';
+import React, { useEffect, useState } from 'react';
 import {
   CalendarPickerContext,
-  DEFAULT_LOCALE,
+  NbDateTypes,
   NbCalendarCellProps,
   NbCalendarDayPicker,
   NbCalendarMonthPicker,
@@ -12,31 +13,34 @@ import {
   NbCalendarViewModeValues,
   NbCalendarYearPicker,
   NbCalRange,
-  useCalendarModel,
-  useDateService
+  NbPickerType
 } from '../calendar-kit';
+import { useCalendarModelService, useDateService } from '../calendar-kit/hooks';
+import { DEFAULT_LOCALE } from '../calendar-kit/hooks/date-moment';
 import { NbCard, NbCardBody, NbCardHeader } from '../card';
 
-export type NbBaseCalendarProps = {
+export type NbBaseCalendarProps<D extends Date | Moment> = {
   locale?: string;
   boundingMonth?: boolean;
   activeViewMode?: NbCalendarViewModeValues;
-  min?: Date;
-  max?: Date;
-  filter?: (date: Date) => boolean;
+  min?: D;
+  max?: D;
+  filter?: (date: D) => boolean;
   size?: NbCalendarSize;
-  visibleDate?: Date;
-  date: Date | NbCalRange;
+  visibleDate?: D;
+  date?: D | NbCalRange<D>;
   showNavigation?: boolean;
   showWeekNumber?: boolean;
   weekNumberSymbol?: string;
-  dateChange?: (date: Date | NbCalRange) => void;
-  dayCellType?: React.FC<NbCalendarCellProps>;
-  monthCellType?: React.FC<NbCalendarCellProps>;
-  yearCellType?: React.FC<NbCalendarCellProps>;
+  dateChange?: (date: D | NbCalRange<D>) => void;
+  dayCellType?: React.FC<NbCalendarCellProps<D>>;
+  monthCellType?: React.FC<NbCalendarCellProps<D>>;
+  yearCellType?: React.FC<NbCalendarCellProps<D>>;
+  dateType?: NbDateTypes;
+  pickerType?: NbPickerType;
 };
 
-const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
+function NbBaseCalendar<D extends Date | Moment>({
   locale = DEFAULT_LOCALE,
   boundingMonth = true,
   activeViewMode = 'date',
@@ -44,7 +48,7 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
   max,
   filter,
   size = 'medium',
-  visibleDate = new Date(),
+  visibleDate,
   date,
   showNavigation = true,
   showWeekNumber = false,
@@ -52,13 +56,16 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
   dateChange,
   dayCellType,
   monthCellType,
-  yearCellType
-}) => {
-  const dateService = useDateService(locale);
-  const calendarModel = useCalendarModel(locale);
+  yearCellType,
+  dateType = NbDateTypes.Date,
+  pickerType = NbPickerType.Date
+}: NbBaseCalendarProps<D>) {
+  const dateService = useDateService(locale, dateType);
+  const _visibleDate = visibleDate ?? (dateService.today() as D);
+  const calendarModelService = useCalendarModelService(locale, dateType);
   const [activeViewModelValue, setActiveViewModelValue] = useState<NbCalendarViewModeValues>(activeViewMode);
-  const [visibleDateValue, setVisibleDateValue] = useState<Date>(visibleDate);
-  const [selectedValue, setSelectedValue] = useState<Date | NbCalRange>(date);
+  const [visibleDateValue, setVisibleDateValue] = useState<D>(_visibleDate);
+  const [selectedValue, setSelectedValue] = useState<D | NbCalRange<D> | undefined>(date);
 
   const prevMonth = () => changeVisibleMonth(-1);
   const nextMonth = () => changeVisibleMonth(1);
@@ -67,19 +74,27 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
   const prevYears = () => changeVisibleYears(-1);
   const nextYears = () => changeVisibleYears(1);
 
+  useEffect(() => {
+    visibleDate && setVisibleDateValue(visibleDate);
+  }, [visibleDate]);
+
+  useEffect(() => {
+    setSelectedValue(date);
+  }, [date]);
+
   const changeVisibleMonth = (direction: number) => {
     const _visibleDate = dateService.addMonths(visibleDateValue, direction);
-    setVisibleDateValue(_visibleDate);
+    setVisibleDateValue(_visibleDate as D);
   };
 
   const changeVisibleYear = (direction: number) => {
     const _visibleDate = dateService.addYears(visibleDateValue, direction);
-    setVisibleDateValue(_visibleDate);
+    setVisibleDateValue(_visibleDate as D);
   };
 
   const changeVisibleYears = (direction: number) => {
-    const _visibleDate = dateService.addYears(visibleDateValue, direction * calendarModel.getYearsInView());
-    setVisibleDateValue(_visibleDate);
+    const _visibleDate = dateService.addYears(visibleDateValue, direction * calendarModelService.getYearsInView());
+    setVisibleDateValue(_visibleDate as D);
   };
 
   const navigatePrev = () => {
@@ -104,8 +119,8 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
     }
   };
 
-  const handleDateChange = (_date: Date) => {
-    if (date instanceof Date) {
+  const handleDateChange = (_date: D) => {
+    if (pickerType === NbPickerType.Date) {
       setSelectedValue(_date);
       dateChange && dateChange(_date);
     } else {
@@ -117,12 +132,12 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
     }
   };
 
-  const handleMonthChange = (_date: Date) => {
+  const handleMonthChange = (_date: D) => {
     setVisibleDateValue(_date);
     setActiveViewModelValue('date');
   };
 
-  const handleYearChange = (_date: Date) => {
+  const handleYearChange = (_date: D) => {
     setVisibleDateValue(_date);
     setActiveViewModelValue('month');
   };
@@ -137,16 +152,16 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
 
   // #region range
   const selectionStarted = (): boolean => {
-    const { start, end } = selectedValue as NbCalRange;
+    const { start, end } = selectedValue as NbCalRange<D>;
     return !!(start && !end);
   };
 
-  const selectStart = (start: Date) => {
+  const selectStart = (start: D) => {
     selectRange({ start });
   };
 
-  const selectEnd = (date: Date) => {
-    const { start } = selectedValue as NbCalRange;
+  const selectEnd = (date: D) => {
+    const { start } = selectedValue as NbCalRange<D>;
 
     if (dateService.compareDates(date, start!) > 0) {
       selectRange({ start, end: date });
@@ -155,7 +170,7 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
     }
   };
 
-  const selectRange = (range: NbCalRange) => {
+  const selectRange = (range: NbCalRange<D>) => {
     setSelectedValue(range);
     dateChange && dateChange(range);
   };
@@ -190,7 +205,9 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
             yearChange: handleYearChange,
             dayCellType,
             monthCellType,
-            yearCellType
+            yearCellType,
+            dateType,
+            pickerType
           }}
         >
           {activeViewModelValue === 'date' && (
@@ -208,6 +225,6 @@ const NbBaseCalendar: React.FC<NbBaseCalendarProps> = ({
       </NbCard>
     </div>
   );
-};
+}
 
 export { NbBaseCalendar };

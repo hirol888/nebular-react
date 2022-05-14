@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import * as _moment from 'moment';
 import { default as _rollupMoment, LongDateFormatKey, Moment } from 'moment';
 
@@ -21,22 +20,22 @@ export type MomentLocaleData = {
   days: { [key: string]: string[] };
 };
 
-export function useMoment(_locale: string = DEFAULT_LOCALE) {
-  const momentLocaleDate = moment.localeData(_locale);
-  const [locale, setLocale] = useState<string>(_locale);
-  const [localeData] = useState<MomentLocaleData>({
-    firstDayOfWeek: momentLocaleDate.firstDayOfWeek(),
-    defaultFormat: momentLocaleDate.longDateFormat('L'),
-    months: {
-      short: momentLocaleDate.monthsShort(),
-      long: momentLocaleDate.months()
-    },
-    days: {
-      long: momentLocaleDate.weekdays(),
-      short: momentLocaleDate.weekdaysShort(),
-      narrow: momentLocaleDate.weekdaysMin()
-    }
-  });
+export function createMomentService(locale: string = DEFAULT_LOCALE, localeData: MomentLocaleData) {
+  // const momentLocaleDate = moment.localeData(_locale);
+  // const [locale, setLocale] = useState<string>(_locale);
+  // const [localeData] = useState<MomentLocaleData>({
+  //   firstDayOfWeek: momentLocaleDate.firstDayOfWeek(),
+  //   defaultFormat: momentLocaleDate.longDateFormat('L'),
+  //   months: {
+  //     short: momentLocaleDate.monthsShort(),
+  //     long: momentLocaleDate.months()
+  //   },
+  //   days: {
+  //     long: momentLocaleDate.weekdays(),
+  //     short: momentLocaleDate.weekdaysShort(),
+  //     narrow: momentLocaleDate.weekdaysMin()
+  //   }
+  // });
 
   /**
    * Checks if the date is between the start date and the end date.
@@ -281,7 +280,6 @@ export function useMoment(_locale: string = DEFAULT_LOCALE) {
   };
 
   return {
-    setLocale,
     isBetween,
     isSameDaySafe,
     isSameMonthSafe,

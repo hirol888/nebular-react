@@ -10,7 +10,7 @@ import App from './app/app';
 ReactDOM.render(
   <StrictMode>
     <BrowserRouter>
-      <Provider container={container}>
+      <Provider container={container('en-US')}>
         <App />
       </Provider>
     </BrowserRouter>

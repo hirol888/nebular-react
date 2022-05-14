@@ -1,39 +1,18 @@
-import { inject, injectable, tagged } from "inversify";
-import { TYPES } from "libs/nebular-react/src/ioc-types";
-import { map, Observable } from "rxjs";
-import { NbPlatform } from "../platform";
-import { ViewportRuler } from "../scrolling";
-import { NbOverlayRef } from "./overlay-ref";
-import { GlobalPositionStrategy, NbConnectedOverlayPositionChange, NbConnectedPosition, NbConnectionPositionPair, NbFlexibleConnectedPositionStrategy, NbPositionStrategy } from "./position";
-import { NbGlobalLogicalPosition } from "./position-helper";
-
-export type NbAdjustmentValues = 'noop' | 'clockwise' | 'counterclockwise' | 'vertical' | 'horizontal';
-export enum NbAdjustment {
-  NOOP = 'noop',
-  CLOCKWISE = 'clockwise',
-  COUNTERCLOCKWISE = 'counterclockwise',
-  VERTICAL = 'vertical',
-  HORIZONTAL = 'horizontal',
-}
-
-// eslint-disable-next-line max-len
-export type NbPositionValues = 'top' | 'bottom' | 'left' | 'right' | 'start' | 'end' | 'top-end' | 'top-start' | 'bottom-end' | 'bottom-start' | 'end-top' | 'end-bottom' | 'start-top' | 'start-bottom';
-export enum NbPosition {
-  TOP = 'top',
-  BOTTOM = 'bottom',
-  LEFT = 'left',
-  RIGHT = 'right',
-  START = 'start',
-  END = 'end',
-  TOP_END = 'top-end',
-  TOP_START = 'top-start',
-  BOTTOM_END = 'bottom-end',
-  BOTTOM_START = 'bottom-start',
-  END_TOP = 'end-top',
-  END_BOTTOM = 'end-bottom',
-  START_TOP = 'start-top',
-  START_BOTTOM = 'start-bottom',
-}
+import { inject, injectable, tagged } from 'inversify';
+import { TYPES } from 'libs/nebular-react/src/ioc-types';
+import { map, Observable } from 'rxjs';
+import { NbPlatform } from '../platform';
+import { ViewportRuler } from '../scrolling';
+import { NbOverlayRef } from './overlay-ref';
+import {
+  GlobalPositionStrategy,
+  NbConnectedOverlayPositionChange,
+  NbConnectedPosition,
+  NbConnectionPositionPair,
+  NbFlexibleConnectedPositionStrategy,
+  NbPositionStrategy
+} from './position';
+import { NbAdjustment, NbGlobalLogicalPosition, NbPosition } from './position-helper';
 
 const POSITIONS = {
   [NbPosition.RIGHT](offset: number) {
@@ -77,7 +56,7 @@ const POSITIONS = {
   },
   [NbPosition.TOP_END](offset: number) {
     return { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -offset };
-  },
+  }
 };
 
 const COUNTER_CLOCKWISE_POSITIONS = [
@@ -92,7 +71,7 @@ const COUNTER_CLOCKWISE_POSITIONS = [
   NbPosition.BOTTOM_END,
   NbPosition.END,
   NbPosition.END_BOTTOM,
-  NbPosition.END_TOP,
+  NbPosition.END_TOP
 ];
 const CLOCKWISE_POSITIONS = [
   NbPosition.TOP,
@@ -106,17 +85,15 @@ const CLOCKWISE_POSITIONS = [
   NbPosition.BOTTOM_START,
   NbPosition.START,
   NbPosition.START_BOTTOM,
-  NbPosition.START_TOP,
+  NbPosition.START_TOP
 ];
 const VERTICAL_POSITIONS = [NbPosition.BOTTOM, NbPosition.TOP];
 const HORIZONTAL_POSITIONS = [NbPosition.START, NbPosition.END];
 
-
 function comparePositions(p1: NbConnectedPosition, p2: NbConnectedPosition): boolean {
-  return p1.originX === p2.originX
-    && p1.originY === p2.originY
-    && p1.overlayX === p2.overlayX
-    && p1.overlayY === p2.overlayY;
+  return (
+    p1.originX === p2.originX && p1.originY === p2.originY && p1.overlayX === p2.overlayX && p1.overlayY === p2.overlayY
+  );
 }
 
 /**
@@ -124,21 +101,22 @@ function comparePositions(p1: NbConnectedPosition, p2: NbConnectedPosition): boo
  * You have to provide adjustment and appropriate strategy will be chosen in runtime.
  * */
 export class NbAdjustableConnectedPositionStrategy
-  extends NbFlexibleConnectedPositionStrategy implements NbPositionStrategy {
-
+  extends NbFlexibleConnectedPositionStrategy
+  implements NbPositionStrategy
+{
   protected _position: NbPosition;
   protected _offset = 15;
   protected _adjustment: NbAdjustment;
 
-  protected appliedPositions: { key: NbPosition, connectedPosition: NbConnectedPosition }[];
+  protected appliedPositions: { key: NbPosition; connectedPosition: NbConnectedPosition }[];
 
   readonly positionChange: Observable<NbPosition | undefined> = this.positionChanges.pipe(
     map((positionChange: NbConnectedOverlayPositionChange) => positionChange.connectionPair),
     map((connectionPair: NbConnectionPositionPair) => {
       return this.appliedPositions.find(({ connectedPosition }) => {
         return comparePositions(connectedPosition, connectionPair);
-      })?.key
-    }),
+      })?.key;
+    })
   );
 
   override attach(overlayRef: NbOverlayRef) {
@@ -192,9 +170,9 @@ export class NbAdjustableConnectedPositionStrategy
   }
 
   protected persistChosenPositions(positions: NbPosition[]) {
-    this.appliedPositions = positions.map(position => ({
+    this.appliedPositions = positions.map((position) => ({
       key: position,
-      connectedPosition: POSITIONS[position](this._offset) as NbConnectedPosition,
+      connectedPosition: POSITIONS[position](this._offset) as NbConnectedPosition
     }));
   }
 
@@ -219,7 +197,6 @@ export class NbAdjustableConnectedPositionStrategy
 }
 
 export class NbGlobalPositionStrategy extends GlobalPositionStrategy {
-
   position(position: NbGlobalLogicalPosition): this {
     switch (position) {
       case NbGlobalLogicalPosition.TOP_START:
@@ -242,18 +219,14 @@ export class NbPositionBuilderService {
   constructor(
     @inject(TYPES.NbPlatform) protected _platform: NbPlatform,
     @inject(TYPES.ViewportRuler) @tagged('adapter', true) protected _viewportRuler: ViewportRuler
-  ) { }
+  ) {}
 
   global(): NbGlobalPositionStrategy {
     return new NbGlobalPositionStrategy();
   }
 
   connectedTo(element: HTMLElement): NbAdjustableConnectedPositionStrategy {
-    return new NbAdjustableConnectedPositionStrategy(
-      element,
-      this._viewportRuler,
-      this._platform
-    )
+    return new NbAdjustableConnectedPositionStrategy(element, this._viewportRuler, this._platform)
       .withFlexibleDimensions(false)
       .withPush(false);
   }

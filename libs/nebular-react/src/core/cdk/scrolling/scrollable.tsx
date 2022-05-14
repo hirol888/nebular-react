@@ -3,7 +3,6 @@ import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { fromEvent, Observable, Observer, Subscription } from 'rxjs';
 import { NbLayoutDirectionService } from '../../services';
 import { ScrollDispatcher } from './scroll-dispatcher';
-import { mergeRefs } from '../../helpers/helpers';
 import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import { useInjection } from 'libs/nebular-react/src/ioc-provider';
 
@@ -191,7 +190,7 @@ const CdkScrollable = React.forwardRef<CdkScrollableRef, React.HTMLAttributes<HT
     }
   };
 
-  return <div ref={mergeRefs(ref, elementRef)}>{children}</div>;
+  return <div ref={elementRef}>{children}</div>;
 });
 
 export default CdkScrollable;

@@ -1,7 +1,7 @@
 import { NbButton, NbCard, NbCardBody, NbCardFooter, NbCardHeader, NbDialog, NbDialogRef } from '@nebular-react';
 import { NbDialogConfig } from 'libs/nebular-react/src/theme/components/dialog/dialog-config';
 import React, { useRef } from 'react';
-import './dialog-common.scss';
+import './dialog-common.scoped.scss';
 
 const DialogHasBackdrop: React.FC = () => {
   const dialogRef = useRef<NbDialogRef>(null);

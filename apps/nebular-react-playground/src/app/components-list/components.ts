@@ -575,8 +575,8 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Datepicker Forms'
       },
       {
-        path: 'datepicker-showcase.component',
-        link: '/datepicker/datepicker-showcase.component',
+        path: 'datepicker-showcase',
+        link: '/datepicker/datepicker-showcase',
         component: 'DatepickerShowcaseComponent',
         name: 'Datepicker Showcase'
       },
@@ -593,20 +593,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Date Timepicker Single Column'
       },
       {
-        path: 'datepicker-validation.component',
-        link: '/datepicker/datepicker-validation.component',
+        path: 'datepicker-validation',
+        link: '/datepicker/datepicker-validation',
         component: 'DatepickerValidationComponent',
         name: 'Datepicker Validation'
       },
       {
-        path: 'rangepicker-showcase.component',
-        link: '/datepicker/rangepicker-showcase.component',
+        path: 'rangepicker-showcase',
+        link: '/datepicker/rangepicker-showcase',
         component: 'RangepickerShowcaseComponent',
         name: 'Rangepicker Showcase'
       },
       {
-        path: 'datepicker-filter.component',
-        link: '/datepicker/datepicker-filter.component',
+        path: 'datepicker-filter',
+        link: '/datepicker/datepicker-filter',
         component: 'DatepickerFilterComponent',
         name: 'Datepicker Filter'
       }
@@ -745,20 +745,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'infinite-list',
     children: [
       {
-        path: 'infinite-list-placeholders.component',
-        link: '/infinite-list/infinite-list-placeholders.component',
+        path: 'infinite-list-placeholders',
+        link: '/infinite-list/infinite-list-placeholders',
         component: 'InfiniteListPlaceholdersComponent',
         name: 'Infinite List Placeholders'
       },
       {
-        path: 'infinite-list-scroll-modes.component',
-        link: '/infinite-list/infinite-list-scroll-modes.component',
+        path: 'infinite-list-scroll-modes',
+        link: '/infinite-list/infinite-list-scroll-modes',
         component: 'InfiniteListScrollModesComponent',
         name: 'Infinite List Scroll Modes'
       },
       {
-        path: 'infinite-list-showcase.component',
-        link: '/infinite-list/infinite-list-showcase.component',
+        path: 'infinite-list-showcase',
+        link: '/infinite-list/infinite-list-showcase',
         component: 'InfiniteListShowcaseComponent',
         name: 'Infinite List Showcase'
       },
@@ -821,8 +821,8 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'list',
     children: [
       {
-        path: 'simple-list-showcase.component',
-        link: '/list/simple-list-showcase.component',
+        path: 'simple-list-showcase',
+        link: '/list/simple-list-showcase',
         component: 'SimpleListShowcaseComponent',
         name: 'Simple List Showcase'
       },
@@ -1700,20 +1700,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'form-field',
     children: [
       {
-        path: 'form-field-showcase.component',
-        link: '/form-field/form-field-showcase.component',
+        path: 'form-field-showcase',
+        link: '/form-field/form-field-showcase',
         component: 'FormFieldShowcaseComponent',
         name: 'Form Field Showcase'
       },
       {
-        path: 'form-field-password.component',
-        link: '/form-field/form-field-password.component',
+        path: 'form-field-password',
+        link: '/form-field/form-field-password',
         component: 'FormFieldPasswordComponent',
         name: 'Form Field Password'
       },
       {
-        path: 'form-field-input.component',
-        link: '/form-field/form-field-input.component',
+        path: 'form-field-input',
+        link: '/form-field/form-field-input',
         component: 'FormFieldInputComponent',
         name: 'Form Field Input'
       }

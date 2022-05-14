@@ -1,6 +1,7 @@
 import {
   DOWN_ARROW,
   ESCAPE,
+  FocusMonitor,
   NbAdjustment,
   NbPosition,
   NbTrigger,
@@ -8,13 +9,13 @@ import {
   UP_ARROW
 } from 'libs/nebular-react/src/core/cdk';
 import React, { Children, isValidElement, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { NbComponentOrCustomStatus, NbComponentShape, NbComponentSize } from '../component';
+import { NbComponentOrCustomStatus, NbComponentShape, NbComponentSize, NbFormControlProps } from '../component';
 import { NbOption, NbOptionGroup, NbOptionList, NbOptionListRef, NbOptionRef, useOptionElements } from '../option';
 import { NbSelectLabel } from './SelectLabel';
 import * as _ from 'lodash';
 import classNames from 'classnames';
 import { NbIcon } from '../icon';
-import { mergeRefs } from 'libs/nebular-react/src/core/helpers/helpers';
+import { mergedRefs } from 'libs/nebular-react/src/core/helpers/helpers';
 import './select.scoped.scss';
 import { NbKeyManagerType } from 'libs/nebular-react/src/core/cdk/a11y/key-manager/key-manager-builder';
 import {
@@ -25,10 +26,13 @@ import {
   useBlockOrNoopScrollStrategy,
   useTriggerStrategy
 } from 'libs/nebular-react/src/core/cdk/hooks';
+import { useInjection } from 'libs/nebular-react/src/ioc-provider';
+import { TYPES } from 'libs/nebular-react/src/ioc-types';
+import { finalize, map } from 'rxjs';
 
 export type NbSelectAppearance = 'outline' | 'filled' | 'hero';
 
-interface SelectProps {
+interface SelectProps extends NbFormControlProps {
   /**
    * Select size, available sizes:
    * `tiny`, `small`, `medium` (default), `large`, `giant`
@@ -99,7 +103,7 @@ export type SelectRef = {
    * Get currently selected values
    */
   getSelectedValues: () => any;
-};
+} & HTMLDivElement;
 
 const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<HTMLDivElement>>(
   (
@@ -117,6 +121,11 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
       multiple = false,
       optionsOverlayOffset = 8,
       onSelectChange,
+      onSizeChange,
+      onFullWidthChange,
+      onStatusChange,
+      onDisableChange,
+      onFocusChange,
       className,
       children,
       ...otherProps
@@ -233,6 +242,9 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
     // #region states
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [rendered, setRendered] = useState<boolean>(false);
+    const [sizeValue, setSizeValue] = useState<NbComponentSize>(size);
+    const [statusValue, setStatusValue] = useState<NbComponentOrCustomStatus>(status);
+    const [fullWidthValue, setFullWidthValue] = useState<boolean>(fullWidth);
     const [disabledValue, setDisabledValue] = useState<boolean>(disabled);
     const optionListRef = useRef<NbOptionListRef>(null);
     const optionRefs = useOptionRefs(rendered, optionListRef, children);
@@ -242,6 +254,41 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
     );
     const [optionsWidthValue, setOptionsWidthValue] = useState<number>(0);
     // #endregion
+
+    useEffect(() => {
+      setSizeValue(size);
+      onSizeChange && onSizeChange(size);
+    }, [size]);
+
+    useEffect(() => {
+      setStatusValue(status);
+      onStatusChange && onStatusChange(status);
+    }, [status]);
+
+    useEffect(() => {
+      setFullWidthValue(fullWidth);
+      onFullWidthChange && onFullWidthChange(fullWidth);
+    }, [fullWidth]);
+
+    useEffect(() => {
+      setDisabledValue(disabled);
+      onDisableChange && onDisableChange(disabled);
+    }, [disabled]);
+
+    const focusMonitor = useInjection<FocusMonitor>(TYPES.FocusMonitor);
+    useEffect(() => {
+      const focusMonitorSubscription = focusMonitor
+        .monitor(componentRef.current!)
+        .pipe(
+          map((origin) => !!origin),
+          finalize(() => focusMonitor.stopMonitoring(componentRef.current!))
+        )
+        .subscribe((focused) => onFocusChange && onFocusChange(focused));
+
+      return () => {
+        focusMonitorSubscription.unsubscribe();
+      };
+    }, []);
 
     useEffect(() => {
       const { selectedValues, selectedTitleText } = getCurrentSelected();
@@ -378,7 +425,8 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
       },
       getSelectedValues: () => {
         return selectedOptions.selectedValues;
-      }
+      },
+      ...componentRef.current!
     }));
 
     return (
@@ -386,17 +434,17 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
         className={classNames(
           'nb-select',
           'nb-transition',
-          `size-${size}`,
-          `status-${status}`,
+          `size-${sizeValue}`,
+          `status-${statusValue}`,
           `shape-${shape}`,
           `appearance-${appearance}`,
           className,
           {
-            'full-width': fullWidth,
+            'full-width': fullWidthValue,
             open: isOpen
           }
         )}
-        ref={mergeRefs(ref, componentRef)}
+        ref={mergedRefs(ref, componentRef)}
         {...otherProps}
       >
         <button
@@ -404,7 +452,8 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
           className={classNames({
             'select-button': true,
             disabled: disabledValue,
-            placeholder: _.isEmpty(selectedOptions.selectedTitleText)
+            placeholder: _.isEmpty(selectedOptions.selectedTitleText),
+            empty: _.isEmpty(selectedOptions.selectedTitleText) && !placeholder
           })}
           ref={buttonRef}
           disabled={disabledValue}
@@ -425,7 +474,7 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
               position={overlayPosition}
               ref={optionListRef}
               className={optionsListClass}
-              size={size}
+              size={sizeValue}
               multiple={multiple}
               style={{ width: `${optionsWidthValue}px` }}
               onOptionChange={handleOptionChange}

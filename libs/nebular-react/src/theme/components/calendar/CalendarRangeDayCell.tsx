@@ -1,19 +1,20 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
-import { CalendarPickerContext, NbCalendarCellProps, NbCalRange, useDateService } from '../calendar-kit';
+import { Moment } from 'moment';
+import { useCalendarPickerContext, NbCalendarCellProps, NbCalRange } from '../calendar-kit';
+import { useDateService } from '../calendar-kit/hooks';
 
-const NbCalendarRangeDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect }) => {
-  const { locale, size, selectedValue, min, max, filter, visibleDate } = useContext(CalendarPickerContext);
-  const dateService = useDateService(locale);
+function NbCalendarRangeDayCell<D extends Date | Moment>({ date, onSelect }: NbCalendarCellProps<D>) {
+  const { locale, size, selectedValue, min, max, filter, visibleDate, dateType } = useCalendarPickerContext<D>();
+  const dateService = useDateService(locale, dateType);
 
   const hasRange = (): boolean => {
-    return !!(selectedValue && (selectedValue as NbCalRange).start && (selectedValue as NbCalRange).end);
+    return !!(selectedValue && (selectedValue as NbCalRange<D>).start && (selectedValue as NbCalRange<D>).end);
   };
 
   const isInRange = (): boolean => {
     if (date && hasRange()) {
-      const isGreaterThanStart = dateService.compareDates(date, (selectedValue as NbCalRange).start!) >= 0;
-      const isLessThanEnd = dateService.compareDates(date, (selectedValue as NbCalRange).end!) <= 0;
+      const isGreaterThanStart = dateService.compareDates(date, (selectedValue as NbCalRange<D>).start!) >= 0;
+      const isLessThanEnd = dateService.compareDates(date, (selectedValue as NbCalRange<D>).end!) <= 0;
 
       return isGreaterThanStart && isLessThanEnd;
     }
@@ -22,11 +23,11 @@ const NbCalendarRangeDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect 
   };
 
   const start = (): boolean => {
-    return !!(date && hasRange() && dateService.isSameDay(date, (selectedValue as NbCalRange).start!));
+    return !!(date && hasRange() && dateService.isSameDay(date, (selectedValue as NbCalRange<D>).start!));
   };
 
   const end = (): boolean => {
-    return !!(date && hasRange() && dateService.isSameDay(date, (selectedValue as NbCalRange).end!));
+    return !!(date && hasRange() && dateService.isSameDay(date, (selectedValue as NbCalRange<D>).end!));
   };
 
   const isToday = (): boolean => {
@@ -43,7 +44,7 @@ const NbCalendarRangeDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect 
     }
 
     if (selectedValue) {
-      return !!dateService.isSameDaySafe(date, (selectedValue as NbCalRange).start);
+      return !!dateService.isSameDaySafe(date, (selectedValue as NbCalRange<D>).start);
     }
 
     return false;
@@ -93,6 +94,6 @@ const NbCalendarRangeDayCell: React.FC<NbCalendarCellProps> = ({ date, onSelect 
       <div className="cell-content">{day}</div>
     </div>
   );
-};
+}
 
 export { NbCalendarRangeDayCell };
