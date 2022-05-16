@@ -15,7 +15,6 @@ import {
   takeUntil,
   takeWhile
 } from 'rxjs';
-import { _getEventTarget } from '../platform';
 
 export type NbTriggerValues = 'noop' | 'click' | 'hover' | 'hint' | 'focus';
 export enum NbTrigger {
@@ -55,12 +54,12 @@ export abstract class NbTriggerStrategyBase implements NbTriggerStrategy {
   }
 
   protected isOnHost({ target }: Event): boolean {
-    return this.host.outerHTML.indexOf((target as HTMLElement).outerHTML) > 0;
+    return this.host.outerHTML.indexOf((target as HTMLElement).outerHTML) > -1;
   }
 
   protected isOnContainer(event: Event): boolean {
     const _pane = document.getElementById(this.paneId);
-    return _pane ? _pane.outerHTML.indexOf((_getEventTarget(event) as HTMLElement).outerHTML) > 0 : false;
+    return _pane ? _pane.outerHTML.indexOf((event.target as HTMLElement).outerHTML) > -1 : false;
   }
 
   protected isSourceDisabled() {

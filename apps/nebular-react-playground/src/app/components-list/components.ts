@@ -938,26 +938,26 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'popover',
     children: [
       {
-        path: 'popover-custom-component.component',
-        link: '/popover/popover-custom-component.component',
+        path: 'popover-content',
+        link: '/popover/popover-content',
         component: 'PopoverCustomComponentComponent',
-        name: 'Popover Custom Component'
+        name: 'Popover Rich Content'
       },
       {
-        path: 'popover-modes.component',
-        link: '/popover/popover-modes.component',
+        path: 'popover-modes',
+        link: '/popover/popover-modes',
         component: 'PopoverModesComponent',
         name: 'Popover Modes'
       },
       {
-        path: 'popover-placements.component',
-        link: '/popover/popover-placements.component',
+        path: 'popover-placements',
+        link: '/popover/popover-placements',
         component: 'PopoverPlacementsComponent',
         name: 'Popover Placements'
       },
       {
-        path: 'popover-showcase.component',
-        link: '/popover/popover-showcase.component',
+        path: 'popover-showcase',
+        link: '/popover/popover-showcase',
         component: 'PopoverShowcaseComponent',
         name: 'Popover Showcase'
       },
@@ -974,22 +974,22 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Popover Test'
       },
       {
-        path: 'popover-noop.component',
-        link: '/popover/popover-noop.component',
+        path: 'popover-noop',
+        link: '/popover/popover-noop',
         component: 'PopoverNoopComponent',
         name: 'Popover Noop'
       },
       {
-        path: 'popover-dynamic.component',
-        link: '/popover/popover-dynamic.component',
+        path: 'popover-dynamic',
+        link: '/popover/popover-dynamic',
         component: 'PopoverDynamicComponent',
         name: 'Popover Dynamic'
       },
       {
-        path: 'popover-dynamic-code.component',
-        link: '/popover/popover-dynamic-code.component',
+        path: 'popover-disable',
+        link: '/popover/popover-disable',
         component: 'PopoverDynamicCodeComponent',
-        name: 'Popover Dynamic Code'
+        name: 'Popover Disable'
       }
     ]
   },
@@ -997,32 +997,32 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'progress-bar',
     children: [
       {
-        path: 'progress-bar-interactive.component',
-        link: '/progress-bar/progress-bar-interactive.component',
+        path: 'progress-bar-interactive',
+        link: '/progress-bar/progress-bar-interactive',
         component: 'ProgressBarInteractiveComponent',
         name: 'Progress Bar Interactive'
       },
       {
-        path: 'progress-bar-showcase.component',
-        link: '/progress-bar/progress-bar-showcase.component',
+        path: 'progress-bar-showcase',
+        link: '/progress-bar/progress-bar-showcase',
         component: 'ProgressBarShowcaseComponent',
         name: 'Progress Bar Showcase'
       },
       {
-        path: 'progress-bar-size.component',
-        link: '/progress-bar/progress-bar-size.component',
+        path: 'progress-bar-size',
+        link: '/progress-bar/progress-bar-size',
         component: 'ProgressBarSizeComponent',
         name: 'Progress Bar Size'
       },
       {
-        path: 'progress-bar-status.component',
-        link: '/progress-bar/progress-bar-status.component',
+        path: 'progress-bar-status',
+        link: '/progress-bar/progress-bar-status',
         component: 'ProgressBarStatusComponent',
         name: 'Progress Bar Status'
       },
       {
-        path: 'progress-bar-value.component',
-        link: '/progress-bar/progress-bar-value.component',
+        path: 'progress-bar-value',
+        link: '/progress-bar/progress-bar-value',
         component: 'ProgressBarValueComponent',
         name: 'Progress Bar Value'
       }

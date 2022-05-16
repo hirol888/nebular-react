@@ -21,3 +21,5 @@ export * from './calendar';
 export * from './datepicker';
 export * from './form-field';
 export * from './list';
+export * from './popover';
+export * from './progress-bar';

@@ -78,7 +78,7 @@ export function usePositionStrategy(
  * @param rendered
  * @param isOpen
  * @param buttonRef
- * @param optionsPanelClass
+ * @param panelClass
  * @param positionStrategy
  * @param keyManager
  * @param hide
@@ -86,7 +86,7 @@ export function usePositionStrategy(
  */
 export function useOverlay(
   rendered: boolean,
-  optionsPanelClass: string | string[] | undefined,
+  panelClass: string | string[] | undefined,
   positionStrategy: NbPositionStrategy | undefined,
   scrollStrategy: NbScrollStrategy,
   hasBackdrop?: boolean,
@@ -107,7 +107,7 @@ export function useOverlay(
           const _overlayRef = overlayBuilder.create({
             positionStrategy: positionStrategyValue,
             scrollStrategy: scrollStrategyValue,
-            panelClass: optionsPanelClass ?? '',
+            panelClass: panelClass ?? '',
             hasBackdrop: hasBackdropValue,
             backdropClass: backdropClass ?? ''
           });
@@ -220,7 +220,7 @@ export function useTriggerStrategy(
   rendered: boolean,
   isOpen: boolean,
   paneId: string,
-  triggerHostRef: React.RefObject<HTMLDivElement>,
+  triggerHostRef: React.RefObject<HTMLElement>,
   triggerSourceRef: React.RefObject<HTMLElement>,
   triggerType: NbTrigger,
   show: () => void,

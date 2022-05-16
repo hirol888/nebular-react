@@ -127,6 +127,22 @@ import {
 import { FormFieldInput, FormFieldPassword, FormFieldShowcase } from './with-layout/form-field';
 import { SimpleListShowcase } from './with-layout/list';
 import { InfiniteListScrollModes, InfiniteListShowcase } from './with-layout/infinite-list';
+import {
+  PopoverContent,
+  PopoverDisable,
+  PopoverDynamic,
+  PopoverModes,
+  PopoverNoop,
+  PopoverPlacements,
+  PopoverShowcase
+} from './with-layout/popover';
+import {
+  ProgressBarInteractive,
+  ProgressBarShowcase,
+  ProgressBarSize,
+  ProgressBarStatus,
+  ProgressBarValue
+} from './with-layout/progress-bar';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -376,6 +392,25 @@ export function App() {
         {/* Menu */}
         <Route path="/menu/menu-showcase" element={WithLayout(MenuShowcase, onRouteChange)} />
         {/* End Menu */}
+        {/* Popover */}
+        <Route path="/popover/popover-dynamic" element={WithLayout(PopoverDynamic, onRouteChange)} />
+        <Route path="/popover/popover-disable" element={WithLayout(PopoverDisable, onRouteChange)} />
+        <Route path="/popover/popover-showcase" element={WithLayout(PopoverShowcase, onRouteChange)} />
+        <Route path="/popover/popover-content" element={WithLayout(PopoverContent, onRouteChange)} />
+        <Route path="/popover/popover-modes" element={WithLayout(PopoverModes, onRouteChange)} />
+        <Route path="/popover/popover-noop" element={WithLayout(PopoverNoop, onRouteChange)} />
+        <Route path="/popover/popover-placements" element={WithLayout(PopoverPlacements, onRouteChange)} />
+        {/* End Popover */}
+        {/* Progress Bar */}
+        <Route
+          path="/progress-bar/progress-bar-interactive"
+          element={WithLayout(ProgressBarInteractive, onRouteChange)}
+        />
+        <Route path="/progress-bar/progress-bar-size" element={WithLayout(ProgressBarSize, onRouteChange)} />
+        <Route path="/progress-bar/progress-bar-showcase" element={WithLayout(ProgressBarShowcase, onRouteChange)} />
+        <Route path="/progress-bar/progress-bar-status" element={WithLayout(ProgressBarStatus, onRouteChange)} />
+        <Route path="/progress-bar/progress-bar-value" element={WithLayout(ProgressBarValue, onRouteChange)} />
+        {/* End Progress Bar */}
         {/* Select */}
         <Route path="/select/select-clean" element={WithLayout(SelectClean, onRouteChange)} />
         <Route path="/select/select-disabled" element={WithLayout(SelectDisabled, onRouteChange)} />

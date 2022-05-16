@@ -540,64 +540,70 @@ export interface NbButtonProps extends BaseButtonProps {
  * button-hero-control-disabled-background-color:
  * button-hero-control-disabled-text-color:
  */
-const NbButton: React.FC<NbButtonProps & React.HTMLAttributes<HTMLDivElement>> = ({
-  size = 'medium',
-  status = 'basic',
-  shape = 'rectangle',
-  appearance = 'filled',
-  fullWidth = false,
-  disabled = false,
-  tabIndex,
-  onClick,
-  className,
-  children,
-  ...otherProps
-}) => {
-  const [tabIndexValue] = useTabIndexState(disabled, tabIndex);
+const NbButton = React.forwardRef<HTMLDivElement, NbButtonProps & React.HTMLAttributes<HTMLDivElement>>(
+  (
+    {
+      size = 'medium',
+      status = 'basic',
+      shape = 'rectangle',
+      appearance = 'filled',
+      fullWidth = false,
+      disabled = false,
+      tabIndex,
+      onClick,
+      className,
+      children,
+      ...otherProps
+    },
+    ref
+  ) => {
+    const [tabIndexValue] = useTabIndexState(disabled, tabIndex);
 
-  const childrenArray = Children.toArray(children);
-  const firstNode = childrenArray[0];
-  const lastNode = childrenArray[childrenArray.length - 1];
-  const iconLeft = isIconExist(firstNode, NbIcon);
-  const iconRight = isIconExist(lastNode, NbIcon);
+    const childrenArray = Children.toArray(children);
+    const firstNode = childrenArray[0];
+    const lastNode = childrenArray[childrenArray.length - 1];
+    const iconLeft = isIconExist(firstNode, NbIcon);
+    const iconRight = isIconExist(lastNode, NbIcon);
 
-  const handleClick = () => {
-    if (!disabled) {
-      onClick && onClick();
-    }
-  };
+    const handleClick = () => {
+      if (!disabled) {
+        onClick && onClick();
+      }
+    };
 
-  return (
-    <div
-      className={classNames(
-        'nb-button',
-        'nb-transition',
-        `appearance-${appearance}`,
-        `size-${size}`,
-        `shape-${shape}`,
-        `status-${status}`,
-        className,
-        {
-          'full-width': fullWidth,
-          'btn-disabled': disabled,
-          'icon-start': iconLeft,
-          'icon-end': iconRight
-        }
-      )}
-      tabIndex={tabIndexValue}
-      aria-disabled={disabled}
-      onClick={handleClick}
-      onFocus={(event) => {
-        if (disabled) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }}
-      {...otherProps}
-    >
-      {children}
-    </div>
-  );
-};
+    return (
+      <div
+        className={classNames(
+          'nb-button',
+          'nb-transition',
+          `appearance-${appearance}`,
+          `size-${size}`,
+          `shape-${shape}`,
+          `status-${status}`,
+          className,
+          {
+            'full-width': fullWidth,
+            'btn-disabled': disabled,
+            'icon-start': iconLeft,
+            'icon-end': iconRight
+          }
+        )}
+        tabIndex={tabIndexValue}
+        aria-disabled={disabled}
+        onClick={handleClick}
+        onFocus={(event) => {
+          if (disabled) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
+        {...otherProps}
+        ref={ref}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
 export { NbButton };

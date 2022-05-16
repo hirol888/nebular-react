@@ -123,14 +123,14 @@ function NbDatepickerInner<D extends Date | Moment>(
     <>
       <NbInput
         ref={mergedRefs<HTMLInputElement>(ref, componentRef)}
-        className={classNames('nb-datepicker', className, getContainerPositionClasses(overlayPosition))}
+        className={classNames('nb-datepicker', className)}
         value={inputValue}
         onChange={(event) => handleInputChange(event)}
         {...otherProps}
       />
       <Portal overlayRef={overlayRef} isOpen={isOpen} paneRef={paneRef}>
         <div ref={paneRef} id={paneId} className="cdk-overlay-pane">
-          <div className="nb-datepicker-container">
+          <div className={classNames('nb-datepicker-container', getContainerPositionClasses(overlayPosition))}>
             <NbCalendar<D>
               boundingMonth={boundingMonth}
               startView={startView}
