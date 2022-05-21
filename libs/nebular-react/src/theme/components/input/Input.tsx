@@ -6,7 +6,8 @@ import { useInjection } from 'libs/nebular-react/src/ioc-provider';
 import { FocusMonitor } from 'libs/nebular-react/src/core/cdk';
 import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import { mergedRefs } from 'libs/nebular-react/src/core/helpers/helpers';
-import { finalize, map } from 'rxjs';
+import { filter, finalize, map, switchMap } from 'rxjs';
+import { useObservable, useSubscription } from 'observable-hooks';
 
 export interface NbInputProps extends NbFormControlProps {
   fieldSize?: NbComponentSize;
@@ -61,19 +62,20 @@ const NbInput = React.forwardRef<HTMLInputElement, NbInputProps & React.InputHTM
     }, [fullWidth]);
 
     const focusMonitor = useInjection<FocusMonitor>(TYPES.FocusMonitor);
-    useEffect(() => {
-      const focusMonitorSubscription = focusMonitor
-        .monitor(inputRef.current!)
-        .pipe(
-          map((origin) => !!origin),
-          finalize(() => focusMonitor.stopMonitoring(inputRef.current!))
-        )
-        .subscribe((focused) => onFocusChange && onFocusChange(focused));
-
-      return () => {
-        focusMonitorSubscription.unsubscribe();
-      };
-    }, []);
+    const monitor$ = useObservable(
+      (input$) =>
+        input$.pipe(
+          filter(([inputRefValue]) => !!inputRefValue),
+          switchMap(([inputRefValue, focusMonitorValue]) => {
+            return focusMonitorValue.monitor(inputRefValue!).pipe(
+              map((origin) => !!origin),
+              finalize(() => focusMonitorValue.stopMonitoring(inputRef.current!))
+            );
+          })
+        ),
+      [inputRef.current, focusMonitor]
+    );
+    useSubscription(monitor$, (focused) => onFocusChange && onFocusChange(focused));
 
     return (
       <input

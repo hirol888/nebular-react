@@ -28,7 +28,8 @@ import {
 } from 'libs/nebular-react/src/core/cdk/hooks';
 import { useInjection } from 'libs/nebular-react/src/ioc-provider';
 import { TYPES } from 'libs/nebular-react/src/ioc-types';
-import { finalize, map } from 'rxjs';
+import { filter, finalize, map, switchMap } from 'rxjs';
+import { useObservable, useSubscription } from 'observable-hooks';
 
 export type NbSelectAppearance = 'outline' | 'filled' | 'hero';
 
@@ -105,7 +106,7 @@ export type SelectRef = {
   getSelectedValues: () => any;
 } & HTMLDivElement;
 
-const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<HTMLDivElement>>(
+const NbSelect = React.forwardRef<SelectRef | HTMLDivElement, SelectProps & React.HTMLAttributes<HTMLDivElement>>(
   (
     {
       size = 'medium',
@@ -276,19 +277,20 @@ const NbSelect = React.forwardRef<SelectRef, SelectProps & React.HTMLAttributes<
     }, [disabled]);
 
     const focusMonitor = useInjection<FocusMonitor>(TYPES.FocusMonitor);
-    useEffect(() => {
-      const focusMonitorSubscription = focusMonitor
-        .monitor(componentRef.current!)
-        .pipe(
-          map((origin) => !!origin),
-          finalize(() => focusMonitor.stopMonitoring(componentRef.current!))
-        )
-        .subscribe((focused) => onFocusChange && onFocusChange(focused));
-
-      return () => {
-        focusMonitorSubscription.unsubscribe();
-      };
-    }, []);
+    const monitor$ = useObservable(
+      (input$) =>
+        input$.pipe(
+          filter(([componentRefValue]) => !!componentRefValue),
+          switchMap(([componentRefValue, focusMonitorValue]) => {
+            return focusMonitorValue.monitor(componentRefValue!).pipe(
+              map((origin) => !!origin),
+              finalize(() => focusMonitor.stopMonitoring(componentRefValue!))
+            );
+          })
+        ),
+      [componentRef.current, focusMonitor]
+    );
+    useSubscription(monitor$, () => focusMonitor.stopMonitoring(componentRef.current!));
 
     useEffect(() => {
       const { selectedValues, selectedTitleText } = getCurrentSelected();

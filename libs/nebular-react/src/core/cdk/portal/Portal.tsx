@@ -11,9 +11,17 @@ export type PortalProps = {
   isOpen: boolean;
   updateKey?: string;
   paneRef: React.RefObject<HTMLDivElement>;
+  attachToLayout?: boolean;
 };
 
-const Portal: React.FC<PortalProps> = ({ overlayRef, isOpen, updateKey, paneRef, children }) => {
+const Portal: React.FC<PortalProps> = ({
+  overlayRef,
+  isOpen,
+  updateKey,
+  paneRef,
+  attachToLayout = false,
+  children
+}) => {
   let defaultNode: HTMLElement | null = null;
   const [, setUpdateKeyValue] = useState<string | undefined>(updateKey);
 
@@ -44,9 +52,16 @@ const Portal: React.FC<PortalProps> = ({ overlayRef, isOpen, updateKey, paneRef,
     document.body.appendChild(defaultNode);
   }
 
-  return ReactDOM.createPortal(
-    <Provider container={container!}>{isOpen && <div ref={hostRef}>{children}</div>}</Provider>,
-    defaultNode
+  if (attachToLayout) {
+    defaultNode = document.querySelector('.nb-layout');
+  }
+
+  return (
+    defaultNode &&
+    ReactDOM.createPortal(
+      <Provider container={container!}>{isOpen && <div ref={hostRef}>{children}</div>}</Provider>,
+      defaultNode!
+    )
   );
 };
 

@@ -23,3 +23,5 @@ export * from './form-field';
 export * from './list';
 export * from './popover';
 export * from './progress-bar';
+export * from './radio';
+export * from './search';

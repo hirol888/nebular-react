@@ -69,25 +69,3 @@ export function useCalendarPickerContext<D extends Date | Moment>() {
 
   return context;
 }
-
-// export function CalendarPickerContextProvider<D extends Date | Moment>({
-//   locale = DEFAULT_LOCALE,
-//   min,
-//   max,
-//   filter,
-//   size,
-//   selectedValue,
-//   visibleDate,
-//   dateChange,
-//   monthChange,
-//   yearChange,
-//   dayCellType,
-//   monthCellType,
-//   yearCellType,
-//   dateType = DateTypes.Date,
-//   children
-// }: React.PropsWithChildren<CalendarPickerContextProps<D>>) {
-//   return <CalendarPickerContext.Provider value={{ locale, min, max, filter, size, selectedValue, visibleDate, dateChange, monthChange, yearChange, dayCellType, monthCellType, yearCellType, dateType}}>{children}</CalendarPickerContext.Provider>
-// }
-
-// export const CalendarPickerContext = React.createContext<CalendarPickerContextProps>({});

@@ -143,6 +143,17 @@ import {
   ProgressBarStatus,
   ProgressBarValue
 } from './with-layout/progress-bar';
+import { RadioDisabled, RadioShowcase, RadioStatuses } from './with-layout/radio';
+import { FlipCardAccents, FlipCardColors, FlipCardFull, FlipCardShowcase } from './with-layout/flip-card';
+import { FlipCardSizes } from './with-layout/flip-card/FlipCardSizes';
+import {
+  RevealCardAccents,
+  RevealCardColors,
+  RevealCardFull,
+  RevealCardShowcase,
+  RevealCardSizes
+} from './with-layout/reveal-card';
+import { SearchCustomizedTest, SearchEvent, SearchShowcase, SearchWithInputEvent } from './without-layout/search';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -360,6 +371,13 @@ export function App() {
         <Route path="/dialog/dialog-scroll" element={WithLayout(DialogScroll, onRouteChange)} />
         <Route path="/dialog/dialog-showcase" element={WithLayout(DialogShowcase, onRouteChange)} />
         {/* End Dialog */}
+        {/* Flip Card */}
+        <Route path="/flip-card/flip-card-accents" element={WithLayout(FlipCardAccents, onRouteChange)} />
+        <Route path="/flip-card/flip-card-colors" element={WithLayout(FlipCardColors, onRouteChange)} />
+        <Route path="/flip-card/flip-card-full" element={WithLayout(FlipCardFull, onRouteChange)} />
+        <Route path="/flip-card/flip-card-showcase" element={WithLayout(FlipCardShowcase, onRouteChange)} />
+        <Route path="/flip-card/flip-card-sizes" element={WithLayout(FlipCardSizes, onRouteChange)} />
+        {/* End Flip Card */}
         {/* FormField */}
         <Route path="/form-field/form-field-input" element={WithLayout(FormFieldInput, onRouteChange)} />
         <Route path="/form-field/form-field-password" element={WithLayout(FormFieldPassword, onRouteChange)} />
@@ -411,6 +429,18 @@ export function App() {
         <Route path="/progress-bar/progress-bar-status" element={WithLayout(ProgressBarStatus, onRouteChange)} />
         <Route path="/progress-bar/progress-bar-value" element={WithLayout(ProgressBarValue, onRouteChange)} />
         {/* End Progress Bar */}
+        {/* Radio */}
+        <Route path="/radio/radio-disabled" element={WithLayout(RadioDisabled, onRouteChange)} />
+        <Route path="/radio/radio-showcase" element={WithLayout(RadioShowcase, onRouteChange)} />
+        <Route path="/radio/radio-statuses" element={WithLayout(RadioStatuses, onRouteChange)} />
+        {/* End Radio */}
+        {/* Reveal Card */}
+        <Route path="/reveal-card/reveal-card-accents" element={WithLayout(RevealCardAccents, onRouteChange)} />
+        <Route path="/reveal-card/reveal-card-colors" element={WithLayout(RevealCardColors, onRouteChange)} />
+        <Route path="/reveal-card/reveal-card-full" element={WithLayout(RevealCardFull, onRouteChange)} />
+        <Route path="/reveal-card/reveal-card-showcase" element={WithLayout(RevealCardShowcase, onRouteChange)} />
+        <Route path="/reveal-card/reveal-card-sizes" element={WithLayout(RevealCardSizes, onRouteChange)} />
+        {/* End Reveal Card */}
         {/* Select */}
         <Route path="/select/select-clean" element={WithLayout(SelectClean, onRouteChange)} />
         <Route path="/select/select-disabled" element={WithLayout(SelectDisabled, onRouteChange)} />
@@ -426,6 +456,12 @@ export function App() {
         <Route path="/select/select-sizes" element={WithLayout(SelectSizes, onRouteChange)} />
         <Route path="/select/select-statuses" element={WithLayout(SelectStatuses, onRouteChange)} />
         {/* End Select */}
+        {/* Search */}
+        <Route path="search/search-customized-test" element={WithoutLayout(SearchCustomizedTest, onRouteChange)} />
+        <Route path="search/search-event" element={WithoutLayout(SearchEvent, onRouteChange)} />
+        <Route path="search/search-showcase" element={WithoutLayout(SearchShowcase, onRouteChange)} />
+        <Route path="search/search-with-input-event" element={WithoutLayout(SearchWithInputEvent, onRouteChange)} />
+        {/* End Search */}
         {/* Sidebar */}
         <Route path="sidebar/sidebar-compacted" element={WithoutLayout(SidebarCompacted, onRouteChange)} />
         <Route path="sidebar/sidebar-fixed" element={WithoutLayout(SidebarFixed, onRouteChange)} />

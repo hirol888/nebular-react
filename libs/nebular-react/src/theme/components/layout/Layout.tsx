@@ -62,6 +62,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
   const layoutPaddingOldValue = useRef<{ left: string; right: string } | null>(null);
 
   const layoutRef = useRef<HTMLDivElement>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const layoutContainerRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
@@ -81,7 +82,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
       scrollWidth,
       scrollHeight = 0;
     if (withScroll) {
-      const container = layoutRef.current;
+      const container = scrollableContainerRef.current;
       clientWidth = container?.clientWidth ?? 0;
       clientHeight = container?.clientHeight ?? 0;
       scrollWidth = container?.scrollWidth ?? 0;
@@ -108,7 +109,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
     }
 
     if (withScroll) {
-      const container = layoutRef.current;
+      const container = scrollableContainerRef.current;
       return { x: container?.scrollLeft ?? 0, y: container?.scrollTop ?? 0 };
     }
 
@@ -134,7 +135,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
       return;
     }
     if (withScroll) {
-      const scrollable = layoutRef.current;
+      const scrollable = scrollableContainerRef.current;
       if (scrollable) {
         if (scrollable.scrollTo) {
           scrollable.scrollTo(x, y);
@@ -157,7 +158,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
 
     document.documentElement.classList.add(scrollBlockClass);
 
-    const scrollableContainerElement = layoutRef.current;
+    const scrollableContainerElement = scrollableContainerRef.current;
     const layoutElement = layoutContainerRef.current;
 
     const layoutWithScrollWidth = layoutElement?.clientWidth ?? 0;
@@ -196,7 +197,7 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
       }
 
       if (layoutPaddingOldValue.current) {
-        const layoutElement = layoutContainerRef.current;
+        const layoutElement = scrollableContainerRef.current;
         if (layoutElement) {
           layoutElement.style.paddingLeft = layoutPaddingOldValue.current.left;
           layoutElement.style.paddingRight = layoutPaddingOldValue.current.right;
@@ -293,25 +294,27 @@ const NbLayout: React.FC<LayoutProps & React.HTMLAttributes<HTMLDivElement>> = (
   return (
     <div
       ref={layoutRef}
-      className={classNames('nb-layout', 'scrollable-container', className, {
+      className={classNames('nb-layout', className, {
         'window-mode': windowMode,
         'with-scroll': withScroll,
         'with-subheader': withSubheader
       })}
       {...otherProps}
     >
-      <div className="layout" ref={layoutContainerRef}>
-        {header && !(header as ReactElement).props.subheader && header}
-        <div className="layout-container">
-          {sidebar}
-          <div
-            className={classNames('content', {
-              center: center
-            })}
-          >
-            {header && (header as ReactElement).props.subheader && header}
-            <div className="columns">{columns && columns.length > 0 && columns}</div>
-            {footer}
+      <div className="scrollable-container" ref={scrollableContainerRef}>
+        <div className="layout" ref={layoutContainerRef}>
+          {header && !(header as ReactElement).props.subheader && header}
+          <div className="layout-container">
+            {sidebar}
+            <div
+              className={classNames('content', {
+                center: center
+              })}
+            >
+              {header && (header as ReactElement).props.subheader && header}
+              <div className="columns">{columns && columns.length > 0 && columns}</div>
+              {footer}
+            </div>
           </div>
         </div>
       </div>

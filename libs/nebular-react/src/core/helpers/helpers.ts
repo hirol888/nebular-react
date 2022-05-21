@@ -1,6 +1,8 @@
 import React from 'react';
 
-export function mergedRefs<T>(...refs: (React.MutableRefObject<T> | React.Ref<T>)[]): React.Ref<T> | null {
+export function mergedRefs<T>(
+  ...refs: (React.MutableRefObject<T> | React.RefObject<T> | React.ForwardedRef<T> | React.Ref<T>)[]
+): React.Ref<T> | null {
   const filteredRefs = refs.filter(Boolean);
   if (!filteredRefs.length) return null;
   if (filteredRefs.length === 0) return filteredRefs[0];

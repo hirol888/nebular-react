@@ -11,7 +11,7 @@ import {
   NbThemeService
 } from './core/services';
 import { TYPES } from './ioc-types';
-import { NbIconLibraries, NbMenuInternalService, NbMenuService, NbSidebarService } from './theme';
+import { NbIconLibraries, NbMenuInternalService, NbMenuService, NbSearchService, NbSidebarService } from './theme';
 import {
   NbPlatform,
   ScrollDispatcher,
@@ -131,6 +131,7 @@ const container = (locale: string) => {
   _container.bind<NbSidebarService>(TYPES.NbSidebarService).to(NbSidebarService).inSingletonScope();
   _container.bind<NbMenuService>(TYPES.NbMenuService).to(NbMenuService).inSingletonScope();
   _container.bind<NbMenuInternalService>(TYPES.NbMenuInternalService).to(NbMenuInternalService).inSingletonScope();
+  _container.bind<NbSearchService>(TYPES.NbSearchService).to(NbSearchService).inSingletonScope();
 
   /**
    * constants

@@ -710,32 +710,32 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'flip-card',
     children: [
       {
-        path: 'flip-card-accents.component',
-        link: '/flip-card/flip-card-accents.component',
+        path: 'flip-card-accents',
+        link: '/flip-card/flip-card-accents',
         component: 'FlipCardAccentsComponent',
         name: 'Flip Card Accents'
       },
       {
-        path: 'flip-card-colors.component',
-        link: '/flip-card/flip-card-colors.component',
+        path: 'flip-card-colors',
+        link: '/flip-card/flip-card-colors',
         component: 'FlipCardColorsComponent',
         name: 'Flip Card Colors'
       },
       {
-        path: 'flip-card-full.component',
-        link: '/flip-card/flip-card-full.component',
+        path: 'flip-card-full',
+        link: '/flip-card/flip-card-full',
         component: 'FlipCardFullComponent',
         name: 'Flip Card Full'
       },
       {
-        path: 'flip-card-showcase.component',
-        link: '/flip-card/flip-card-showcase.component',
+        path: 'flip-card-showcase',
+        link: '/flip-card/flip-card-showcase',
         component: 'FlipCardShowcaseComponent',
         name: 'Flip Card Showcase'
       },
       {
-        path: 'flip-card-sizes.component',
-        link: '/flip-card/flip-card-sizes.component',
+        path: 'flip-card-sizes',
+        link: '/flip-card/flip-card-sizes',
         component: 'FlipCardSizesComponent',
         name: 'Flip Card Sizes'
       }
@@ -1032,20 +1032,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'radio',
     children: [
       {
-        path: 'radio-disabled.component',
-        link: '/radio/radio-disabled.component',
+        path: 'radio-disabled',
+        link: '/radio/radio-disabled',
         component: 'RadioDisabledComponent',
         name: 'Radio Disabled'
       },
       {
-        path: 'radio-showcase.component',
-        link: '/radio/radio-showcase.component',
+        path: 'radio-showcase',
+        link: '/radio/radio-showcase',
         component: 'RadioShowcaseComponent',
         name: 'Radio Showcase'
       },
       {
-        path: 'radio-statuses.component',
-        link: '/radio/radio-statuses.component',
+        path: 'radio-statuses',
+        link: '/radio/radio-statuses',
         component: 'RadioStatusesComponent',
         name: 'Radio Statuses'
       },
@@ -1067,32 +1067,32 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'reveal-card',
     children: [
       {
-        path: 'reveal-card-accents.component',
-        link: '/reveal-card/reveal-card-accents.component',
+        path: 'reveal-card-accents',
+        link: '/reveal-card/reveal-card-accents',
         component: 'RevealCardAccentsComponent',
         name: 'Reveal Card Accents'
       },
       {
-        path: 'reveal-card-colors.component',
-        link: '/reveal-card/reveal-card-colors.component',
+        path: 'reveal-card-colors',
+        link: '/reveal-card/reveal-card-colors',
         component: 'RevealCardColorsComponent',
         name: 'Reveal Card Colors'
       },
       {
-        path: 'reveal-card-full.component',
-        link: '/reveal-card/reveal-card-full.component',
+        path: 'reveal-card-full',
+        link: '/reveal-card/reveal-card-full',
         component: 'RevealCardFullComponent',
         name: 'Reveal Card Full'
       },
       {
-        path: 'reveal-card-showcase.component',
-        link: '/reveal-card/reveal-card-showcase.component',
+        path: 'reveal-card-showcase',
+        link: '/reveal-card/reveal-card-showcase',
         component: 'RevealCardShowcaseComponent',
         name: 'Reveal Card Showcase'
       },
       {
-        path: 'reveal-card-sizes.component',
-        link: '/reveal-card/reveal-card-sizes.component',
+        path: 'reveal-card-sizes',
+        link: '/reveal-card/reveal-card-sizes',
         component: 'RevealCardSizesComponent',
         name: 'Reveal Card Sizes'
       }
@@ -1846,20 +1846,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'search',
     children: [
       {
-        path: 'search-customized-test.component',
-        link: '/search/search-customized-test.component',
+        path: 'search-customized-test',
+        link: '/search/search-customized-test',
         component: 'SearchCustomizedTestComponent',
         name: 'Search Customized Test'
       },
       {
-        path: 'search-event.component',
-        link: '/search/search-event.component',
+        path: 'search-event',
+        link: '/search/search-event',
         component: 'SearchEventComponent',
         name: 'Search Event'
       },
       {
-        path: 'search-showcase.component',
-        link: '/search/search-showcase.component',
+        path: 'search-showcase',
+        link: '/search/search-showcase',
         component: 'SearchShowcaseComponent',
         name: 'Search Showcase'
       },
@@ -1870,8 +1870,8 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Search Test'
       },
       {
-        path: 'search-with-input-event.component',
-        link: '/search/search-with-input-event.component',
+        path: 'search-with-input-event',
+        link: '/search/search-with-input-event',
         component: 'SearchWithInputEventComponent',
         name: 'Search With Input Event'
       }

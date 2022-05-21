@@ -45,6 +45,7 @@ const TYPES = {
   NbSidebarService: Symbol.for('NbSidebarService'),
   NbMenuService: Symbol.for('NbMenuService'),
   NbMenuInternalService: Symbol.for('NbMenuInternalService'),
+  NbSearchService: Symbol.for('NbSearchService'),
 
   /**
    * constants

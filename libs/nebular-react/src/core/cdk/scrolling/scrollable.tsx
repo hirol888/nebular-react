@@ -1,10 +1,11 @@
 // import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { fromEvent, Observable, Observer, Subscription } from 'rxjs';
+import { filter, fromEvent, Observable, Observer, Subscription, switchMap } from 'rxjs';
 import { NbLayoutDirectionService } from '../../services';
 import { ScrollDispatcher } from './scroll-dispatcher';
 import { TYPES } from 'libs/nebular-react/src/ioc-types';
 import { useInjection } from 'libs/nebular-react/src/ioc-provider';
+import { useObservable } from 'observable-hooks';
 
 export type CdkScrollableRef = {
   scrollTo: (options: ExtendedScrollToOptions) => void;
@@ -51,32 +52,31 @@ export const enum RtlScrollAxisType {
 export type ExtendedScrollToOptions = _XAxis & _YAxis & ScrollOptions;
 
 const CdkScrollable = React.forwardRef<CdkScrollableRef, React.HTMLAttributes<HTMLDivElement>>(({ children }, ref) => {
-  const [elementScrolled, setElementScrolled] = useState<Observable<Event> | null>(null);
-  const [elementScrolledSubscription, setElementScrolledSubscription] = useState<Subscription>(Subscription.EMPTY);
   const elementRef = useRef<HTMLDivElement>(null);
 
   const scrollDispatcher = useInjection<ScrollDispatcher>(TYPES.ScrollDispatcher);
   const layoutDirection = useInjection<NbLayoutDirectionService>(TYPES.NbLayoutDirectionService);
   const isRtl = layoutDirection.isRtl();
 
-  useEffect(() => {
-    const es = new Observable((observer: Observer<Event>) => {
-      const esSubscription = fromEvent(elementRef.current!, 'scroll').subscribe(observer);
-      setElementScrolledSubscription(esSubscription);
-    });
-    setElementScrolled(es);
+  const scroll$ = useObservable(
+    (input$) =>
+      input$.pipe(
+        filter(([elementRefValue]) => !!elementRefValue),
+        switchMap(([elementRefValue]) => {
+          return new Observable((observer: Observer<Event>) => {
+            return fromEvent(elementRefValue!, 'scroll').subscribe(observer);
+          });
+        })
+      ),
+    [elementRef.current]
+  );
 
+  useEffect(() => {
+    scrollDispatcher.register(elementRef.current!, scroll$);
     return () => {
       scrollDispatcher.deregister(elementRef.current!);
-      elementScrolledSubscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    if (elementScrolled) {
-      scrollDispatcher.register(elementRef.current!, elementScrolled);
-    }
-  }, [elementScrolled]);
 
   useImperativeHandle(ref, () => ({
     scrollTo: _scrollTo,

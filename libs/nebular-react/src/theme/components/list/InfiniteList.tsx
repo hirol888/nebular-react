@@ -6,6 +6,7 @@ import { filter, forkJoin, map, of, switchMap } from 'rxjs';
 import * as _ from 'lodash';
 import './list.scoped.scss';
 import { mergedRefs } from 'libs/nebular-react/src/core/helpers/helpers';
+import { useObservable, useSubscription } from 'observable-hooks';
 
 export interface NbScrollableContainerDimentions {
   scrollTop: number;
@@ -66,24 +67,23 @@ const NbInfiniteList = React.forwardRef<HTMLDivElement, NbInfiniteListProps & Re
       checkPosition(componentRef.current!)();
     };
 
+    const onScroll$ = useObservable(() =>
+      scrollService.onScroll().pipe(
+        filter(() => listenWindowScroll),
+        switchMap(() => getContainerDimensions())
+      )
+    );
+    useSubscription(onScroll$, (dimensions) => checkPosition(dimensions)());
+
+    const getContainerDimensions$ = useObservable(() => getContainerDimensions());
+    useSubscription(getContainerDimensions$, (dimensions) => checkPosition(dimensions)());
+
     useEffect(() => {
       if (!listenWindowScroll) {
         componentRef.current?.addEventListener('scroll', onElementScroll);
       }
 
-      const scrollSubscription = scrollService
-        .onScroll()
-        .pipe(
-          filter(() => listenWindowScroll),
-          switchMap(() => getContainerDimensions())
-        )
-        .subscribe((dimensions) => checkPosition(dimensions)());
-
-      const dimensionsSubscription = getContainerDimensions().subscribe((dimensions) => checkPosition(dimensions)());
-
       return () => {
-        scrollSubscription.unsubscribe();
-        dimensionsSubscription.unsubscribe();
         if (!listenWindowScroll) {
           componentRef.current?.removeEventListener('scroll', onElementScroll);
         }

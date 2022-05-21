@@ -27,11 +27,11 @@ import {
 import { DEFAULT_LOCALE } from '../calendar-kit/hooks/date-moment';
 import { NbRangepickerProps } from './picker-model';
 
-declare module 'react' {
-  function forwardRef<T, P = unknown>(
-    render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
-  ): (props: P & React.RefAttributes<T>) => React.ReactElement | null;
-}
+// declare module 'react' {
+//   function forwardRef<T, P = unknown>(
+//     render: (props: P, ref: React.Ref<T>) => React.ReactElement | null
+//   ): (props: P & React.RefAttributes<T>) => React.ReactElement | null;
+// }
 
 function NbRangepickerInner<D extends Date | Moment>(
   {
