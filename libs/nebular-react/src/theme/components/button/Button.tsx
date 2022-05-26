@@ -540,7 +540,7 @@ export interface NbButtonProps extends BaseButtonProps {
  * button-hero-control-disabled-background-color:
  * button-hero-control-disabled-text-color:
  */
-const NbButton = React.forwardRef<HTMLDivElement, NbButtonProps & React.HTMLAttributes<HTMLDivElement>>(
+const NbButton = React.forwardRef<HTMLButtonElement, NbButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>>(
   (
     {
       size = 'medium',
@@ -572,7 +572,7 @@ const NbButton = React.forwardRef<HTMLDivElement, NbButtonProps & React.HTMLAttr
     };
 
     return (
-      <div
+      <button
         className={classNames(
           'nb-button',
           'nb-transition',
@@ -601,7 +601,7 @@ const NbButton = React.forwardRef<HTMLDivElement, NbButtonProps & React.HTMLAttr
         ref={ref}
       >
         {children}
-      </div>
+      </button>
     );
   }
 );

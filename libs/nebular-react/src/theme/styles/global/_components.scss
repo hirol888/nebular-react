@@ -24,8 +24,8 @@
 @import '../../components/badge/badge.theme';
 @import '../../components/alert/alert.theme';
 // @import '../../components/chat/chat.component.theme';
-// @import '../../components/spinner/spinner.component.theme';
-// @import '../../components/stepper/stepper.component.theme';
+@import '../../components/spinner/spinner.theme';
+@import '../../components/stepper/stepper.theme';
 @import '../../components/accordion/accordion.theme';
 @import '../../components/button/button.theme';
 @import '../../components/button-group/button-toggle.theme';
@@ -60,13 +60,13 @@
   // @include nb-user-theme();
   @include nb-actions-theme();
   @include nb-search-theme();
-  // @include nb-spinner-theme();
+  @include nb-spinner-theme();
   // @include nb-timepicker-theme();
   @include nb-checkbox-theme();
   // @include nb-toggle-theme();
   @include nb-progress-bar-theme();
   @include nb-badge-theme();
-  // @include nb-stepper-theme();
+  @include nb-stepper-theme();
   @include nb-alert-theme();
   // @include nb-chat-theme();
   @include nb-accordion-theme();

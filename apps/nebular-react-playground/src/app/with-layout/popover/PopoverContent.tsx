@@ -2,7 +2,7 @@ import { NbButton, NbPopover } from '@nebular-react';
 import { useRef } from 'react';
 
 export function PopoverContent() {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>

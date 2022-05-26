@@ -25,3 +25,5 @@ export * from './popover';
 export * from './progress-bar';
 export * from './radio';
 export * from './search';
+export * from './spinner';
+export * from './stepper';

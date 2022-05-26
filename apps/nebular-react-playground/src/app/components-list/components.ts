@@ -1215,26 +1215,26 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'spinner',
     children: [
       {
-        path: 'spinner-button.component',
-        link: '/spinner/spinner-button.component',
+        path: 'spinner-button',
+        link: '/spinner/spinner-button',
         component: 'SpinnerButtonComponent',
         name: 'Spinner Button'
       },
       {
-        path: 'spinner-card.component',
-        link: '/spinner/spinner-card.component',
+        path: 'spinner-card',
+        link: '/spinner/spinner-card',
         component: 'SpinnerCardComponent',
         name: 'Spinner Card'
       },
       {
-        path: 'spinner-colors.component',
-        link: '/spinner/spinner-colors.component',
+        path: 'spinner-colors',
+        link: '/spinner/spinner-colors',
         component: 'SpinnerColorsComponent',
         name: 'Spinner Colors'
       },
       {
-        path: 'spinner-sizes.component',
-        link: '/spinner/spinner-sizes.component',
+        path: 'spinner-sizes',
+        link: '/spinner/spinner-sizes',
         component: 'SpinnerSizesComponent',
         name: 'Spinner Sizes'
       },
@@ -1250,8 +1250,8 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'stepper',
     children: [
       {
-        path: 'stepper-showcase.component',
-        link: '/stepper/stepper-showcase.component',
+        path: 'stepper-showcase',
+        link: '/stepper/stepper-showcase',
         component: 'StepperShowcaseComponent',
         name: 'Stepper Showcase'
       },
@@ -1268,26 +1268,26 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Stepper Validation'
       },
       {
-        path: 'stepper-vertical.component',
-        link: '/stepper/stepper-vertical.component',
+        path: 'stepper-vertical',
+        link: '/stepper/stepper-vertical',
         component: 'StepperVerticalComponent',
         name: 'Stepper Vertical'
       },
       {
-        path: 'stepper-disabled-step-nav.component',
-        link: '/stepper/stepper-disabled-step-nav.component',
+        path: 'stepper-disabled-step-nav',
+        link: '/stepper/stepper-disabled-step-nav',
         component: 'StepperDisabledStepNavComponent',
         name: 'Stepper Disabled Step Nav'
       },
       {
-        path: 'stepper-linear.component',
-        link: '/stepper/stepper-linear.component',
+        path: 'stepper-linear',
+        link: '/stepper/stepper-linear',
         component: 'StepperLinearComponent',
         name: 'Stepper Linear'
       },
       {
-        path: 'stepper-step-change-event.component',
-        link: '/stepper/stepper-step-change-event.component',
+        path: 'stepper-step-change-event',
+        link: '/stepper/stepper-step-change-event',
         component: 'StepperStepChangeEventComponent',
         name: 'Stepper Step Change Event'
       }

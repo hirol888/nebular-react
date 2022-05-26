@@ -5,11 +5,7 @@
  */
 
 import classNames from 'classnames';
-import {
-  NbComponentOrCustomStatus,
-  NbComponentSize,
-  NbComponentStatus
-} from '../component';
+import { NbComponentOrCustomStatus, NbComponentSize, NbComponentStatus } from '../component';
 import React from 'react';
 import './card.scoped.scss';
 
@@ -102,29 +98,25 @@ interface CardProps {
  * card-scrollbar-background-color:
  * card-scrollbar-width:
  */
-const NbCard: React.FC<CardProps & React.HTMLAttributes<HTMLDivElement>> = ({
-  size,
-  status,
-  accent,
-  children,
-  className,
-  ...otherProps
-}) => {
-  return (
-    <div
-      className={classNames(
-        'nb-card',
-        size ? `size-${size}` : '',
-        status ? `status-${status}` : '',
-        accent ? 'accent' : '',
-        accent ? `accent-${accent}` : '',
-        className
-      )}
-      {...otherProps}
-    >
-      {children}
-    </div>
-  );
-};
+const NbCard = React.forwardRef<HTMLDivElement, CardProps & React.HTMLAttributes<HTMLDivElement>>(
+  ({ size, status, accent, children, className, ...otherProps }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={classNames(
+          'nb-card',
+          size ? `size-${size}` : '',
+          status ? `status-${status}` : '',
+          accent ? 'accent' : '',
+          accent ? `accent-${accent}` : '',
+          className
+        )}
+        {...otherProps}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
 export { NbCard };

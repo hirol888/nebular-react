@@ -2,7 +2,7 @@ import { NbButton, NbPopover, NbPosition } from '@nebular-react';
 import { useRef } from 'react';
 
 export function PopoverShowcase() {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>

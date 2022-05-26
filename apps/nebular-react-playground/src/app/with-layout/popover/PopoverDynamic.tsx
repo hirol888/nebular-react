@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import './popover-dynamic.scoped.scss';
 
 export function PopoverDynamic() {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLButtonElement>(null);
   const contentTypes = ['list', 'tab', 'text'];
 
   const listContent = () => {

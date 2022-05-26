@@ -11,17 +11,10 @@ export type PortalProps = {
   isOpen: boolean;
   updateKey?: string;
   paneRef: React.RefObject<HTMLDivElement>;
-  attachToLayout?: boolean;
+  targetNodeToAttach?: HTMLElement | null;
 };
 
-const Portal: React.FC<PortalProps> = ({
-  overlayRef,
-  isOpen,
-  updateKey,
-  paneRef,
-  attachToLayout = false,
-  children
-}) => {
+const Portal: React.FC<PortalProps> = ({ overlayRef, isOpen, updateKey, paneRef, targetNodeToAttach, children }) => {
   let defaultNode: HTMLElement | null = null;
   const [, setUpdateKeyValue] = useState<string | undefined>(updateKey);
 
@@ -52,8 +45,8 @@ const Portal: React.FC<PortalProps> = ({
     document.body.appendChild(defaultNode);
   }
 
-  if (attachToLayout) {
-    defaultNode = document.querySelector('.nb-layout');
+  if (targetNodeToAttach) {
+    defaultNode = targetNodeToAttach;
   }
 
   return (

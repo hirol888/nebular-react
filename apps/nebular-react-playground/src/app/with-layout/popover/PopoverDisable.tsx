@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import './popover-dynamic.scoped.scss';
 
 export function PopoverDisable() {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLButtonElement>(null);
   const [disabled, setDisabled] = useState<boolean>(false);
 
   const changeDisabled = (value: boolean) => {

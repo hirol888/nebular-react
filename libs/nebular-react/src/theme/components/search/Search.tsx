@@ -23,7 +23,7 @@ export type NbSearchProps = {
 const NbSearch: React.FC<NbSearchProps> = ({ tag, placeholder = 'Search...', hint = 'Hit enter to search', type }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const paneRef = useRef<HTMLDivElement>(null);
-  const searchButtonRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const [paneId] = useState<string>(uniqueId('cdk-overlay-'));
 
   const overlayBuilder = useInjection<NbOverlayBuilder>(TYPES.NbOverlayBuilder);
@@ -77,6 +77,8 @@ const NbSearch: React.FC<NbSearchProps> = ({ tag, placeholder = 'Search...', hin
     hideSearch();
   };
 
+  const layoutNode = document.querySelector<HTMLElement>('.nb-layout');
+
   return (
     <div className={classNames('nb-search')}>
       <NbButton
@@ -87,7 +89,7 @@ const NbSearch: React.FC<NbSearchProps> = ({ tag, placeholder = 'Search...', hin
       >
         <NbIcon icon="search-outline" pack="nebular-essentials"></NbIcon>
       </NbButton>
-      <Portal overlayRef={overlayRef} isOpen={isOpen} paneRef={paneRef} attachToLayout>
+      <Portal overlayRef={overlayRef} isOpen={isOpen} paneRef={paneRef} targetNodeToAttach={layoutNode}>
         <div ref={paneRef} id={paneId} className="cdk-overlay-pane">
           <NbSearchField
             type={type}

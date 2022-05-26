@@ -154,6 +154,14 @@ import {
   RevealCardSizes
 } from './with-layout/reveal-card';
 import { SearchCustomizedTest, SearchEvent, SearchShowcase, SearchWithInputEvent } from './without-layout/search';
+import { SpinnerButton, SpinnerCard, SpinnerColors, SpinnerSizes } from './with-layout/spinner';
+import {
+  StepperDisabledStepNav,
+  StepperLinear,
+  StepperShowcase,
+  StepperStepChangeEvent,
+  StepperVertical
+} from './with-layout/stepper';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -473,6 +481,19 @@ export function App() {
         <Route path="sidebar/sidebar-toggle" element={WithoutLayout(SidebarToggle, onRouteChange)} />
         <Route path="sidebar/sidebar-two-test" element={WithoutLayout(SidebarTwoTest, onRouteChange)} />
         {/* End Sidebar */}
+        {/* Spinner */}
+        <Route path="/spinner/spinner-button" element={WithLayout(SpinnerButton, onRouteChange)} />
+        <Route path="/spinner/spinner-card" element={WithLayout(SpinnerCard, onRouteChange)} />
+        <Route path="/spinner/spinner-colors" element={WithLayout(SpinnerColors, onRouteChange)} />
+        <Route path="/spinner/spinner-sizes" element={WithLayout(SpinnerSizes, onRouteChange)} />
+        {/* End Spinner */}
+        {/* Stepper */}
+        <Route path="/stepper/stepper-disabled-step-nav" element={WithLayout(StepperDisabledStepNav, onRouteChange)} />
+        <Route path="/stepper/stepper-linear" element={WithLayout(StepperLinear, onRouteChange)} />
+        <Route path="/stepper/stepper-showcase" element={WithLayout(StepperShowcase, onRouteChange)} />
+        <Route path="/stepper/stepper-step-change-event" element={WithLayout(StepperStepChangeEvent, onRouteChange)} />
+        <Route path="/stepper/stepper-vertical" element={WithLayout(StepperVertical, onRouteChange)} />
+        {/* End Stepper */}
       </Routes>
     </>
   );

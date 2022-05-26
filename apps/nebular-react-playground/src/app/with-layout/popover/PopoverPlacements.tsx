@@ -3,12 +3,12 @@ import { useRef } from 'react';
 import './popover-modes.scoped.scss';
 
 export function PopoverPlacements() {
-  const bottomHostRef = useRef<HTMLDivElement>(null);
-  const rightHostRef = useRef<HTMLDivElement>(null);
-  const leftHostRef = useRef<HTMLDivElement>(null);
-  const endHostRef = useRef<HTMLDivElement>(null);
-  const startHostRef = useRef<HTMLDivElement>(null);
-  const topHostRef = useRef<HTMLDivElement>(null);
+  const bottomHostRef = useRef<HTMLButtonElement>(null);
+  const rightHostRef = useRef<HTMLButtonElement>(null);
+  const leftHostRef = useRef<HTMLButtonElement>(null);
+  const endHostRef = useRef<HTMLButtonElement>(null);
+  const startHostRef = useRef<HTMLButtonElement>(null);
+  const topHostRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>

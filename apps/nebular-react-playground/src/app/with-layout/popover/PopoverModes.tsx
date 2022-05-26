@@ -3,9 +3,9 @@ import { useRef } from 'react';
 import './popover-modes.scoped.scss';
 
 export function PopoverModes() {
-  const clickHostRef = useRef<HTMLDivElement>(null);
-  const hintHostRef = useRef<HTMLDivElement>(null);
-  const hoverHostRef = useRef<HTMLDivElement>(null);
+  const clickHostRef = useRef<HTMLButtonElement>(null);
+  const hintHostRef = useRef<HTMLButtonElement>(null);
+  const hoverHostRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
