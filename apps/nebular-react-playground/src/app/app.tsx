@@ -162,6 +162,15 @@ import {
   StepperStepChangeEvent,
   StepperVertical
 } from './with-layout/stepper';
+import {
+  RouteTabsetShowcase,
+  TabsetBadge,
+  TabsetDisabled,
+  TabsetIcon,
+  TabsetShowcase,
+  TabsetTitle,
+  TabsetWidth
+} from './with-layout/tabset';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -494,6 +503,15 @@ export function App() {
         <Route path="/stepper/stepper-step-change-event" element={WithLayout(StepperStepChangeEvent, onRouteChange)} />
         <Route path="/stepper/stepper-vertical" element={WithLayout(StepperVertical, onRouteChange)} />
         {/* End Stepper */}
+        {/* TabSet */}
+        <Route path="/tabset/route-tabset-showcase/*" element={WithLayout(RouteTabsetShowcase, onRouteChange)} />
+        <Route path="/tabset/tabset-showcase" element={WithLayout(TabsetShowcase, onRouteChange)} />
+        <Route path="/tabset/tabset-badge" element={WithLayout(TabsetBadge, onRouteChange)} />
+        <Route path="/tabset/tabset-disabled" element={WithLayout(TabsetDisabled, onRouteChange)} />
+        <Route path="/tabset/tabset-icon" element={WithLayout(TabsetIcon, onRouteChange)} />
+        <Route path="/tabset/tabset-title" element={WithLayout(TabsetTitle, onRouteChange)} />
+        <Route path="/tabset/tabset-width" element={WithLayout(TabsetWidth, onRouteChange)} />
+        {/* End TabSet */}
       </Routes>
     </>
   );

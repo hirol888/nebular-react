@@ -12,8 +12,8 @@
 @import '../../components/card/flip-card/flip-card.theme';
 @import '../../components/card/reveal-card/reveal-card.theme';
 // @import '../../components/tag/tag.component.theme';
-// @import '../../components/tabset/tabset.component.theme';
-// @import '../../components/route-tabset/route-tabset.component.theme';
+@import '../../components/tabset/tabset.theme';
+@import '../../components/route-tabset/route-tabset.theme';
 @import '../../components/menu/menu.theme';
 // @import '../../components/user/user.component.theme';
 @import '../../components/actions/actions.theme';
@@ -54,8 +54,8 @@
   @include nb-card-theme();
   @include nd-reveal-card-theme();
   @include nd-flip-card-theme();
-  // @include nb-tabset-theme();
-  // @include nb-route-tabset-theme();
+  @include nb-tabset-theme();
+  @include nb-route-tabset-theme();
   @include nb-menu-theme();
   // @include nb-user-theme();
   @include nb-actions-theme();

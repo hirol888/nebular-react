@@ -1338,46 +1338,26 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
     path: 'tabset',
     children: [
       {
-        path: 'route-tabset-showcase.component',
-        link: '/tabset/route-tabset-showcase.component',
+        path: 'route-tabset-showcase',
+        link: '/tabset/route-tabset-showcase',
         component: 'RouteTabsetShowcaseComponent',
-        name: 'Route Tabset Showcase',
-        children: [
-          {
-            path: 'tab1',
-            link: '/tabset/route-tabset-showcase.component/tab1',
-            component: 'RouteTabsetShowcaseChild1Component',
-            name: 'Route Tabset Showcase Child1'
-          },
-          {
-            path: 'tab2',
-            link: '/tabset/route-tabset-showcase.component/tab2',
-            component: 'RouteTabsetShowcaseChild2Component',
-            name: 'Route Tabset Showcase Child2'
-          },
-          {
-            path: 'tab3',
-            link: '/tabset/route-tabset-showcase.component/tab3',
-            component: 'RouteTabsetShowcaseChild3Component',
-            name: 'Route Tabset Showcase Child3'
-          }
-        ]
+        name: 'Route Tabset Showcase'
       },
       {
-        path: 'tabset-badge.component',
-        link: '/tabset/tabset-badge.component',
+        path: 'tabset-badge',
+        link: '/tabset/tabset-badge',
         component: 'TabsetBadgeComponent',
         name: 'Tabset Badge'
       },
       {
-        path: 'tabset-icon.component',
-        link: '/tabset/tabset-icon.component',
+        path: 'tabset-icon',
+        link: '/tabset/tabset-icon',
         component: 'TabsetIconComponent',
         name: 'Tabset Icon'
       },
       {
-        path: 'tabset-showcase.component',
-        link: '/tabset/tabset-showcase.component',
+        path: 'tabset-showcase',
+        link: '/tabset/tabset-showcase',
         component: 'TabsetShowcaseComponent',
         name: 'Tabset Showcase'
       },
@@ -1394,20 +1374,20 @@ export const PLAYGROUND_COMPONENTS: ComponentLink[] = [
         name: 'Tabset Test'
       },
       {
-        path: 'tabset-width.component',
-        link: '/tabset/tabset-width.component',
+        path: 'tabset-width',
+        link: '/tabset/tabset-width',
         component: 'TabsetWidthComponent',
         name: 'Tabset Width'
       },
       {
-        path: 'tabset-disabled.component',
-        link: '/tabset/tabset-disabled.component',
+        path: 'tabset-disabled',
+        link: '/tabset/tabset-disabled',
         component: 'TabsetDisabledComponent',
         name: 'Tabset Disabled'
       },
       {
-        path: 'tabset-template-title.component',
-        link: '/tabset/tabset-template-title.component',
+        path: 'tabset-title',
+        link: '/tabset/tabset-title',
         component: 'TabsetTemplateTitleComponent',
         name: 'Tabset Template Title'
       }

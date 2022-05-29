@@ -24,6 +24,8 @@ export * from './list';
 export * from './popover';
 export * from './progress-bar';
 export * from './radio';
+export * from './route-tabset';
 export * from './search';
 export * from './spinner';
 export * from './stepper';
+export * from './tabset';
