@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
-import { Link, LinkProps, RouteProps, Routes, useLocation, useMatch, useNavigate } from 'react-router-dom';
+import { Link, LinkProps, RouteProps, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { NbBadge } from '../badge';
 import { NbIcon } from '../icon';
 import { NbTabProps } from '../tabset';

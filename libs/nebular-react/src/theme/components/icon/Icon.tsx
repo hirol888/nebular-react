@@ -6,7 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import classNames from 'classnames';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NbComponentOrCustomStatus } from '../component';
 import { NbIconLibraries } from './icon-libraries';
 import './icon.scoped.scss';
@@ -134,7 +134,7 @@ function useIconState(
 
   const iconLibraries = new NbIconLibraries();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const iconDefinition = renderIcon(iconLibraries, icon ?? '', pack);
 
     if (iconDefinition) {

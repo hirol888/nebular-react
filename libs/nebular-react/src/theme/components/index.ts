@@ -29,3 +29,4 @@ export * from './search';
 export * from './spinner';
 export * from './stepper';
 export * from './tabset';
+export * from './tag';

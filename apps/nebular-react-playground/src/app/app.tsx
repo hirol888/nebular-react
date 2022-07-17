@@ -171,6 +171,7 @@ import {
   TabsetTitle,
   TabsetWidth
 } from './with-layout/tabset';
+import { TagAppearance, TagInput, TagInputWithAutocomplete, TagShowcase, TagStatus } from './with-layout/tag';
 
 export function App() {
   const [showToolbar, setShowToolbar] = useState<boolean>(true);
@@ -512,6 +513,13 @@ export function App() {
         <Route path="/tabset/tabset-title" element={WithLayout(TabsetTitle, onRouteChange)} />
         <Route path="/tabset/tabset-width" element={WithLayout(TabsetWidth, onRouteChange)} />
         {/* End TabSet */}
+        {/* Tag */}
+        <Route path="/tag/tag-showcase" element={WithLayout(TagShowcase, onRouteChange)} />
+        <Route path="/tag/tag-appearance" element={WithLayout(TagAppearance, onRouteChange)} />
+        <Route path="/tag/tag-input" element={WithLayout(TagInput, onRouteChange)} />
+        <Route path="/tag/tag-input-with-autocomplete" element={WithLayout(TagInputWithAutocomplete, onRouteChange)} />
+        <Route path="/tag/tag-status" element={WithLayout(TagStatus, onRouteChange)} />
+        {/* End Tag */}
       </Routes>
     </>
   );

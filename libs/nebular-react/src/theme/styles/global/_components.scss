@@ -11,7 +11,7 @@
 @import '../../components/card/card.theme';
 @import '../../components/card/flip-card/flip-card.theme';
 @import '../../components/card/reveal-card/reveal-card.theme';
-// @import '../../components/tag/tag.component.theme';
+@import '../../components/tag/tag.theme';
 @import '../../components/tabset/tabset.theme';
 @import '../../components/route-tabset/route-tabset.theme';
 @import '../../components/menu/menu.theme';
@@ -87,5 +87,5 @@
   // @include nb-tree-grid-theme();
   @include nb-icon-theme();
   @include nb-form-field-theme();
-  // @include nb-tags-theme();
+  @include nb-tags-theme();
 }

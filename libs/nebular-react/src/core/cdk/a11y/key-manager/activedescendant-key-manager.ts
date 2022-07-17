@@ -24,16 +24,16 @@ export interface Highlightable extends ListKeyManagerOption {
 export class ActiveDescendantKeyManager<T> extends ListKeyManager<Highlightable & T> {
   override setActiveItem(index: any): void {
     if (this.activeItem) {
-      this.activeItem.current!.setInactiveStyles();
+      this.activeItem.current?.setInactiveStyles();
     }
     super.setActiveItem(index);
     if (this.activeItem) {
-      this.activeItem.current!.setActiveStyles();
+      this.activeItem.current?.setActiveStyles();
     }
   }
 }
 
 export enum NbKeyManagerActiveItemMode {
   RESET_ACTIVE = -1,
-  FIRST_ACTIVE = 0,
+  FIRST_ACTIVE = 0
 }

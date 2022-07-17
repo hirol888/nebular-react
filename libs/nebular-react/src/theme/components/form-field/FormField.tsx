@@ -6,6 +6,7 @@ import { NbSelect } from '../select';
 import { NbFormFieldAddon } from './FormFieldAddon';
 import './form-field.scoped.scss';
 import { FormFieldContext } from './form-field-model';
+import { NbTagList } from '../tag';
 
 const NbFormField: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children }) => {
   const [formFieldSize, setFormFieldSize] = useState<NbComponentSize>('medium');
@@ -35,7 +36,7 @@ const NbFormField: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children }) 
   };
 
   const formControl = Children.map(children, (child) => {
-    if (isValidElement(child) && (child.type === NbInput || child.type === NbSelect)) {
+    if (isValidElement(child) && (child.type === NbInput || child.type === NbSelect || child.type === NbTagList)) {
       return React.cloneElement(child, {
         ...child.props,
         onSizeChange: handleSizeChange,
@@ -57,7 +58,7 @@ const NbFormField: React.FC<React.HTMLAttributes<HTMLElement>> = ({ children }) 
   return (
     <FormFieldContext.Provider value={{ formFieldSize, formFieldDisabled, formFieldFocused, formFieldStatus }}>
       <div
-        className={classNames('nb-form-field', `nb-form-field-size-${formFieldSize}`, {
+        className={classNames('nb-form-field', 'nb-transition', `nb-form-field-size-${formFieldSize}`, {
           'nb-form-field-limited-width': !formFieldFullWidth
         })}
       >

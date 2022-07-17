@@ -17,16 +17,10 @@ import { NbTabTitle } from './TabTitle';
 
 export type NbTabSetProps = {
   fullWidth?: boolean;
-  onTabChanged?: (index: number) => void;
+  onTabChange?: (index: number) => void;
 };
 
-const NbTabSet: React.FC<NbTabSetProps & React.HTMLAttributes<HTMLDivElement>> = ({
-  fullWidth,
-  onTabChanged,
-  className,
-  children,
-  ...otherProps
-}) => {
+const NbTabSet: React.FC<NbTabSetProps> = ({ fullWidth, onTabChange, children }) => {
   const [selectedTabIndex, setSelectedTabIndex] = useState<number>(0);
   const [tabs, setTabs] = useState<ReactElement<any, string | JSXElementConstructor<any>>[] | null | undefined>();
 
@@ -43,7 +37,7 @@ const NbTabSet: React.FC<NbTabSetProps & React.HTMLAttributes<HTMLDivElement>> =
 
   const selectTab = (index: number) => {
     setSelectedTabIndex(index);
-    onTabChanged && onTabChanged(index);
+    onTabChange && onTabChange(index);
   };
 
   const handleKeyUp = (event: KeyboardEvent<HTMLLIElement>, index: number) => {
@@ -54,10 +48,9 @@ const NbTabSet: React.FC<NbTabSetProps & React.HTMLAttributes<HTMLDivElement>> =
 
   return (
     <div
-      className={classNames('nb-tabset', className, {
+      className={classNames('nb-tabset', {
         'full-width': fullWidth
       })}
-      {...otherProps}
     >
       <ul className="tabset">
         {tabs?.map((tab, index) => {

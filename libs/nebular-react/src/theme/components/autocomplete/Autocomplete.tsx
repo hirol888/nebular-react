@@ -34,6 +34,10 @@ export interface NbAutocompleteProps {
   optionsPanelClass?: string | string[];
   optionsWidth?: number;
   optionsOverlayOffset?: number;
+  customHostRef?: React.RefObject<HTMLElement>;
+  customInputRef?: React.RefObject<HTMLInputElement>;
+  useCustomHost?: boolean;
+  hideOnSelect?: boolean;
   onChange?: (event: string) => void;
   displayFn?: (value: any) => string;
 }
@@ -51,6 +55,10 @@ const NbAutocomplete = React.forwardRef<
       optionsPanelClass,
       optionsWidth,
       optionsOverlayOffset = 8,
+      customHostRef,
+      customInputRef,
+      useCustomHost = false,
+      hideOnSelect = true,
       onChange,
       displayFn,
       className,
@@ -70,7 +78,8 @@ const NbAutocomplete = React.forwardRef<
     const [optionElements, setOptionElements] = useOptionElements(children);
     const [updateKey, setUpdateKey] = useState<string>(_.uniqueId('update-key'));
 
-    const componentRef = useRef<HTMLInputElement>(null);
+    let inputRef = useRef<HTMLInputElement>(null);
+    inputRef = customInputRef?.current ? customInputRef : inputRef;
     const paneRef = useRef<HTMLDivElement>(null);
     const optionListRef = useRef<NbOptionListRef>(null);
     const optionRefs = useOptionRefs(rendered, optionListRef, children);
@@ -109,7 +118,7 @@ const NbAutocomplete = React.forwardRef<
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setInputValue(event.target.value);
-      componentRef.current?.focus();
+      inputRef.current?.focus();
       onChange && onChange(event.target.value);
     };
 
@@ -120,13 +129,13 @@ const NbAutocomplete = React.forwardRef<
     const handleOptionChange = (selected: boolean, optionId: string, value: any) => {
       setInputValue(getDisplayValue(value));
       onChange && onChange(value);
-      hide();
+      hideOnSelect && hide();
     };
 
     const handleKeydownOverlay = (event: KeyboardEvent) => {
       if (event.keyCode === ESCAPE && isOpen) {
         event.preventDefault();
-        componentRef.current?.focus();
+        inputRef.current?.focus();
         hide();
       } else if (event.keyCode === ENTER) {
         event.preventDefault();
@@ -143,7 +152,7 @@ const NbAutocomplete = React.forwardRef<
 
     const { positionStrategy, overlayPosition } = usePositionStrategy(
       rendered,
-      componentRef,
+      customHostRef?.current ? customHostRef : inputRef,
       optionsOverlayOffset,
       NbPosition.BOTTOM,
       NbAdjustment.VERTICAL
@@ -166,32 +175,37 @@ const NbAutocomplete = React.forwardRef<
       undefined,
       handleKeydownOverlay
     );
-    useTriggerStrategy(rendered, isOpen, paneId, componentRef, componentRef, NbTrigger.FOCUS, show, hide);
+    useTriggerStrategy(rendered, isOpen, paneId, inputRef, inputRef, NbTrigger.FOCUS, show, hide);
 
     useEffect(() => {
-      const _optionsWidth = optionsWidth ?? componentRef.current?.getBoundingClientRect().width;
+      const hostWidth = customHostRef?.current
+        ? customHostRef.current.getBoundingClientRect().width
+        : inputRef.current?.getBoundingClientRect().width;
+      const _optionsWidth = optionsWidth ?? hostWidth;
       setOptionsWidthValue(_optionsWidth ?? 0);
     }, [overlayRef]);
 
     return (
       <>
-        <NbInput
-          ref={mergedRefs(ref, componentRef)}
-          className={classNames('nb-auto-complete', className, {
-            'nb-autocomplete-position-top': overlayPosition === NbPosition.TOP,
-            'nb-autocomplete-position-bottom': overlayPosition === NbPosition.BOTTOM
-          })}
-          fieldSize={fieldSizeValue}
-          role="combobox"
-          aria-autocomplete="list"
-          aria-haspopup="true"
-          aria-expanded={isOpen}
-          aria-owns={isOpen ? id : undefined}
-          aria-activedescendant={isOpen && _activeItem ? _activeItem.current?.id : undefined}
-          onChange={(event) => handleInputChange(event)}
-          value={inputValue}
-          {...otherProps}
-        />
+        {!customHostRef?.current && (
+          <NbInput
+            ref={mergedRefs(ref, inputRef)}
+            className={classNames('nb-auto-complete', className, {
+              'nb-autocomplete-position-top': overlayPosition === NbPosition.TOP,
+              'nb-autocomplete-position-bottom': overlayPosition === NbPosition.BOTTOM
+            })}
+            fieldSize={fieldSizeValue}
+            role="combobox"
+            aria-autocomplete="list"
+            aria-haspopup="true"
+            aria-expanded={isOpen}
+            aria-owns={isOpen ? id : undefined}
+            aria-activedescendant={isOpen && _activeItem ? _activeItem.current?.id : undefined}
+            onChange={(event) => handleInputChange(event)}
+            value={inputValue}
+            {...otherProps}
+          />
+        )}
         <Portal overlayRef={overlayRef} isOpen={isOpen} updateKey={updateKey} paneRef={paneRef}>
           <div ref={paneRef} id={paneId} className="cdk-overlay-pane">
             <NbOptionList

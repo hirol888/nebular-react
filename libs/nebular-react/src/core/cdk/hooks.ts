@@ -177,7 +177,6 @@ export function useKeyManager<T extends FocusableOption & Highlightable & NbOpti
         filter(([renderedValue, optionRefsValue]) => renderedValue && !!optionRefsValue),
         switchMap(([, optionRefsValue]) => {
           const _keyManager = keyManagerBuilder.create(keyManagerType, optionRefsValue).withTypeAhead(200);
-          // const _keyManager = keyManagerService.create(optionRefsValue).withTypeAhead(200);
           setKeyManager(_keyManager);
 
           return _keyManager.tabOut;
