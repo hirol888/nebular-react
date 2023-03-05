@@ -1,0 +1,54 @@
+export interface NebularThemeFormField {
+  form_field_tiny_max_width: any;
+  form_field_small_max_width: any;
+  form_field_medium_max_width: any;
+  form_field_large_max_width: any;
+  form_field_giant_max_width: any;
+
+  form_field_addon_basic_text_color: any;
+  form_field_addon_basic_highlight_text_color: any;
+  form_field_addon_primary_text_color: any;
+  form_field_addon_primary_highlight_text_color: any;
+  form_field_addon_success_text_color: any;
+  form_field_addon_success_highlight_text_color: any;
+  form_field_addon_info_text_color: any;
+  form_field_addon_info_highlight_text_color: any;
+  form_field_addon_warning_text_color: any;
+  form_field_addon_warning_highlight_text_color: any;
+  form_field_addon_danger_text_color: any;
+  form_field_addon_danger_highlight_text_color: any;
+  form_field_addon_control_text_color: any;
+  form_field_addon_control_highlight_text_color: any;
+  form_field_addon_disabled_text_color: any;
+
+  form_field_addon_tiny_height: any;
+  form_field_addon_tiny_width: any;
+  form_field_addon_tiny_icon_size: any;
+  form_field_addon_tiny_font_size: any;
+  form_field_addon_tiny_line_height: any;
+  form_field_addon_tiny_font_weight: any;
+  form_field_addon_small_height: any;
+  form_field_addon_small_width: any;
+  form_field_addon_small_icon_size: any;
+  form_field_addon_small_font_size: any;
+  form_field_addon_small_line_height: any;
+  form_field_addon_small_font_weight: any;
+  form_field_addon_medium_height: any;
+  form_field_addon_medium_width: any;
+  form_field_addon_medium_icon_size: any;
+  form_field_addon_medium_font_size: any;
+  form_field_addon_medium_line_height: any;
+  form_field_addon_medium_font_weight: any;
+  form_field_addon_large_height: any;
+  form_field_addon_large_width: any;
+  form_field_addon_large_icon_size: any;
+  form_field_addon_large_font_size: any;
+  form_field_addon_large_line_height: any;
+  form_field_addon_large_font_weight: any;
+  form_field_addon_giant_height: any;
+  form_field_addon_giant_width: any;
+  form_field_addon_giant_icon_size: any;
+  form_field_addon_giant_font_size: any;
+  form_field_addon_giant_line_height: any;
+  form_field_addon_giant_font_weight: any;
+}

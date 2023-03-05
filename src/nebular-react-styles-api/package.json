@@ -1,0 +1,24 @@
+{
+  "name": "@nebular-react/styles-api",
+  "description": "Nebular components styles api descriptions",
+  "private": true,
+  "version": "0.0.0",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "sideEffects": false,
+  "homepage": "https://github.com/hirol888/nebular-react",
+  "repository": {
+    "url": "https://github.com/hirol888/nebular-react.git",
+    "type": "git",
+    "directory": "src/nebular-react-styles-api"
+  },
+  "peerDependencies": {
+    "@nebular-react/core": "0.0.108",
+    "@nebular-react/hooks": "0.0.108"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

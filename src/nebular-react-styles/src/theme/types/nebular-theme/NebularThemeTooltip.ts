@@ -1,0 +1,39 @@
+export interface NebularThemeTooltip {
+  tooltip_background_color: any;
+  tooltip_border_color: any;
+  tooltip_border_style: any;
+  tooltip_border_width: any;
+  tooltip_border_radius: any;
+  tooltip_padding: any;
+  tooltip_text_color: any;
+  tooltip_text_font_family: any;
+  tooltip_text_font_size: any;
+  tooltip_text_font_weight: any;
+  tooltip_text_line_height: any;
+  tooltip_icon_height: any;
+  tooltip_icon_width: any;
+  tooltip_max_width: any;
+
+  tooltip_basic_background_color: any;
+  tooltip_basic_border_color: any;
+  tooltip_basic_text_color: any;
+  tooltip_primary_background_color: any;
+  tooltip_primary_border_color: any;
+  tooltip_primary_text_color: any;
+  tooltip_info_background_color: any;
+  tooltip_info_border_color: any;
+  tooltip_info_text_color: any;
+  tooltip_success_background_color: any;
+  tooltip_success_border_color: any;
+  tooltip_success_text_color: any;
+  tooltip_warning_background_color: any;
+  tooltip_warning_border_color: any;
+  tooltip_warning_text_color: any;
+  tooltip_danger_background_color: any;
+  tooltip_danger_border_color: any;
+  tooltip_danger_text_color: any;
+  tooltip_control_background_color: any;
+  tooltip_control_border_color: any;
+  tooltip_control_text_color: any;
+  tooltip_shadow: any;
+}

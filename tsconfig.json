@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "src/nebular-react-*/src",
+    "./types",
+    "./docs/src",
+    "./scripts",
+    "./configuration",
+    "./configuration/types",
+    "./tests"
+  ],
+  "exclude": [
+    "public",
+    ".cache",
+    "configuration/jest",
+    "configuration/storybook/main.js",
+    "node_modules",
+    "src/nebular-react-*/esm/**/*",
+    "src/nebular-react-*/lib/**/*",
+    "src/nebular-react-*/cjs/**/*"
+  ],
+  "compilerOptions": {
+    "paths": {
+      "@nebular-react/*": ["src/nebular-react-*/src"]
+    }
+  }
+}

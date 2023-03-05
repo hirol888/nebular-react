@@ -1,0 +1,40 @@
+{
+  "name": "@nebular-react/ssr",
+  "description": "Nebular server side rendering utils",
+  "version": "0.0.0",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "sideEffects": false,
+  "homepage": "https://github.com/hirol888/nebular-react",
+  "repository": {
+    "url": "https://github.com/hirol888/nebular-react.git",
+    "type": "git",
+    "directory": "src/nebular-react-ssr"
+  },
+  "keywords": [
+    "react",
+    "next",
+    "nextjs",
+    "gatsby",
+    "gatsbyjs",
+    "ssr",
+    "server",
+    "server-side",
+    "server-side-rendering",
+    "render"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "@emotion/react": ">=11.9.0",
+    "@emotion/server": ">=11.4.0"
+  },
+  "dependencies": {
+    "@nebular-react/styles": "0.0.108",
+    "html-react-parser": "1.4.12"
+  },
+  "devDependencies": {}
+}

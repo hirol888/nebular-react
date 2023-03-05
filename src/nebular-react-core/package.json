@@ -1,0 +1,42 @@
+{
+  "name": "@nebular-react/core",
+  "version": "0.0.0",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "sideEffects": false,
+  "homepage": "https://github.com/hirol888/nebular-react",
+  "repository": {
+    "url": "https://github.com/hirol888/nebular-react.git",
+    "type": "git",
+    "directory": "src/nebular-react-core"
+  },
+  "keywords": [
+    "react",
+    "next",
+    "nextjs",
+    "ui",
+    "components",
+    "ui-kit",
+    "library",
+    "frontend",
+    "design",
+    "emotion"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "dependencies": {
+    "@nebular-react/hooks": "0.0.108",
+    "@nebular-react/styles": "0.0.108",
+    "@mantine/hooks": "^6.0.1",
+    "@mantine/utils": "^6.0.1",
+    "@react-spring/web": "^9.7.2",
+    "lodash": "^4.17.21",
+    "react-transition-group": "4.4.2"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@nebular-react/next",
+  "description": "Nebular integration for Next.js",
+  "version": "0.0.0",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "sideEffects": false,
+  "homepage": "https://github.com/hirol888/nebular-react",
+  "repository": {
+    "url": "https://github.com/hirol888/nebular-react.git",
+    "type": "git",
+    "directory": "src/nebular-react-next"
+  },
+  "keywords": [
+    "react",
+    "next",
+    "nextjs"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "next": "*"
+  },
+  "dependencies": {
+    "@nebular-react/ssr": "0.0.108",
+    "@nebular-react/styles": "0.0.108"
+  },
+  "devDependencies": {}
+}

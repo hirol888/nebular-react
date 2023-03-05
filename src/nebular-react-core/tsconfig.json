@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["./src", "../../configuration/types", "../../tests"],
+  "exclude": ["./lib", "./esm", "./cjs"],
+  "compilerOptions": {
+    "rootDir": "src",
+    "baseUrl": ".",
+    "outDir": "lib",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "lib",
+    "composite": true,
+    "paths": {
+      "@nebular-react/hooks": ["../nebular-react-hooks/src"],
+      "@nebular-react/styles": ["../nebular-react-styles/src"]
+    }
+  },
+  "references": [{ "path": "../nebular-react-hooks" }, { "path": "../nebular-react-styles" }]
+}

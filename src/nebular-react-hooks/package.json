@@ -1,0 +1,36 @@
+{
+  "name": "@nebular-react/hooks",
+  "version": "0.0.0",
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "lib/index.d.ts",
+  "license": "MIT",
+  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "sideEffects": false,
+  "homepage": "https://github.com/hirol888/nebular-react",
+  "repository": {
+    "url": "https://github.com/hirol888/nebular-react.git",
+    "type": "git",
+    "directory": "src/nebular-react-hooks"
+  },
+  "keywords": [
+    "react",
+    "next",
+    "nextjs",
+    "library",
+    "frontend",
+    "react-hooks",
+    "hooks",
+    "state"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "dependencies": {
+    "@nebular-react/styles": "0.0.108",
+    "@mantine/hooks": "^6.0.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {}
+}

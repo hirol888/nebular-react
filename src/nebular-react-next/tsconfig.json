@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["./src", "./types", "../../configuration/types"],
+  "compilerOptions": {
+    "rootDir": "src",
+    "baseUrl": ".",
+    "outDir": "lib",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "lib",
+    "composite": true,
+    "paths": {
+      "@nebular-react/styles": ["../nebular-react-styles/src"],
+      "@nebular-react/ssr": ["../nebular-react-ssr/src"]
+    }
+  },
+  "references": [{ "path": "../nebular-react-styles" }, { "path": "../nebular-react-ssr" }]
+}
