@@ -4,7 +4,7 @@
   "workspaces": [
     "src/*"
   ],
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Nebular React Components Monorepo",
   "main": "index.js",
   "repository": "https://github.com/hirol888/nebular-react",

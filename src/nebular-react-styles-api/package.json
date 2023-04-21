@@ -2,7 +2,7 @@
   "name": "@nebular-react/styles-api",
   "description": "Nebular components styles api descriptions",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -16,8 +16,8 @@
     "directory": "src/nebular-react-styles-api"
   },
   "peerDependencies": {
-    "@nebular-react/core": "0.0.108",
-    "@nebular-react/hooks": "0.0.108"
+    "@nebular-react/core": "0.1.0",
+    "@nebular-react/hooks": "0.1.0"
   },
   "dependencies": {},
   "devDependencies": {}

@@ -1,6 +1,6 @@
 {
   "name": "@nebular-react/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -30,8 +30,8 @@
     "react-dom": ">=16.8.0"
   },
   "dependencies": {
-    "@nebular-react/hooks": "0.0.108",
-    "@nebular-react/styles": "0.0.108",
+    "@nebular-react/hooks": "0.1.0",
+    "@nebular-react/styles": "0.1.0",
     "@mantine/hooks": "^6.0.1",
     "@mantine/utils": "^6.0.1",
     "@react-spring/web": "^9.7.2",
