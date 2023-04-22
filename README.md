@@ -7,6 +7,12 @@
 
 This library is inspired by two popular design systems, [Nebular Angular](https://akveo.github.io/nebular/) and [Mantine](https://mantine.dev/). It has been recreated for React, allowing developers to create customizable and visually appealing user interfaces for their web applications.
 
+## Demo
+
+### [Demo Repo](https://github.com/hirol888/nebular-react-demo)
+
+### [Live Demo](https://nebular-react-demo-vlx2m.ondigitalocean.app/)
+
 ## Installation
 
 ```bash
