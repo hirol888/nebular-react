@@ -17,10 +17,20 @@ This library is inspired by two popular design systems, [Nebular Angular](https:
 
 ```bash
 # With yarn
-yarn add @nebular/hooks
+yarn add @nebular-react/hooks @nebular-react/core @nebular-react/styles
 
 # With npm
-npm install @nebular/hooks
+npm install @nebular-react/hooks @nebular-react/core @nebular-react/styles
+```
+
+## Storybook
+
+```bash
+# With yarn
+yarn storybook
+
+# With npm
+npm run storybook
 ```
 
 ## Packages
@@ -36,6 +46,8 @@ npm install @nebular/hooks
 ### Tests
 
 ### Documentation
+
+### Material Styles
 
 ## License
 
