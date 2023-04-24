@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@nebular-react/core": ["../src/nebular-react-core/src"],
+      "@nebular-react/styles": ["../src/nebular-react-styles/src"],
+      "@nebular-react/hooks": ["../src/nebular-react-hooks/src"],
+      "@nebular-react/ssr": ["../src/nebular-react-ssr/src"]
+    }
+  },
+  "exclude": ["node_modules"],
+  "include": ["./src/**/*", "../configuration/types"],
+  "references": [
+    { "path": "../src/nebular-react-core" },
+    { "path": "../src/nebular-react-styles" },
+    { "path": "../src/nebular-react-hooks" },
+    { "path": "../src/nebular-react-ssr" }
+  ]
+}

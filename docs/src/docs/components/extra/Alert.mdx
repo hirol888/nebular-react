@@ -1,0 +1,32 @@
+---
+group: 'components'
+package: '@nebular-react/core'
+title: Alert
+order: 1
+polymorphic: true
+slug: /components/extra/alert/
+category: 'extra'
+description: 'Attract user attention with important static message'
+props: ['Alert']
+import: "import { Alert } from '@nebular-react/core';"
+source: 'nebular-react-core/src/Alert/Alert.tsx'
+docs: 'components/extra/Alert.mdx'
+styles: ['Alert']
+---
+
+// import { AlertDemos } from '@mantine/demos';
+
+## Usage
+
+{/_ <Demo data={AlertDemos.configurator} /> _/}
+
+## Accessibility
+
+- Root element role set to `alert`
+- Set `closeButtonLabel` prop to make close button visible for screen readers
+
+<!-- ```tsx
+<Alert withCloseButton /> // -> not ok
+<Alert withCloseButton closeButtonLabel="Close alert" /> // -> ok
+<Alert /> // -> ok, without close button, closeButtonLabel is not needed
+``` -->
