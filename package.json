@@ -8,7 +8,7 @@
   "description": "Nebular React Components Monorepo",
   "main": "index.js",
   "repository": "https://github.com/hirol888/nebular-react",
-  "author": "Huining Li <hiro.l.dragon@gmail.com>",
+  "author": "Huining Li <nebularreact@gmail.com>",
   "license": "MIT",
   "scripts": {
     "syncpack": "syncpack list-mismatches",
