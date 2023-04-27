@@ -20,7 +20,7 @@ This library is inspired by two popular design systems, [Nebular Angular](https:
 yarn add @nebular-react/hooks @nebular-react/core @nebular-react/styles
 
 # With npm
-npm install @nebular-react/hooks @nebular-react/core @nebular-react/styles
+npm install --save @nebular-react/hooks @nebular-react/core @nebular-react/styles
 ```
 
 ## Storybook
