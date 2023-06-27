@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Layout, Menu, MenuItem, Sidebar, SidebarStatus } from '@nebular-react/core';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Button,
+  Layout,
+  Menu,
+  MenuItem,
+  Sidebar,
+  SidebarRef,
+  SidebarStatus
+} from '@nebular-react/core';
 import { graphql, Link, useStaticQuery } from 'gatsby';
 import { Header } from '../components/Header/Header';
 import { Footer } from '../components/Footer/Footer';
@@ -20,6 +28,7 @@ export default function DocLayoutInner({ children }: DocLayoutInnerProps) {
   const { cx, classes } = useStyles();
   const data = getDocsData(useStaticQuery(query));
   const docMenu = getMenus(data);
+  console.log(docMenu);
   const [expandedItems, setExpandedItems] = useState<string[]>([
     ...location.pathname.match(/([^\/]+)/g).map((x) => transformToCapitalized(x).toLowerCase())
   ]);
@@ -33,9 +42,8 @@ export default function DocLayoutInner({ children }: DocLayoutInnerProps) {
     );
   }, [location.pathname]);
 
-  const [sidebarStatus, setSidebarStatus] = useState<SidebarStatus>('expanded');
-  const toggleSidebar = () =>
-    setSidebarStatus(sidebarStatus === 'expanded' ? 'collapsed' : 'expanded');
+  const sidebarRef = useRef<SidebarRef>(null);
+  const toggleSidebar = () => sidebarRef.current.toggle();
 
   return (
     <Layout
@@ -50,10 +58,10 @@ export default function DocLayoutInner({ children }: DocLayoutInnerProps) {
       sidebars={
         <Sidebar
           className="menu-sidebar"
-          sidebarStatus={sidebarStatus}
           responsive
           compactedBreakpoints={[]}
           collapsedBreakpoints={['xs', 'is', 'sm', 'md', 'lg']}
+          ref={sidebarRef}
         >
           <Button wrapperClassName="collapse-all">Collapse all</Button>
           <Menu
@@ -78,7 +86,12 @@ export default function DocLayoutInner({ children }: DocLayoutInnerProps) {
                   }
 
                   return (
-                    <MenuItem id={c.title.toLowerCase()} key={c.title} title={c.title}>
+                    <MenuItem
+                      id={c.title.toLowerCase()}
+                      key={c.title}
+                      title={c.title}
+                      group={c.group}
+                    >
                       {c.children.map((p) => {
                         if (p.to) {
                           return (
@@ -176,12 +189,13 @@ function getMenus(
           });
         }
 
-        children.push({ title: g.category.title, children: gChildren });
+        children.push({ title: g.category.title, group: true, children: gChildren });
       });
     }
 
     return {
       title: transformToCapitalized(item.group),
+      group: false,
       children
     };
   });

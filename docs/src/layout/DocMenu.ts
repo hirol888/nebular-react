@@ -4,7 +4,7 @@ export const DocMenu = [
     children: [
       {
         title: 'What is nebular?',
-        to: '/getting-started/what-is-nebular/'
+        to: '/getting-started/what-is-nebular-react/'
       }
     ]
   },

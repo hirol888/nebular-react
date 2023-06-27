@@ -28,16 +28,16 @@ export function Eva({ className }: React.ComponentPropsWithoutRef<'div'>) {
       <div className="images">
         <img
           className="theme-colors"
-          src="assets/img/theme-colors.png"
-          srcSet="assets/img/theme-colors.png,
-               assets/img/theme-colors-2x.png 2x"
+          src="../../../theme-colors.png"
+          srcSet="../../../theme-colors.png,
+               ../../../theme-colors-2x.png 2x"
           alt="Theme colors"
         />
         <img
           className="components"
-          src="assets/img/components-preview.png"
-          srcSet="assets/img/components-preview.png,
-               assets/img/components-preview-2x.png 2x"
+          src="../../../components-preview.png"
+          srcSet="../../../components-preview.png,
+               ../../../components-preview-2x.png 2x"
           alt="Components preview"
         />
       </div>

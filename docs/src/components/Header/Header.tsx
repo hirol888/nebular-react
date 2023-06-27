@@ -48,7 +48,7 @@ export function Header(props: HeaderProps) {
           </Button>
         )}
         <div className="logo">
-          <Link to="/">Nebular</Link>
+          <Link to="/">Nebular React</Link>
           <span className="version">v{version.name}</span>
         </div>
       </div>
@@ -81,7 +81,7 @@ export function Header(props: HeaderProps) {
         <iframe
           title="github"
           className="stars"
-          src="https://ghbtns.com/github-btn.html?user=akveo&repo=nebular&type=star&count=true"
+          src="https://ghbtns.com/github-btn.html?user=hirol888&repo=nebular-react&type=star&count=true"
           frameBorder="0"
           scrolling="0"
         />

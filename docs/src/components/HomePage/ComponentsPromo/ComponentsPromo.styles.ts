@@ -17,7 +17,13 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       color: '#6e82a9',
       fontSize: '1rem',
       lineHeight: '1.75rem',
-      textAlign: 'center'
+      textAlign: 'center',
+      marginTop: 0
+    },
+
+    h2: {
+      marginTop: 0,
+      marginBottom: '0.5rem'
     }
   }
 }));

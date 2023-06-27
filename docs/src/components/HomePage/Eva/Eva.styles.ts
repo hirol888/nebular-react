@@ -15,7 +15,7 @@ export default createStyles<DocsHomeTheme>(() => ({
       }
     },
 
-    heading: {
+    '.heading': {
       color: '#2a344e',
       fontSize: '4.75rem',
       fontStyle: 'normal',
@@ -24,7 +24,7 @@ export default createStyles<DocsHomeTheme>(() => ({
       marginBottom: '1.5rem'
     },
 
-    'pre-heading': {
+    '.pre-heading': {
       display: 'block',
       marginBottom: '0.5rem',
       color: '#9fa9bd',

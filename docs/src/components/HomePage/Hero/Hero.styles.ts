@@ -92,7 +92,8 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       fontSize: '1rem',
       fontWeight: 600,
       lineHeight: 1.5,
-      marginBottom: 0
+      marginBottom: 0,
+      marginTop: 0
     },
 
     '.right-block': {
@@ -108,8 +109,8 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       ...theme.fns.mediaBreakpointUp('xl', { paddingTop: '5rem' })
     },
 
-    'hero-components': {
-      backgroundImage: "url('../../../../assets/img/hero-components.svg')",
+    '.hero-components': {
+      backgroundImage: "url('../../../../hero-components.svg')",
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
       width: '46rem',
@@ -164,39 +165,43 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       }
     },
 
-    '.btn': {
+    '.btn-wrapper': {
       display: 'inline-block',
-      fontSize: '1em',
-      fontWeight: 'bold',
-      borderRadius: '3px',
-      border: 'none',
-      background: 'linear-gradient(90deg, #18f297 0%, #00e6e6 100%)',
-      padding: '0.8em 1.5em',
       marginBottom: '1em',
-      boxShadow: '0 12px 34px rgba(0, 60, 183, 0.25)',
-      textDecoration: 'none !important',
-      cursor: 'pointer',
-      color: 'white',
-      width: '100%',
 
       ...theme.fns.mediaBreakpointUp('sm', { maxWidth: '11.2rem' }),
-      ...theme.fns.mediaBreakpointUp('md', { padding: '0.875rem 2em' }),
 
       '&:not(:last-of-type)': {
         marginRight: '1rem'
       },
 
-      '&.getstarted, &.download': {
-        backgroundColor: 'white',
-        color: '#3381ff'
-      },
+      '.btn': {
+        fontSize: '1em',
+        fontWeight: 'bold',
+        borderRadius: '3px',
+        border: 'none',
+        background: 'linear-gradient(90deg, #18f297 0%, #00e6e6 100%)',
+        padding: '0.8em 1.5em',
+        boxShadow: '0 12px 34px rgba(0, 60, 183, 0.25)',
+        textDecoration: 'none !important',
+        textTransform: 'none',
+        cursor: 'pointer',
+        color: 'white',
 
-      '&:hover': {
-        boxShadow: '0 18px 34px 0 rgba(0, 60, 183, 0.35)'
-      },
+        ...theme.fns.mediaBreakpointUp('md', { padding: '0.875rem 2em' }),
 
-      '&:active': {
-        boxShadow: 'inset 0 1px 3px 0 rgba(0, 60, 183, 0.5)'
+        '&.get-started, &.download': {
+          background: 'white',
+          color: '#3381ff'
+        },
+
+        '&:hover': {
+          boxShadow: '0 18px 34px 0 rgba(0, 60, 183, 0.35)'
+        },
+
+        '&:active': {
+          boxShadow: 'inset 0 1px 3px 0 rgba(0, 60, 183, 0.5)'
+        }
       }
     }
   }

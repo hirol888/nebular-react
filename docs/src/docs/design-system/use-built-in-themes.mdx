@@ -1,0 +1,45 @@
+---
+title: 'Use Built-in Themes'
+group: 'design-system'
+slug: '/design-system/use-built-in-themes/'
+order: 4
+---
+
+## Use a built-in theme
+
+In your `App(.tsx/.ts/.jsx/.js)`, wrap up with `NebularProvider`. By default, `DEFAULT_THEME(light)` is used, you can choose other predefined themes, `CORPORATE_THEME`, `COSMIC_THEME`, `DARK_THEME`
+
+```ts
+// default(light) theme
+import { NebularProvider } from '@nebular-react/styles';
+
+export default function App() {
+  return <NebularProvider>...</NebularProvider>;
+}
+```
+
+```ts
+// corporate theme
+import { NebularProvider, COSMIC_THEME } from '@nebular-react/styles';
+
+export default function App() {
+  return <NebularProvider theme={COSMIC_THEME}>...</NebularProvider>;
+}
+```
+
+```ts
+// cosmic theme
+import { NebularProvider, CORPORATE_THEME } from '@nebular-react/styles';
+
+export default function App() {
+  return <NebularProvider theme={CORPORATE_THEME}>...</NebularProvider>;
+}
+```
+
+<hr />
+
+## Related Articles
+
+- [Use Theme Variables](docs/design-system/use-theme-variables)
+- [Create Custom Theme](docs/design-system/create-custom-theme)
+- [Multiple Runtime Themes](docs/design-system/enable-multiple-runtime-themes)

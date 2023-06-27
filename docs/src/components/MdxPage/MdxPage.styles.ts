@@ -5,6 +5,13 @@ export default createStyles<DocsPageTheme>((theme) => ({
   root: {
     display: 'flex',
 
+    code: {
+      background: '#f1f2f3',
+      color: '#0095ff',
+      padding: '0.125rem 0.5rem',
+      borderRadius: '0.25rem'
+    },
+
     '.not-found': {
       color: theme.color_fg_heading_light,
       fontSize: '1.25rem'

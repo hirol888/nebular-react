@@ -138,8 +138,9 @@ export const components = {
     return (
       <PrismWrapper
         language={matches && matches.groups && matches.groups.lang ? matches.groups.lang : ''}
-        children={props.children.props.children}
-      />
+      >
+        {props.children.props.children}
+      </PrismWrapper>
     );
   },
   wrapper: ({ children, ...props }) => {

@@ -73,7 +73,7 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       ...theme.fns.mediaBreakpointUp('md', { paddingBottom: '5.5rem' })
     },
 
-    '.eva': {
+    '.eva-section': {
       background: 'radial-gradient(circle, #ffffff 0%, #ffffff 15.38%, #d7dfeb 100%)',
       marginBottom: '10rem',
       paddingTop: '5rem',
@@ -88,7 +88,7 @@ export default createStyles<DocsHomeTheme>((theme) => ({
       ...theme.fns.mediaBreakpointUp('xl', { paddingTop: '15rem' })
     },
 
-    '.eva-concave': {
+    '.eva-section-concave': {
       position: 'absolute',
       top: '-10px',
       left: 0,

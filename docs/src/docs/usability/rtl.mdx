@@ -1,5 +1,5 @@
 ---
-title: 'RTL'
+title: 'Right-to-Left(RTL)'
 group: 'usability'
 slug: '/usability/rtl'
 order: 1
@@ -13,17 +13,17 @@ The components that accept a position as a setting now also support logical star
 For instance, if we need the sidebar to be positioned logically depending on a language direction, then instead of setting it to left we can set its position to start:
 
 ```html
-<nb-sidebar start></nb-sidebar>
+<Sidebar start></Sidebar>
 ```
 
-Document direction could be set through the `NbThemeModule.forRoot` call. Supported values are `ltr` and `rtl`.
+Document direction could be set through the `changeDirection` call. Supported values are `ltr` and `rtl`.
 
-```typescript
-@NgModule({
-  imports: [
-    NbThemeModule.forRoot(nbThemeOptions, nbJSThemes, nbMediaBreakpoints, 'rtl')
-  ]
-})
+```ts
+import { changeDirection } from '@nebular-react/core';
+
+export function Component() {
+  return <button onClick={() => changeDirection('rtl')}>Change To RTL</button>;
+}
 ```
 
 Default value is `ltr`.
@@ -31,40 +31,20 @@ Default value is `ltr`.
 <div class="note note-info">
   <div class="note-title">Note</div>
   <div class="note-body">
-    Components must be placed inside of the `<nb-layout></nb-layout>` component to correctly support
-    language direction.
+    Components must be placed inside of the &lt;NebularProvider&gt;&lt;/NebularProvider&gt;
+    component to correctly support language direction.
   </div>
 </div>
 
-To help you add RTL support to your custom components, Nebular provides you with two scss mixins: `nb-lrt` and `nb-rtl`. You can use them to alter values of css properties, which don't support logical values, like paddings, margins, etc. You can pass single property and value as arguments, pass multiple statements as the content of mixin or both. For example:
+To help you add RTL support to your custom components, Nebular provides you with two functions. For example:
 
-```scss
-:host {
-  @include nb-ltr(padding-left, 1em);
-  @include nb-rtl(padding-right, 1em);
-}
-```
+```ts
+import { createStyles } from '@nebular-react/styles';
 
-```scss
-:host {
-  @include nb-ltr() {
-    padding-left: 1em;
+export default createStyles(() => ({
+  root: {
+    ...theme.fns.ltr({ borderTopRightRadius: 0, borderBottomRightRadius: 0 }),
+    ...theme.fns.rtl({ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 })
   }
-  @include nb-rtl() {
-    padding-right: 1em;
-  }
-}
-```
-
-Please note, the mixins are only available within component `:host` selector or `nb-install-component()` mixin if used.
-
-If you need to change direction dynamically, get current value or listen to changes of direction, Nebular provides `NbLayoutDirectionService`.
-
-# Layout direction directives
-
-Nebular provides `nbLtr` and `nbRlt` directives to show content based on the current direction.
-For example, you could apply the `nbRtl` directive to the element you need to show only when layout direction is right-to-left add:
-
-```html
-<div *nbRtl>This text is visible only when layout direction is RTL</div>
+}));
 ```

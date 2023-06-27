@@ -1,0 +1,65 @@
+---
+title: 'Install Nebular React'
+group: 'guides'
+slug: '/guides/install-nebular-react'
+order: 1
+---
+
+# Install Nebular React
+
+You can either start from scratch or check out [Nebular Starter Kit](/guides/install-based-on-starter-kit).
+
+<hr />
+
+## Installation
+
+### Installing dependencies
+
+At this step, we assume you already have an React application created.
+
+### Install Nebular modules
+
+```bash
+# With yarn
+yarn add @nebular-react/hooks @nebular-react/core @nebular-react/styles
+
+# With npm
+npm install --save @nebular-react/hooks @nebular-react/core @nebular-react/styles
+```
+
+Also, you may want to install Eva Icons pack, which is a recommended SVG icons library starting from Nebular 4.0:
+
+```bash
+# With yarn
+yarn add eva-icons
+
+# With npm
+npm install --save eva-icons
+```
+
+More details on [how to use Nebular React Eva Icons are here](/components/icon/overview#nbiconcomponent).
+
+### Configure Nebular React
+
+At this stage you have everything in place, let's configure Nebular React in the App.(.tsx/.jsx/.js)
+
+```ts
+<NebularProvider>
+  <WindowProvider>
+    <DialogProvider>
+      <ToastrProvider>...</ToastrProvider>
+    </DialogProvider>
+  </WindowProvider>
+</NebularProvider>
+```
+
+More details on [how to config NebularProvider](), [Enabling Customizable Theme](docs/design-system/enable-customizable-theme) and [Multiple Runtime Themes](docs/design-system/enable-multiple-runtime-themes)
+
+That's it. Now you can [create a Nebular React page](docs/guides/create-nebular-page).
+
+<hr />
+
+## Related Articles
+
+- [Create Nebular React Page](docs/guides/create-nebular-page)
+- [Nebular UI Components](docs/components/components-overview)

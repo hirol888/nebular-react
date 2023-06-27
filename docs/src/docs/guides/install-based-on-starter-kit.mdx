@@ -7,44 +7,40 @@ order: 2
 
 # Install Based on Starter Kit
 
-Starting Nebular from <a href="https://github.com/akveo/ngx-admin/" target="_blank">ngx-admin</a> starter kit is the easiest way to run your first Nebular application.
+Starting Nebular React from <a href="https://github.com/hirol888/nebular-react-demo" target="_blank">Nebular React Demo</a> starter kit is the easiest way to run your first Nebular React application.
 
-Please note, that **ngx-admin** is just a frontend application. Backend integration can be done relatively simple, but you should be aware that all the data is mocked using JavaScript objects.
+Please note, that **Nebular React Demo** is just a frontend application. Backend integration can be done relatively simple, but you should be aware that all the data is mocked using JavaScript objects.
 If you want the data to be dynamic, you should consider developing a backend integration separately.
-The Nebular team doesn't consider providing generic integration layer as a part of this project because every backend API has a distinct structure in terms of data format and URLs.
 
 <hr />
 
 ## Install tools
 
-To install ngx-admin on your machine you need to have the following tools installed:
+To install Nebular React Demo on your machine you need to have the following tools installed:
 
 - Git - <a href="https://git-scm.com" target="_blank">https://git-scm.com</a>
-- Node.js - <a href="https://nodejs.org" target="_blank">https://nodejs.org</a>. Please note the **version** should be **>=8**
-- Npm - Node.js package manager, comes with Node.js. Please make sure npm **version** is **>=5**
+- Node.js - <a href="https://nodejs.org" target="_blank">https://nodejs.org</a>. Please note the **version** should be **>=14**
+- Npm - Node.js package manager, comes with Node.js. Please make sure npm **version** is **>=6**
 - You might also need some specific native packages depending on your operating system like `build-essential` on Ubuntu
 
-<div class="note note-info">
-  <div class="note-title">Warning!</div>
-  <div class="note-body">
-    Please note that **it is not possible** to build ngx-admin **without these tools** and it will
-    not be possible because of the way how Angular is built.
-  </div>
-</div>
 <hr />
 
 ## Download the code
 
-When you completed the tools setup, you need to download the code of ngx-admin application. The easiest way to do that is to clone GitHub repository:
+When you completed the tools setup, you need to download the code of Nebular React Demo application. The easiest way to do that is to clone GitHub repository:
 
 ```bash
-git clone https://github.com/akveo/ngx-admin.git
+git clone https://github.com/hirol888/nebular-react-demo.git
 ```
 
 After clone is completed, you need to install npm modules:
 
 ```bash
-cd ngx-admin && npm i
+# With yarn
+cd nebular-react-demo && yarn
+
+# With npm
+cd nebular-react-demo && npm i
 ```
 
 <div class="note note-info">
@@ -60,10 +56,14 @@ cd ngx-admin && npm i
 To run a local copy in development mode, execute:
 
 ```bash
+# With yarn
+yarn start
+
+# With npm
 npm start
 ```
 
-Go to <a href="http://0.0.0.0:4200" target="_blank">http://0.0.0.0:4200</a> or <a href="http://localhost:4200" target="_blank">http://localhost:4200</a> in your browser.
+Go to <a href="http://0.0.0.0:5173" target="_blank">http://0.0.0.0:5173</a> or <a href="http://localhost:5173" target="_blank">http://localhost:5173</a> in your browser.
 
 <hr />
 
@@ -72,7 +72,11 @@ Go to <a href="http://0.0.0.0:4200" target="_blank">http://0.0.0.0:4200</a> or <
 To create a bundle in production mode, execute:
 
 ```bash
-npm run build:prod
+# With yarn
+yarn build
+
+# With npm
+npm run build
 ```
 
 This will clear up your `dist` folder (where release files are located) and generate a release build.

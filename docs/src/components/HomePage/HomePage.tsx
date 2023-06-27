@@ -1,10 +1,8 @@
 import React from 'react';
 import { Layout } from '@nebular-react/core';
-import { Link } from 'gatsby';
 import { Footer } from '../Footer/Footer';
 import { ComponentsPromo } from './ComponentsPromo/ComponentsPromo';
 import { Eva } from './Eva/Eva';
-import { ForBusiness } from './ForBusiness/ForBusiness';
 import { Header } from '../Header/Header';
 import { Hero } from './Hero/Hero';
 import { IconCard } from './IconCard/IconCard';
@@ -16,63 +14,63 @@ export function HomePage() {
   const features = [
     {
       title: 'Introduction',
-      description: 'Install from scratch or based on ngx-admin.',
-      icon: 'assets/img/intro.svg',
-      link: 'docs'
+      description: 'Install from scratch or based on Nebular React Demo.',
+      icon: '../../../intro.svg',
+      link: '/getting-started/what-is-nebular-react'
     },
-    {
-      title: 'Guides',
-      description: 'Theme System configuration, customization, and other articles.',
-      icon: 'assets/img/guides.svg',
-      link: 'docs/guides/install-based-on-starter-kit'
-    },
+    // {
+    //   title: 'Guides',
+    //   description: 'Theme System configuration, customization, and other articles.',
+    //   icon: '../../../guides.svg',
+    //   link: 'docs/guides/install-based-on-starter-kit'
+    // },
     {
       title: 'Components',
       description: 'Native Angular components with configurable styles.',
-      icon: 'assets/img/components.svg',
-      link: 'docs/components/components-overview'
+      icon: '../../../components.svg',
+      link: '/components/components-overview'
     },
     {
       title: 'Design System',
       description: `Based on Eva Design System, with 4 visual themes & handy variables to create your custom ones.
                     With hot-reload out of the box.`,
-      icon: 'assets/img/themes.svg',
-      link: 'docs/design-system/eva-design-system-intro'
-    },
-    {
-      title: 'Auth',
-      description: 'The authentication layer with configurable strategies.',
-      icon: 'assets/img/auth.svg',
-      link: 'docs/auth/introduction'
-    },
-    {
-      title: 'Security',
-      description: 'An ACL list with helpful directives.',
-      icon: 'assets/img/security.svg',
-      link: 'docs/security/introduction'
+      icon: '../../../themes.svg',
+      link: '/design-system/eva-design-system-intro'
     }
+    // {
+    //   title: 'Auth',
+    //   description: 'The authentication layer with configurable strategies.',
+    //   icon: '../../../auth.svg',
+    //   link: 'docs/auth/introduction'
+    // },
+    // {
+    //   title: 'Security',
+    //   description: 'An ACL list with helpful directives.',
+    //   icon: '../../../security.svg',
+    //   link: 'docs/security/introduction'
+    // }
   ];
 
   const advantages = [
     {
       title: 'Modular',
       description: 'Each feature is a separate npm module. Use only what you need.',
-      icon: 'assets/img/modular.svg'
+      icon: '../../../modular.svg'
     },
     {
       title: 'Configurable',
       description: 'Sizes, colors, appearances, shapes, and other useful settings.',
-      icon: 'assets/img/native.svg'
+      icon: '../../../native.svg'
     },
     {
       title: 'Open',
       description: 'Source code is free and available under the MIT license.',
-      icon: 'assets/img/open-sourced.svg'
+      icon: '../../../open-sourced.svg'
     },
     {
       title: 'Customizable',
       description: 'A straightforward way to integrate your brand.',
-      icon: 'assets/img/extendable.svg'
+      icon: '../../../extendable.svg'
     }
   ];
 
@@ -97,26 +95,27 @@ export function HomePage() {
             </svg>
           </section>
 
-          <section className="for-business-section">
+          {/* <section className="for-business-section">
             <ForBusiness />
-          </section>
+          </section> */}
 
           <section className="features">
             <div className="content-center">
               {features.map((feature) => (
-                <Link to={feature.link} key={feature.title}>
+                <React.Fragment key={feature.title}>
                   <IconCard
+                    link={feature.link}
                     title={feature.title}
                     icon={feature.icon}
                     description={feature.description}
                   />
-                </Link>
+                </React.Fragment>
               ))}
             </div>
           </section>
 
-          <section className="eva">
-            <div className="eva-concave">
+          <section className="eva-section">
+            <div className="eva-section-concave">
               <svg
                 viewBox="0 0 1440 112"
                 preserveAspectRatio="xMidYMin slice"
