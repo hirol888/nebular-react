@@ -46,6 +46,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
           <div ref={paneRef} className="overlay-pane">
             {dialogConfigs.map((config) => (
               <Dialog
+                key={config.id}
                 dialogConfig={config}
                 apply={apply}
                 paneRef={paneRef}
