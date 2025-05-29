@@ -98,7 +98,7 @@ const { argv }: { argv: any } = yargs(hideBin(process.argv))
 
   open(
     githubRelease({
-      user: 'hirol888',
+      user: 'christianulson',
       repo: 'nebular-react',
       tag: incrementedVersion,
       title: incrementedVersion
