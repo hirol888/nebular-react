@@ -113,7 +113,7 @@ export function Dynamic() {
   );
 
   const [content, setContent] = useState<JSX.Element | string>(listContent());
-  const [timer, setTimer] = useState<NodeJS.Timer>();
+  const [timer, setTimer] = useState<NodeJS.Timeout>();
 
   const changeContent = (contentType: string) => {
     switch (contentType) {

@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@nebular-react/styles": "0.1.0",
-    "html-react-parser": "1.4.12"
+    "html-react-parser": "5.2.5"
   },
   "devDependencies": {}
 }

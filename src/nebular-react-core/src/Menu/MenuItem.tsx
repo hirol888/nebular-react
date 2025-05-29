@@ -123,7 +123,7 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
               />
             </a>
             <animated.div
-              style={shouldAnimate.current || !isItemExpanded(id) ? openAnimation : null}
+              style={shouldAnimate.current || !isItemExpanded(id) ? openAnimation : undefined}
             >
               <ul
                 ref={ulMeasureRef}
