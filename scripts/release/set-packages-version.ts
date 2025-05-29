@@ -1,5 +1,9 @@
 import path from 'path';
 import fs from 'fs-extra';
+import { fileURLToPath } from 'node:url';
+
+// recria __dirname em ambiente ESM
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function writeVersionToPackageJson(filePath: string, version: string) {
   const current = await fs.readJSON(filePath);
