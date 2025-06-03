@@ -1,7 +1,8 @@
-import { isMoment, Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import { batch, range } from '../utils';
 import { DateType, DAYS_IN_WEEK, DEFAULT_LOCALE, useDateFns } from '../use-date-fns/use-date-fns';
 
+const { isMoment } = moment;
 export const YEARS_IN_VIEW = 12;
 export const YEARS_IN_ROW = 4;
 export const MONTHS_IN_VIEW = 12;

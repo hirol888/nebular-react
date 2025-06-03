@@ -1,4 +1,4 @@
-import moment, { isMoment, LongDateFormatKey, Moment } from 'moment';
+import moment, { LongDateFormatKey, Moment } from 'moment';
 
 export const TIME_ONLY_FORMAT_KEY: LongDateFormatKey = 'LT';
 export const DEFAULT_LOCALE = 'en-US';
@@ -9,6 +9,8 @@ export type DateType = 'moment' | 'native';
 
 export const DAYS_IN_WEEK = 7;
 export const HOURS_IN_DAY_PERIOD = 12;
+
+const { isMoment } = moment;
 
 type MomentLocaleData = {
   firstDayOfWeek: number;

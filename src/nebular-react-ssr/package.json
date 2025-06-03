@@ -1,7 +1,7 @@
 {
   "name": "@nebular-react/ssr",
   "description": "Nebular server side rendering utils",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -33,7 +33,7 @@
     "@emotion/server": ">=11.4.0"
   },
   "dependencies": {
-    "@nebular-react/styles": "0.1.0",
+    "@nebular-react/styles": "0.2.0",
     "html-react-parser": "5.2.5"
   },
   "devDependencies": {}
