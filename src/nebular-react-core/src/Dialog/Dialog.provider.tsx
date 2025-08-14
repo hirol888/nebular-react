@@ -46,7 +46,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
           <div ref={paneRef} className="overlay-pane">
             {dialogConfigs.map((config, idx) => (
               <Dialog
-                key={`giad_${idx}`}
+                key={config.id}
                 dialogConfig={config}
                 apply={apply}
                 paneRef={paneRef}
