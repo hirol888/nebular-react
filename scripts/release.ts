@@ -5,6 +5,7 @@ import githubRelease from 'new-github-release-url';
 import open from 'open';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
+import { fileURLToPath } from 'node:url';
 import { Logger } from './utils/Logger';
 import { publishPackage } from './utils/publish-package';
 import { getIncrementedVersion } from './release/get-incremented-version';
@@ -12,6 +13,9 @@ import { setPackagesVersion } from './release/set-packages-version';
 import { buildAllPackages } from './utils/build-all-packages';
 import { getPackagesBuildOrder } from './utils/get-packages-build-order';
 import packageJson from '../package.json';
+
+// recria __dirname em ambiente ESM
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const logger = new Logger('release');
 const git = simpleGit();
@@ -98,7 +102,7 @@ const { argv }: { argv: any } = yargs(hideBin(process.argv))
 
   open(
     githubRelease({
-      user: 'hirol888',
+      user: 'christianulson',
       repo: 'nebular-react',
       tag: incrementedVersion,
       title: incrementedVersion

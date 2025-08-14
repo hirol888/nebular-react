@@ -1,6 +1,6 @@
 {
   "name": "@nebular-react/hooks",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -27,10 +27,10 @@
     "react": ">=16.8.0"
   },
   "dependencies": {
-    "@nebular-react/styles": "0.1.0",
-    "@mantine/hooks": "^6.0.1",
+    "@nebular-react/styles": "0.3.0",
+    "@mantine/hooks": "^8",
     "lodash": "^4.17.21",
-    "moment": "^2.29.4"
+    "moment": "^2.30.1"
   },
   "devDependencies": {}
 }

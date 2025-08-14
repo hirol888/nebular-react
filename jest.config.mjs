@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('jest').Config} */
+export default {
   testEnvironment: 'jest-environment-jsdom',
   transform: {
     // https://github.com/aelbore/esbuild-jest/issues/21

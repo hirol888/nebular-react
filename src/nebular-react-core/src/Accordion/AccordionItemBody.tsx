@@ -50,7 +50,7 @@ const AccordionItemBody: React.FC<AccordionItemBodyProps> = (props) => {
 
   return (
     <div className={cx(classes.root, className)} {...others}>
-      <animated.div style={shouldAnimate.current ? openAnimation : null}>
+      <animated.div style={shouldAnimate.current ? openAnimation : undefined}>
         <div ref={mergeRefs(bodyRef, bodyMeasureRef)} className={cx(classes.itemBody)}>
           {children}
         </div>

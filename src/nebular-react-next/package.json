@@ -1,7 +1,7 @@
 {
   "name": "@nebular-react/next",
   "description": "Nebular integration for Next.js",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
@@ -25,8 +25,8 @@
     "next": "*"
   },
   "dependencies": {
-    "@nebular-react/ssr": "0.1.0",
-    "@nebular-react/styles": "0.1.0"
+    "@nebular-react/ssr": "0.3.0",
+    "@nebular-react/styles": "0.3.0"
   },
   "devDependencies": {}
 }
