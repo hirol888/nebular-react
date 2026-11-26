@@ -23,3 +23,18 @@ export function useDesktopWindow(): DesktopWindowContextValue {
 
   return context;
 }
+
+export function useDesktopWindowState<T>(
+  defaultState: T
+): [T, (next: T | ((current: T) => T)) => void] {
+  const { window, setWindowState } = useDesktopWindow();
+  const current = (window.state as T | undefined) ?? defaultState;
+
+  return [
+    current,
+    (next) => {
+      const value = typeof next === 'function' ? (next as (value: T) => T)(current) : next;
+      setWindowState(value);
+    }
+  ];
+}

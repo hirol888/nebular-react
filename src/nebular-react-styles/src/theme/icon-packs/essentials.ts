@@ -5,6 +5,10 @@ const nebularEssentialIcons = {
     '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="100%" height="100%" viewBox="0 0 24 24"><g data-name="Layer 2"><rect width="24" height="24" opacity="0"/><rect x="4" y="6" width="16" height="2" rx="1"/><rect x="4" y="11" width="16" height="2" rx="1"/><rect x="4" y="16" width="16" height="2" rx="1"/></g></svg>',
   'more-horizontal-outline':
     '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="100%" height="100%" viewBox="0 0 24 24"><g data-name="Layer 2"><rect width="24" height="24" opacity="0"/><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></g></svg>',
+  'folder-outline':
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="100%" height="100%" viewBox="0 0 24 24"><g data-name="Layer 2"><rect width="24" height="24" opacity="0"/><path d="M19.5 20h-15A2.5 2.5 0 0 1 2 17.5v-11A2.5 2.5 0 0 1 4.5 4H9a1 1 0 0 1 .8.4L11.5 7h8A2.5 2.5 0 0 1 22 9.5v8a2.5 2.5 0 0 1-2.5 2.5zM4.5 6a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-8.7a1 1 0 0 1-.8-.4L8.3 6z"/></g></svg>',
+  'refresh-outline':
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="100%" height="100%" viewBox="0 0 24 24"><g data-name="Layer 2"><rect width="24" height="24" opacity="0"/><path d="M20 11a8.1 8.1 0 0 0-15.5-3.5L3 9V4a1 1 0 0 0-2 0v7a1 1 0 0 0 1 1h7a1 1 0 0 0 0-2H5.3l1.2-1.2A6.1 6.1 0 0 1 18 11a1 1 0 0 0 2 0zM21 12a1 1 0 0 0-1 1 6.1 6.1 0 0 1-11.5 3.2l-1.2-1.2H11a1 1 0 0 0 0-2H4a1 1 0 0 0-1 1v7a1 1 0 0 0 2 0v-5l1.5 1.5A8.1 8.1 0 0 0 22 13a1 1 0 0 0-1-1z"/></g></svg>',
   'chevron-down-outline':
     '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="100%" height="100%" viewBox="0 0 24 24"><g data-name="Layer 2"><g data-name="chevron-down"><rect width="24" height="24" opacity="0"/><path d="M12 15.5a1 1 0 0 1-.71-.29l-4-4a1 1 0 1 1 1.42-1.42L12 13.1l3.3-3.18a1 1 0 1 1 1.38 1.44l-4 3.86a1 1 0 0 1-.68.28z"/></g></g></svg>',
   'chevron-up-outline':

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useStyles } from './Desktop.styles';
 import type {
   DesktopApp,
@@ -11,12 +11,15 @@ import type {
 import { getWindowKey, isInWorkspace, windowTitleText } from './Desktop.utils';
 import { DesktopStartMenu } from './DesktopStartMenu';
 import { Icon } from '../Icon';
+import { NotificationCenter } from '../NotificationCenter';
+import type { NotificationItem } from '../NotificationCenter';
 
 export interface DesktopTaskbarGroup {
   key: string;
   appId?: string;
   title: string;
   icon?: React.ReactNode;
+  preview?: React.ReactNode;
   windows: DesktopWindowState[];
   active: boolean;
   minimized: boolean;
@@ -52,6 +55,10 @@ export interface DesktopTaskbarProps extends DesktopStyleProps {
   onGroupMenu(group: DesktopTaskbarGroup, event: React.MouseEvent<HTMLElement>): void;
   onOverflowMenu(groups: DesktopTaskbarGroup[], event: React.MouseEvent<HTMLElement>): void;
   startMenuSearch: boolean;
+  showOverview: boolean;
+  overviewOpen: boolean;
+  onToggleOverview(): void;
+  notifications?: NotificationItem[];
 }
 
 export function DesktopTaskbar({
@@ -84,6 +91,10 @@ export function DesktopTaskbar({
   onGroupMenu,
   onOverflowMenu,
   startMenuSearch,
+  showOverview,
+  overviewOpen,
+  onToggleOverview,
+  notifications,
   classNames,
   styles,
   unstyled
@@ -94,6 +105,10 @@ export function DesktopTaskbar({
     styles,
     unstyled
   });
+  const [preview, setPreview] = useState<{
+    group: DesktopTaskbarGroup;
+    rect: DOMRect;
+  } | null>(null);
   const itemsRef = useRef<HTMLDivElement>(null);
   const taskbarVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
   const appsById = useMemo(() => new Map(apps.map((app) => [app.id, app])), [apps]);
@@ -120,6 +135,7 @@ export function DesktopTaskbar({
           appId: window.appId,
           title: windowTitleText(window, app, labels.window),
           icon: app?.icon ?? window.icon,
+          preview: app?.preview,
           windows: [window],
           active: false,
           minimized: false
@@ -257,6 +273,14 @@ export function DesktopTaskbar({
                 title={group.title}
                 onClick={() => onGroupClick(group)}
                 onContextMenu={(event) => onGroupContextMenu(group, event)}
+                onMouseEnter={(event) =>
+                  setPreview({ group, rect: event.currentTarget.getBoundingClientRect() })
+                }
+                onMouseLeave={() => setPreview(null)}
+                onFocus={(event) =>
+                  setPreview({ group, rect: event.currentTarget.getBoundingClientRect() })
+                }
+                onBlur={() => setPreview(null)}
               >
                 {group.icon && (
                   <span className={cx(classes.taskbarIcon)} aria-hidden="true">
@@ -304,12 +328,30 @@ export function DesktopTaskbar({
         )}
       </div>
       <div className={cx(classes.taskbarSpacer)} />
+      {showOverview && (
+        <button
+          type="button"
+          className={cx(classes.iconButton)}
+          aria-label={overviewOpen ? labels.closeOverview : labels.overview}
+          aria-pressed={overviewOpen}
+          title={overviewOpen ? labels.closeOverview : labels.overview}
+          onClick={onToggleOverview}
+        >
+          <Icon icon="expand-outline" pack="nebular-essentials" aria-hidden="true" />
+        </button>
+      )}
       <div
         className={cx(classes.taskbarMeta, {
           [classes.taskbarMetaVertical]: taskbarVertical
         })}
       >
         {taskbarActions}
+        {notifications && notifications.length > 0 && (
+          <NotificationCenter
+            notifications={notifications}
+            placement={taskbarPosition === 'top' ? 'bottom-end' : 'top-end'}
+          />
+        )}
         {systemTray && (
           <div className={cx(classes.tray, { [classes.trayVertical]: taskbarVertical })}>
             {systemTray}
@@ -325,6 +367,39 @@ export function DesktopTaskbar({
           </div>
         )}
       </div>
+      {preview && (
+        <div
+          className={cx(classes.taskbarPreview)}
+          style={{
+            left: preview.rect.left + preview.rect.width / 2,
+            top: taskbarPosition === 'top' ? preview.rect.bottom + 8 : preview.rect.top - 8,
+            transform: taskbarPosition === 'top' ? 'translateX(-50%)' : 'translate(-50%, -100%)'
+          }}
+          role="tooltip"
+        >
+          <div className={cx(classes.taskbarPreviewTitle)}>
+            {preview.group.icon && (
+              <span className={cx(classes.taskbarIcon)} aria-hidden="true">
+                {preview.group.icon}
+              </span>
+            )}
+            {preview.group.title}
+          </div>
+          {preview.group.preview ?? (
+            <ul className={cx(classes.taskbarPreviewList)}>
+              {preview.group.windows.map((window) => (
+                <li key={window.id}>
+                  {windowTitleText(
+                    window,
+                    window.appId ? appsById.get(window.appId) : undefined,
+                    labels.window
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }

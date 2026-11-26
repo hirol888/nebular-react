@@ -152,13 +152,16 @@
   embutidos `en-US`/`pt-BR`, `useNebularLocale`/`t`, locale global em datas/números e
   `labels` tipados nos componentes com mais strings.
 - **Desktop**: gerenciador de janelas em tela cheia com taskbar configurável, menu Iniciar
-  com busca/fixados/recentes, drag/resize, snap, minimizar/maximizar, agrupamento e overflow,
-  menu de contexto, foco/A11y, persistência de layout, áreas de trabalho virtuais, modo
-  compacto, relógio, system tray e janelas filhas modais.
-- **Testes**: 3.116 testes em 252 suítes, incluindo interação, teclado,
+  com busca/fixados/recentes, drag/resize, snap e snap layouts, minimizar/maximizar,
+  agrupamento e overflow, menu de contexto, foco/A11y, persistência local ou via adapter
+  assíncrono, estado por janela, áreas de trabalho virtuais com tema, multi-display span,
+  ícones, command palette, overview, notificações, error boundary por janela, associação de
+  arquivos, modo compacto e janelas filhas modais. Inclui `FileExplorer` com providers de
+  memória/REST, navegação, views, upload e preview.
+- **Testes**: 3.138 testes em 253 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 92,06% de instruções,
-  81,65% de branches, 92,75% de funções e 92,06% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,99% de instruções,
+  80,79% de branches, 91,06% de funções e 90,99% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

@@ -45,6 +45,7 @@ export * from './ErrorBoundary';
 export * from './FileButton';
 export * from './FileInput';
 export * from './FileManager';
+export * from './FileExplorer';
 export * from './Fieldset';
 export * from './FilterBuilder';
 export * from './Flex';

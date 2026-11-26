@@ -1,10 +1,15 @@
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
   Desktop,
+  createMemoryLayoutAdapter,
+  serializeDesktopLayout,
+  useDesktop,
+  useDesktopDisplays,
   useDesktopWindow,
+  useDesktopWindowState,
   type DesktopApp,
   type DesktopTaskbarPosition,
   type DesktopWindowState
@@ -1019,6 +1024,297 @@ describe('Desktop', () => {
     );
 
     window.localStorage.clear();
+  });
+
+  it('persists and restores window state through a layout adapter', async () => {
+    const user = userEvent.setup();
+    const adapter = createMemoryLayoutAdapter();
+
+    function StatefulApp() {
+      const [state, setState] = useDesktopWindowState({ count: 0 });
+
+      return (
+        <button type="button" onClick={() => setState({ count: state.count + 1 })}>
+          Count {state.count}
+        </button>
+      );
+    }
+
+    const app: DesktopApp = {
+      id: 'stateful',
+      title: 'Stateful',
+      content: <StatefulApp />
+    };
+
+    const first = render(<Desktop apps={[app]} layoutAdapter={adapter} layoutDebounceMs={0} />);
+
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Open Stateful' }));
+    await user.click(screen.getByRole('button', { name: 'Count 0' }));
+
+    await waitFor(() => expect(adapter.snapshot()?.windows[0]?.state).toEqual({ count: 1 }));
+
+    first.unmount();
+
+    render(<Desktop apps={[app]} layoutAdapter={adapter} layoutDebounceMs={0} />);
+
+    expect(await screen.findByText('Count 1')).toBeInTheDocument();
+  });
+
+  it('loads a layout snapshot and reports status', async () => {
+    const snapshot = serializeDesktopLayout([
+      createWindow({ id: 'restored-window', appId: 'notes' })
+    ]);
+    const adapter = createMemoryLayoutAdapter(snapshot);
+    const onLayoutStatusChange = jest.fn();
+    const onLayoutLoaded = jest.fn();
+
+    render(
+      <Desktop
+        apps={apps}
+        layoutAdapter={adapter}
+        onLayoutStatusChange={onLayoutStatusChange}
+        onLayoutLoaded={onLayoutLoaded}
+      />
+    );
+
+    expect(await screen.findByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+    expect(onLayoutLoaded).toHaveBeenCalledWith(expect.objectContaining({ version: 2 }));
+    await waitFor(() =>
+      expect(onLayoutStatusChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'saved' })
+      )
+    );
+  });
+
+  it('supports display-aware maximize and moving windows between displays', async () => {
+    const user = userEvent.setup();
+    const onWindowDisplayChange = jest.fn();
+
+    render(
+      <Desktop
+        apps={apps}
+        displayMode="span"
+        displays={[
+          {
+            id: 'left',
+            label: 'Left',
+            primary: true,
+            bounds: { x: 0, y: 0, width: 400, height: 600 }
+          },
+          {
+            id: 'right',
+            label: 'Right',
+            bounds: { x: 400, y: 0, width: 400, height: 600 }
+          }
+        ]}
+        defaultWindows={[createWindow({ x: 20, y: 20, width: 200, height: 150 })]}
+        onWindowDisplayChange={onWindowDisplayChange}
+      />
+    );
+
+    expect(document.querySelectorAll('[data-desktop-display-id]')).toHaveLength(2);
+
+    const dialog = screen.getByRole('dialog', { name: 'Notes' });
+
+    await user.click(screen.getByRole('button', { name: 'Maximize Notes' }));
+
+    expect(dialog).toHaveStyle({
+      left: '0px',
+      top: '0px',
+      width: '400px',
+      height: '600px'
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Restore Notes' }));
+    fireEvent.contextMenu(dialog, { clientX: 120, clientY: 120 });
+
+    await user.click(
+      within(screen.getByRole('menu', { name: 'Window menu' })).getByRole('menuitem', {
+        name: 'Move to display Right'
+      })
+    );
+
+    expect(dialog).toHaveStyle({
+      left: '500px',
+      top: '225px',
+      width: '200px',
+      height: '150px'
+    });
+    expect(onWindowDisplayChange).toHaveBeenCalledWith(
+      expect.objectContaining({ displayId: 'right' }),
+      'right'
+    );
+  });
+
+  it('opens the command palette with Ctrl+K and launches an app', async () => {
+    const user = userEvent.setup();
+
+    render(<Desktop apps={apps} />);
+
+    fireEvent.keyDown(screen.getByRole('region', { name: 'Desktop' }), {
+      key: 'k',
+      ctrlKey: true
+    });
+
+    const palette = screen.getByRole('dialog');
+    await user.click(within(palette).getByRole('option', { name: /Notes/ }));
+
+    expect(await screen.findByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+  });
+
+  it('opens apps from desktop icons', async () => {
+    const user = userEvent.setup();
+    const onIconOpen = jest.fn();
+
+    render(
+      <Desktop
+        apps={apps}
+        icons={[
+          {
+            id: 'notes-shortcut',
+            label: 'Notes shortcut',
+            appId: 'notes',
+            icon: <span data-testid="shortcut-icon" />
+          }
+        ]}
+        onIconOpen={onIconOpen}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Notes shortcut' }));
+
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+    expect(onIconOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'notes-shortcut' }));
+  });
+
+  it('shows the overview and focuses a window from it', async () => {
+    const user = userEvent.setup();
+
+    render(<Desktop apps={apps} defaultWindows={[createWindow()]} />);
+
+    await user.click(screen.getByRole('button', { name: 'Overview' }));
+
+    const overview = screen.getByRole('dialog', { name: 'Overview' });
+    await user.click(within(overview).getByRole('button', { name: /Notes/ }));
+
+    expect(screen.queryByRole('dialog', { name: 'Overview' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+  });
+
+  it('keeps the desktop alive when a window content crashes', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    function Broken(): React.ReactElement {
+      throw new Error('boom');
+    }
+
+    render(
+      <Desktop
+        apps={[{ id: 'broken', title: 'Broken', content: <Broken /> }]}
+        defaultWindows={[createWindow({ id: 'broken-window', appId: 'broken', title: 'Broken' })]}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('This window crashed.');
+    expect(screen.getByRole('button', { name: 'Reload' })).toBeInTheDocument();
+    expect(screen.getByRole('toolbar', { name: 'Taskbar' })).toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
+
+  it('opens a file with the app that declares the extension', async () => {
+    const user = userEvent.setup();
+
+    function FileOpener() {
+      const { openFile } = useDesktop();
+
+      return (
+        <button
+          type="button"
+          onClick={() => openFile({ path: '/docs/readme.md', name: 'readme.md' })}
+        >
+          Open file
+        </button>
+      );
+    }
+
+    function Viewer() {
+      const { window } = useDesktopWindow();
+      const state = window.state as { file?: { path: string } } | undefined;
+
+      return <span>{state?.file?.path}</span>;
+    }
+
+    render(
+      <Desktop
+        apps={[
+          {
+            id: 'viewer',
+            title: 'Viewer',
+            content: <Viewer />,
+            fileExtensions: ['.md']
+          }
+        ]}
+        systemTray={<FileOpener />}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open file' }));
+
+    expect(screen.getByRole('dialog', { name: 'Viewer' })).toBeInTheDocument();
+    expect(screen.getByText('/docs/readme.md')).toBeInTheDocument();
+  });
+
+  it('exposes a fallback single display when Window Management is unavailable', () => {
+    function DisplayProbe() {
+      const { displays, supported } = useDesktopDisplays();
+
+      return (
+        <span data-testid="display-probe">
+          {supported ? 'supported' : 'fallback'}:{displays.length}
+        </span>
+      );
+    }
+
+    render(<DisplayProbe />);
+
+    expect(screen.getByTestId('display-probe')).toHaveTextContent('fallback:1');
+  });
+
+  it('applies the active workspace theme variables', () => {
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        workspaces={[
+          {
+            id: 'themed',
+            title: 'Themed',
+            background: 'rgb(10, 20, 30)',
+            accentColor: 'rgb(255, 0, 0)'
+          }
+        ]}
+        defaultWorkspace="themed"
+      />
+    );
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--desktop-wallpaper')).toBe('rgb(10, 20, 30)');
+    expect(root.style.getPropertyValue('--desktop-accent')).toBe('rgb(255, 0, 0)');
+  });
+
+  it('shows a taskbar preview on hover and focus', async () => {
+    const user = userEvent.setup();
+
+    render(<Desktop apps={apps} defaultWindows={[createWindow()]} />);
+
+    const button = screen.getByRole('button', { name: 'Notes' });
+    await user.hover(button);
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Notes');
+
+    await user.unhover(button);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
   it('has no accessibility violations in RTL with the start menu open', async () => {

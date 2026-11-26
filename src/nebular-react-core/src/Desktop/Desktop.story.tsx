@@ -212,9 +212,9 @@ export function WindowSnapping() {
 
 export function VirtualWorkspaces() {
   const workspaces: DesktopWorkspace[] = [
-    { id: 'main', title: 'Main' },
-    { id: 'focus', title: 'Focus' },
-    { id: 'chat', title: 'Chat' }
+    { id: 'main', title: 'Main', background: '#edf1f7' },
+    { id: 'focus', title: 'Focus', background: '#e9f2ff', accentColor: '#3366ff' },
+    { id: 'chat', title: 'Chat', background: '#f2ecff', accentColor: '#8b5cf6' }
   ];
 
   return (
@@ -226,6 +226,94 @@ export function VirtualWorkspaces() {
         defaultWindows={[
           { ...windowState('main-notes', 'notes', 60, 60, 1), workspaceId: 'main' },
           { ...windowState('focus-tasks', 'tasks', 90, 90, 2), workspaceId: 'focus' }
+        ]}
+      />
+    </div>
+  );
+}
+
+export function DesktopIcons() {
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={apps}
+        defaultWindows={[]}
+        icons={[
+          {
+            id: 'notes-shortcut',
+            label: 'Notes',
+            appId: 'notes',
+            icon: <Icon icon="file-text-outline" pack="nebular-essentials" aria-hidden="true" />
+          },
+          {
+            id: 'tasks-shortcut',
+            label: 'Tasks',
+            appId: 'tasks',
+            icon: <Icon icon="checkmark-outline" pack="nebular-essentials" aria-hidden="true" />
+          },
+          {
+            id: 'settings-shortcut',
+            label: 'Settings',
+            appId: 'settings',
+            icon: <Icon icon="expand-outline" pack="nebular-essentials" aria-hidden="true" />,
+            x: 100,
+            y: 20
+          }
+        ]}
+      />
+    </div>
+  );
+}
+
+export function MultiDisplay() {
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={apps}
+        displayMode="span"
+        displays={[
+          {
+            id: 'left',
+            label: 'Left',
+            primary: true,
+            bounds: { x: 0, y: 0, width: 560, height: 480 }
+          },
+          {
+            id: 'right',
+            label: 'Right',
+            bounds: { x: 560, y: 0, width: 560, height: 480 }
+          }
+        ]}
+        defaultWindows={[
+          windowState('left-notes', 'notes', 40, 40, 1),
+          { ...windowState('right-tasks', 'tasks', 620, 80, 2), displayId: 'right' }
+        ]}
+      />
+    </div>
+  );
+}
+
+export function Notifications() {
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={apps}
+        defaultWindows={[windowState('notify-notes', 'notes', 60, 60, 1)]}
+        notifications={[
+          {
+            id: 'one',
+            title: 'Build finished',
+            message: 'The documentation build completed successfully.',
+            timestamp: '2026-02-06T10:30:00Z',
+            status: 'success'
+          },
+          {
+            id: 'two',
+            title: 'New file uploaded',
+            message: 'report.pdf was added to Documents.',
+            timestamp: '2026-02-06T10:20:00Z',
+            read: true
+          }
         ]}
       />
     </div>

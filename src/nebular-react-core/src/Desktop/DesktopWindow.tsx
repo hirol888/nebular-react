@@ -11,6 +11,7 @@ import type {
   DesktopWindowState
 } from './Desktop.types';
 import { DesktopWindowContext } from './Desktop.context';
+import { DesktopWindowErrorBoundary } from './DesktopWindowErrorBoundary';
 import {
   clamp,
   focusWindowElement,
@@ -35,6 +36,8 @@ export interface DesktopWindowFrameProps extends DesktopStyleProps {
   active: boolean;
   hidden: boolean;
   zIndex: number;
+  displayBounds?: DesktopWindowBounds;
+  maximizedBounds?: DesktopWindowBounds;
   snapThreshold: number;
   keepInBounds: boolean;
   onPromote(id: string): void;
@@ -46,6 +49,7 @@ export interface DesktopWindowFrameProps extends DesktopStyleProps {
   onSnap(id: string, position: DesktopSnapPosition): void;
   onSnapPreview(bounds: DesktopWindowBounds | null): void;
   onContextMenu(id: string, event: React.MouseEvent | React.KeyboardEvent): void;
+  onSetWindowState(id: string, state: unknown): void;
   openWindow(options: DesktopOpenWindowOptions): string;
 }
 
@@ -71,6 +75,8 @@ export function DesktopWindowFrame({
   active,
   hidden,
   zIndex,
+  displayBounds,
+  maximizedBounds,
   snapThreshold,
   keepInBounds,
   onPromote,
@@ -82,6 +88,7 @@ export function DesktopWindowFrame({
   onSnap,
   onSnapPreview,
   onContextMenu,
+  onSetWindowState,
   openWindow,
   classNames,
   styles,
@@ -126,9 +133,10 @@ export function DesktopWindowFrame({
       closeWindow: () => onClose(windowState.id),
       minimizeWindow: () => onMinimize(windowState.id),
       maximizeWindow: () => onMaximize(windowState.id),
-      restoreWindow: () => onRestore(windowState.id)
+      restoreWindow: () => onRestore(windowState.id),
+      setWindowState: (state) => onSetWindowState(windowState.id, state)
     }),
-    [windowState, openWindow, onClose, onMinimize, onMaximize, onRestore]
+    [windowState, openWindow, onClose, onMinimize, onMaximize, onRestore, onSetWindowState]
   );
 
   useLayoutEffect(() => {
@@ -156,16 +164,30 @@ export function DesktopWindowFrame({
     const { area } = interaction;
 
     if (interaction.mode === 'drag') {
+      const snapArea = displayBounds ?? {
+        x: 0,
+        y: 0,
+        width: area.width,
+        height: area.height
+      };
       const position = getSnapPosition(
-        clientX - area.left,
-        clientY - area.top,
-        area,
+        clientX - area.left - snapArea.x,
+        clientY - area.top - snapArea.y,
+        snapArea,
         snapThreshold
       );
 
       if (position) {
         snapRef.current = position;
-        onSnapPreview(resolveSnapBounds(position, area));
+        const preview = resolveSnapBounds(position, snapArea);
+
+        if (preview) {
+          onSnapPreview({
+            ...preview,
+            x: preview.x + snapArea.x,
+            y: preview.y + snapArea.y
+          });
+        }
         return;
       }
 
@@ -299,9 +321,22 @@ export function DesktopWindowFrame({
       if (snap === 'maximize') {
         onMaximize(windowState.id);
       } else {
-        const bounds = resolveSnapBounds(snap, getAreaRect(areaRef.current));
+        const area = getAreaRect(areaRef.current);
+        const snapArea = displayBounds ?? {
+          x: 0,
+          y: 0,
+          width: area.width,
+          height: area.height
+        };
+        const bounds = resolveSnapBounds(snap, snapArea);
+
         if (bounds) {
-          onUpdate(windowState.id, { ...bounds, maximized: false });
+          onUpdate(windowState.id, {
+            ...bounds,
+            x: bounds.x + snapArea.x,
+            y: bounds.y + snapArea.y,
+            maximized: false
+          });
         }
       }
       onSnap(windowState.id, snap);
@@ -338,9 +373,22 @@ export function DesktopWindowFrame({
     if (position === 'maximize') {
       onMaximize(windowState.id);
     } else {
-      const bounds = resolveSnapBounds(position, getAreaRect(areaRef.current));
+      const area = getAreaRect(areaRef.current);
+      const snapArea = displayBounds ?? {
+        x: 0,
+        y: 0,
+        width: area.width,
+        height: area.height
+      };
+      const bounds = resolveSnapBounds(position, snapArea);
+
       if (bounds) {
-        onUpdate(windowState.id, { ...bounds, maximized: false });
+        onUpdate(windowState.id, {
+          ...bounds,
+          x: bounds.x + snapArea.x,
+          y: bounds.y + snapArea.y,
+          maximized: false
+        });
       }
     }
     onSnap(windowState.id, position);
@@ -463,7 +511,15 @@ export function DesktopWindowFrame({
   const content =
     typeof resolvedContent === 'function' ? resolvedContent(windowContext) : resolvedContent;
   const style: React.CSSProperties = isMaximized
-    ? { zIndex }
+    ? maximizedBounds
+      ? {
+          left: maximizedBounds.x,
+          top: maximizedBounds.y,
+          width: maximizedBounds.width,
+          height: maximizedBounds.height,
+          zIndex
+        }
+      : { zIndex }
     : {
         left: windowState.x,
         top: windowState.y,
@@ -557,7 +613,15 @@ export function DesktopWindowFrame({
           </div>
         </div>
         <div className={cx(classes.windowBody)} data-desktop-window-body="true">
-          {content}
+          <DesktopWindowErrorBoundary
+            resetKey={windowState.id}
+            message={labels.windowError}
+            reloadLabel={labels.reloadWindow}
+            className={cx(classes.windowError)}
+            actionClassName={cx(classes.windowErrorAction)}
+          >
+            {content}
+          </DesktopWindowErrorBoundary>
         </div>
         {isResizable && !isMaximized && (
           <>

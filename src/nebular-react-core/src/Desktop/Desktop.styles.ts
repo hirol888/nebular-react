@@ -484,6 +484,33 @@ export const useStyles = createStyles((_theme) => ({
     padding: 'var(--desktop-window-body-padding, 0.75rem)'
   },
 
+  windowError: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '0.5rem',
+    padding: '0.75rem',
+    color: 'var(--color-danger-500, #ff3d71)',
+    fontSize: '0.8125rem'
+  },
+
+  windowErrorAction: {
+    minHeight: '1.8rem',
+    padding: '0.25rem 0.6rem',
+    border: '1px solid currentColor',
+    borderRadius: 'var(--desktop-window-radius, 0.3rem)',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    cursor: 'pointer',
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '1px'
+    }
+  },
+
   resizeHandle: {
     position: 'absolute',
     zIndex: 1,
@@ -579,6 +606,139 @@ export const useStyles = createStyles((_theme) => ({
     }
   },
 
+  displayZone: {
+    position: 'absolute',
+    zIndex: 0,
+    pointerEvents: 'none',
+    border: '1px dashed var(--desktop-display-border-color, rgba(51, 102, 255, 0.35))',
+    borderRadius: 'var(--desktop-window-radius, 0.45rem)'
+  },
+
+  icons: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    flexWrap: 'wrap',
+    alignContent: 'flex-start',
+    gap: '0.35rem',
+    padding: '0.65rem',
+    pointerEvents: 'none'
+  },
+
+  iconButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.25rem',
+    width: '5.5rem',
+    padding: '0.4rem 0.25rem',
+    border: '1px solid transparent',
+    borderRadius: 'var(--desktop-icon-radius, 0.4rem)',
+    backgroundColor: 'transparent',
+    color: 'var(--desktop-icon-color, var(--text-basic-color, #222b45))',
+    font: 'inherit',
+    fontSize: '0.72rem',
+    textAlign: 'center',
+    cursor: 'pointer',
+    pointerEvents: 'auto',
+
+    '&:hover': {
+      backgroundColor: 'var(--desktop-icon-hover-background-color, rgba(255, 255, 255, 0.55))',
+      borderColor: 'var(--desktop-icon-hover-border-color, rgba(51, 102, 255, 0.35))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '1px'
+    }
+  },
+
+  iconGlyph: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '2rem',
+    height: '2rem',
+    color: 'var(--desktop-icon-glyph-color, var(--color-primary-500, #3366ff))'
+  },
+
+  iconLabel: {
+    width: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  overview: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 900000000,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    padding: '1rem',
+    overflow: 'auto',
+    backgroundColor: 'var(--desktop-overview-background-color, rgba(13, 18, 30, 0.72))',
+    backdropFilter: 'blur(6px)'
+  },
+
+  overviewHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '0.5rem',
+    color: '#ffffff',
+    fontSize: '0.95rem',
+    fontWeight: 600
+  },
+
+  overviewGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(12rem, 1fr))',
+    gap: '0.65rem'
+  },
+
+  overviewCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '0.5rem',
+    minHeight: '6rem',
+    padding: '0.75rem',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    borderRadius: 'var(--desktop-window-radius, 0.45rem)',
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    color: 'var(--text-basic-color, #222b45)',
+    font: 'inherit',
+    fontSize: '0.85rem',
+    textAlign: 'start',
+    cursor: 'pointer',
+
+    '&:hover': {
+      backgroundColor: '#ffffff'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '2px'
+    }
+  },
+
+  overviewCardTitle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    minWidth: 0,
+    fontWeight: 600
+  },
+
+  overviewCardMeta: {
+    color: 'var(--text-hint-color, #8f9bb3)',
+    fontSize: '0.75rem'
+  },
+
   taskbarGroup: {
     position: 'relative',
     display: 'inline-flex',
@@ -641,6 +801,40 @@ export const useStyles = createStyles((_theme) => ({
     width: '2.15rem',
     maxWidth: '2.15rem',
     padding: '0.25rem'
+  },
+
+  taskbarPreview: {
+    position: 'fixed',
+    zIndex: 2000000000,
+    width: 'var(--desktop-taskbar-preview-width, 15rem)',
+    padding: '0.5rem',
+    border:
+      '1px solid var(--desktop-taskbar-preview-border-color, var(--border-basic-color-3, #e4e9f2))',
+    borderRadius: 'var(--desktop-taskbar-preview-radius, 0.45rem)',
+    backgroundColor:
+      'var(--desktop-taskbar-preview-background-color, var(--background-basic-color-1, #ffffff))',
+    boxShadow: 'var(--desktop-taskbar-preview-shadow, 0 12px 28px rgba(0, 0, 0, 0.18))',
+    color: 'var(--desktop-taskbar-preview-color, var(--text-basic-color, #222b45))',
+    fontSize: '0.78rem',
+    pointerEvents: 'none'
+  },
+
+  taskbarPreviewTitle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    marginBottom: '0.35rem',
+    fontWeight: 600
+  },
+
+  taskbarPreviewList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    margin: 0,
+    padding: 0,
+    listStyle: 'none',
+    color: 'var(--text-hint-color, #8f9bb3)'
   },
 
   workspaceSwitcher: {
