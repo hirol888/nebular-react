@@ -15,7 +15,7 @@ import { Position, PositionAdjustment, POSITIONS } from '../get-positions/types'
 export function useFlexibleConnectedPositionStrategy(
   position: Position,
   adjustment: PositionAdjustment,
-  trigger: HTMLElement,
+  trigger: HTMLElement | null,
   dir: Direction,
   offset = 15,
   margin = 0,
@@ -23,19 +23,25 @@ export function useFlexibleConnectedPositionStrategy(
   maxWidth?: number,
   transformOriginSelector?: string
 ): {
-  appliedPosition: Position;
+  appliedPosition: Position | undefined;
   apply: () => void;
-  paneRef: React.MutableRefObject<HTMLDivElement>;
-  boundingBoxRef: React.MutableRefObject<HTMLDivElement>;
+  paneRef: React.RefObject<HTMLDivElement | null>;
+  boundingBoxRef: React.RefObject<HTMLDivElement | null>;
 } {
   const [appliedPosition, setAppliedPosition] = useState<Position>();
   const paneRef = useRef<HTMLDivElement>(null);
   const boundingBoxRef = useRef<HTMLDivElement>(null);
 
   const apply = useCallback(() => {
+    if (!paneRef.current || !boundingBoxRef.current || !trigger) {
+      return;
+    }
+
+    const pane = paneRef.current;
+    const boundingBox = boundingBoxRef.current;
     const viewportRect = getViewportRect(margin);
     const triggerRect = trigger.getBoundingClientRect();
-    const overlayRect = paneRef.current?.getBoundingClientRect();
+    const overlayRect = pane.getBoundingClientRect();
     const containerRect = document
       .querySelector(`.${OVERLAY_CONTAINER_CLASS}`)!
       .getBoundingClientRect();
@@ -49,10 +55,10 @@ export function useFlexibleConnectedPositionStrategy(
     const _positions = getPositions(position, adjustment);
     const preferredPositions = _positions.map((pos) => POSITIONS[pos](offset) as ConnectedPosition);
 
-    let transformOriginStyles: string;
-    let overlayElementStyles: CSSStyleDeclaration;
-    let boundingBoxStyles: CSSStyleDeclaration;
-    let _appliedPosition: Position;
+    let transformOriginStyles = '';
+    let overlayElementStyles = {} as CSSStyleDeclaration;
+    let boundingBoxStyles = {} as CSSStyleDeclaration;
+    let _appliedPosition: Position | undefined;
 
     // Go through each of the preferred positions looking for a good fit.
     // If a good fit is found, it will be applied immediately.
@@ -80,7 +86,7 @@ export function useFlexibleConnectedPositionStrategy(
           pos,
           offset,
           triggerPoint,
-          paneRef.current,
+          pane,
           dir,
           overlayRect,
           maxHeight,
@@ -126,7 +132,7 @@ export function useFlexibleConnectedPositionStrategy(
         bestFit!.position,
         offset,
         bestFit!.origin,
-        paneRef.current,
+        pane,
         dir,
         overlayRect,
         maxHeight,
@@ -146,7 +152,7 @@ export function useFlexibleConnectedPositionStrategy(
       fallback!.position,
       offset,
       fallback!.originPoint,
-      paneRef.current,
+      pane,
       dir,
       overlayRect,
       maxHeight,
@@ -155,12 +161,24 @@ export function useFlexibleConnectedPositionStrategy(
 
     setAppliedPosition(_appliedPosition);
 
-    setTransformOrigin(transformOriginSelector, paneRef.current, transformOriginStyles);
-    extendStyles(paneRef.current?.style, overlayElementStyles);
-    extendStyles(boundingBoxRef.current?.style, boundingBoxStyles);
-    boundingBoxRef.current.classList.add('overlay-connected-position-bounding-box');
-    boundingBoxRef.current.setAttribute('dir', dir);
-  }, [trigger, dir]);
+    if (transformOriginSelector) {
+      setTransformOrigin(transformOriginSelector, pane, transformOriginStyles);
+    }
+    extendStyles(pane.style, overlayElementStyles);
+    extendStyles(boundingBox.style, boundingBoxStyles);
+    boundingBox.classList.add('overlay-connected-position-bounding-box');
+    boundingBox.setAttribute('dir', dir);
+  }, [
+    trigger,
+    dir,
+    position,
+    adjustment,
+    offset,
+    margin,
+    maxHeight,
+    maxWidth,
+    transformOriginSelector
+  ]);
 
   return { appliedPosition, apply, paneRef, boundingBoxRef };
 }
@@ -347,7 +365,7 @@ function getStyles(
   transformOriginStyles: string;
   overlayElementStyles: CSSStyleDeclaration;
   boundingBoxStyles: CSSStyleDeclaration;
-  appliedPosition: Position;
+  appliedPosition: Position | undefined;
 } {
   const transformOriginStyles = getTransformOriginStyles(position, pane, dir);
   const overlayElementStyles = getOverlayElementStyles(

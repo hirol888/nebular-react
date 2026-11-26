@@ -53,7 +53,7 @@ export class ToastrConfig {
 
   protected patchIcon(config: Partial<ToastrConfig>) {
     if (!('icon' in config)) {
-      config.icon = this.icons[config.status] || this.icons.basic;
+      config.icon = (config.status && this.icons[config.status]) || this.icons.basic;
       config.iconPack = 'nebular-essentials';
     }
   }

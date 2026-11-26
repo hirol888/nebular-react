@@ -5,7 +5,7 @@ import { Button } from '../Button';
 import { Card } from '../Card';
 import { Stepper } from './Stepper';
 
-export default { title: 'Stepper' };
+export default { title: 'Stepper', component: Stepper };
 
 const createStoryStyles = createStyles(() => ({
   lorem: {

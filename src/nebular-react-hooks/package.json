@@ -1,15 +1,40 @@
 {
   "name": "@nebular-react/hooks",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./lib-cjs/index.d.cts",
+        "default": "./cjs/index.js"
+      },
+      "default": "./cjs/index.js"
+    },
+    "./lib/*": "./lib/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cjs",
+    "esm",
+    "lib",
+    "lib-cjs"
+  ],
   "license": "MIT",
   "author": "Huining Li <hiro.l.dragon@gmail.com>",
   "sideEffects": false,
   "homepage": "https://github.com/hirol888/nebular-react",
   "repository": {
-    "url": "https://github.com/hirol888/nebular-react.git",
+    "url": "git+https://github.com/hirol888/nebular-react.git",
     "type": "git",
     "directory": "src/nebular-react-hooks"
   },
@@ -24,13 +49,18 @@
     "state"
   ],
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": ">=19.2.0"
   },
   "dependencies": {
-    "@nebular-react/styles": "0.1.0",
-    "@mantine/hooks": "^6.0.1",
-    "lodash": "^4.17.21",
-    "moment": "^2.29.4"
+    "@nebular-react/styles": "1.0.0",
+    "@mantine/hooks": "^9.8.1",
+    "csstype": "3.2.4",
+    "lodash": "^4.18.1",
+    "moment": "^2.31.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

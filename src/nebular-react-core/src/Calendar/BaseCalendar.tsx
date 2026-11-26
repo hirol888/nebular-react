@@ -1,7 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Moment } from 'moment';
-import { DEFAULT_LOCALE, useCalendar, useDateFns, useUncontrolled } from '@nebular-react/hooks';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
+import {
+  DEFAULT_LOCALE,
+  isValidTimeZone,
+  useCalendar,
+  useDateFns,
+  useUncontrolled
+} from '@nebular-react/hooks';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  useNebularLocale
+} from '@nebular-react/styles';
 import {
   CalendarDayPicker,
   CalendarMonthPicker,
@@ -15,11 +26,14 @@ import { Card } from '../Card';
 import useStyles, { BaseCalendarStylesParams } from './BaseCalendar.style';
 import { BaseCalendarProps, CalendarType } from './types';
 import { CalendarPickerContext } from './calendar-kit/CalendarPicker.context';
+import { shiftFromTimeZone, shiftToTimeZone } from '../Shared/timezone';
+import { useDefaultLocale } from '../Shared/hooks';
 
 export type BaseCalendarStylesNames = Selectors<typeof useStyles>;
 
 export interface BaseCalendarComponentProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<BaseCalendarStylesNames, BaseCalendarStylesParams>,
+  extends
+    DefaultProps<BaseCalendarStylesNames, BaseCalendarStylesParams>,
     BaseCalendarProps<TDate> {
   activeViewMode?: CalendarViewModeType;
   date?: TDate | DateRange<TDate>;
@@ -38,13 +52,17 @@ const defaultProps: Partial<BaseCalendarComponentProps> = {
 };
 
 function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentProps<TDate>) {
+  const defaultLocale = useDefaultLocale(props.locale);
+  const { t } = useNebularLocale();
   const {
     locale,
     boundingMonth,
     activeViewMode,
+    timeZone,
     min,
     max,
     filter,
+    disabledDates,
     size,
     visibleDate,
     date,
@@ -63,7 +81,7 @@ function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentP
     unstyled,
     ...others
   } = useComponentDefaultProps<BaseCalendarComponentProps<TDate>>(
-    defaultProps as BaseCalendarComponentProps<TDate>,
+    { ...(defaultProps as BaseCalendarComponentProps<TDate>), locale: defaultLocale },
     props
   );
   const { classes, cx } = useStyles(
@@ -72,17 +90,63 @@ function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentP
   );
   const dateFns = useDateFns<TDate>(locale);
   const calendarFns = useCalendar<TDate>(locale);
+  const activeTimeZone = timeZone && isValidTimeZone(timeZone) ? timeZone : undefined;
+
+  // `min`, `max`, `filter` and `disabledDates` are consumed by the cells on the
+  // wall clock, so only the absolute values are converted here.
+  const displayMin = shiftToTimeZone(min, activeTimeZone) ?? undefined;
+  const displayMax = shiftToTimeZone(max, activeTimeZone) ?? undefined;
+  const displayToday = (): TDate =>
+    shiftToTimeZone(dateFns.today(dateType), activeTimeZone) as TDate;
+
+  const displayDate = useMemo(() => {
+    if (!date || !activeTimeZone) {
+      return date;
+    }
+
+    if (calendarType === 'range') {
+      const range = date as DateRange<TDate>;
+
+      return {
+        start: shiftToTimeZone(range.start, activeTimeZone) ?? undefined,
+        end: shiftToTimeZone(range.end, activeTimeZone) ?? undefined
+      } as DateRange<TDate>;
+    }
+
+    return shiftToTimeZone(date as TDate, activeTimeZone) as TDate;
+  }, [date, calendarType, activeTimeZone]);
+
   const [activeViewModeValue, setActiveViewModeValue] =
     useState<CalendarViewModeType>(activeViewMode);
-  const [visibleDateValue, setVisibleDateValue] = useState<TDate>(
-    visibleDate ?? (dateFns.today(dateType) as TDate)
-  );
+  const [visibleDateValue, setVisibleDateValue] = useState<TDate>(() => {
+    const _visibleDate = shiftToTimeZone(visibleDate, activeTimeZone) as TDate | undefined;
+
+    return _visibleDate ?? displayToday();
+  });
+
+  const toAbsoluteRange = (range: DateRange<TDate>): DateRange<TDate> => ({
+    start: shiftFromTimeZone(range.start, activeTimeZone) ?? undefined,
+    end: shiftFromTimeZone(range.end, activeTimeZone) ?? undefined
+  });
+
+  const handleChange = (_date: TDate | DateRange<TDate>) => {
+    if (typeof onDateChange !== 'function') {
+      return;
+    }
+
+    if (calendarType === 'range') {
+      onDateChange(toAbsoluteRange(_date as DateRange<TDate>));
+      return;
+    }
+
+    onDateChange(shiftFromTimeZone(_date as TDate, activeTimeZone) as TDate);
+  };
 
   const [dateValue, setDateValue] = useUncontrolled<TDate | DateRange<TDate> | undefined>({
-    value: date,
+    value: displayDate,
     defaultValue: undefined,
     finalValue: undefined,
-    onChange: onDateChange
+    onChange: handleChange
   });
 
   // const [selectedValue, setSelectedValue] = useState<TDate | DateRange<TDate> | undefined>(defaultDate);
@@ -95,8 +159,8 @@ function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentP
   const nextYears = () => changeVisibleYears(1);
 
   useEffect(() => {
-    visibleDate && setVisibleDateValue(visibleDate);
-  }, [visibleDate]);
+    visibleDate && setVisibleDateValue(shiftToTimeZone(visibleDate, activeTimeZone) as TDate);
+  }, [visibleDate, activeTimeZone]);
 
   const changeVisibleMonth = (direction: number) => {
     const _visibleDate = dateFns.addMonths(visibleDateValue, direction);
@@ -208,20 +272,40 @@ function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentP
             <CalendarViewMode<TDate>
               date={visibleDateValue}
               viewMode={activeViewModeValue}
+              locale={locale}
               onChangeMode={handleChangeMode}
             />
-            <CalendarPageableNavigation prev={navigatePrev} next={navigateNext} />
+            <CalendarPageableNavigation
+              prev={navigatePrev}
+              next={navigateNext}
+              prevAriaLabel={
+                activeViewModeValue === 'date'
+                  ? t('datePicker.previousMonth', 'Previous month')
+                  : activeViewModeValue === 'month'
+                    ? t('datePicker.previousYear', 'Previous year')
+                    : t('datePicker.previousYears', 'Previous years')
+              }
+              nextAriaLabel={
+                activeViewModeValue === 'date'
+                  ? t('datePicker.nextMonth', 'Next month')
+                  : activeViewModeValue === 'month'
+                    ? t('datePicker.nextYear', 'Next year')
+                    : t('datePicker.nextYears', 'Next years')
+              }
+            />
           </Card.Header>
         )}
         <CalendarPickerContext.Provider
           value={{
             locale,
-            min,
-            max,
+            min: displayMin,
+            max: displayMax,
             filter,
+            disabledDates,
             size,
-            selectedValue: dateValue,
+            selectedValue: dateValue ?? null,
             visibleDate: visibleDateValue,
+            today: activeTimeZone ? displayToday() : undefined,
             onDateChange: handleDateChange,
             onMonthChange: handleMonthChange,
             onYearChange: handleYearChange,
@@ -265,6 +349,6 @@ function BaseCalendar<TDate extends Date | Moment>(props: BaseCalendarComponentP
   );
 }
 
-BaseCalendar.displayName = '@nebular-react/core/BaseCalendar';
+BaseCalendar.displayName = 'BaseCalendar';
 
 export { BaseCalendar };

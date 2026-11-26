@@ -46,6 +46,7 @@ export default createStyles(
   (theme, { shape, size, status, withPrefix, withSuffix }: TagsStylesParams) => ({
     root: {
       display: 'inline-flex',
+      position: 'relative',
       outline: 'none'
     },
 
@@ -61,6 +62,13 @@ export default createStyles(
       alignContent: 'center',
       flexWrap: 'wrap',
       flex: 1
+    },
+
+    tagsListbox: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      alignContent: 'center',
+      flexWrap: 'wrap'
     },
 
     tagsWithInput: {
@@ -93,6 +101,37 @@ export default createStyles(
 
     fullWidth: {
       width: '100%'
+    },
+
+    autocompleteList: {
+      position: 'absolute',
+      zIndex: 1000,
+      top: '100%',
+      left: 0,
+      minWidth: '100%',
+      maxHeight: 'var(--option-list-max-height)',
+      margin: 0,
+      padding: 0,
+      overflow: 'auto',
+      backgroundColor: 'var(--option-list-background-color)',
+      borderColor: 'var(--option-list-border-color)',
+      borderStyle: 'var(--option-list-border-style)',
+      borderWidth: 'var(--option-list-border-width)',
+      borderRadius: 'var(--option-list-border-radius)',
+      boxShadow: 'var(--option-list-shadow)'
+    },
+
+    autocompleteItem: {
+      cursor: 'pointer',
+      padding: '0.5rem 0.75rem',
+      color: 'var(--option-text-color)',
+      fontFamily: 'var(--option-text-font-family)',
+      fontSize: 'var(--option-text-font-size)',
+
+      '&:hover': {
+        backgroundColor: 'var(--option-hover-background-color)',
+        color: 'var(--option-hover-text-color)'
+      }
     },
 
     tagInput: {

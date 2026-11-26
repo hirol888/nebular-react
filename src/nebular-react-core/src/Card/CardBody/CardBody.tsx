@@ -1,13 +1,16 @@
 import React from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import useStyles from './CardBody.style';
 
 export type CardBodyStylesNames = Selectors<typeof useStyles>;
 
 export interface CardBodyProps
-  extends DefaultProps<CardBodyStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<CardBodyStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
@@ -26,6 +29,6 @@ const _CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>((props, ref) =
   );
 });
 
-_CardBody.displayName = '@nebular-react/core/CardBody';
+_CardBody.displayName = 'CardBody';
 
 export const CardBody = createPolymorphicComponent<'div', CardBodyProps>(_CardBody);

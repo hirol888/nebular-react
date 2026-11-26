@@ -7,7 +7,7 @@ import { CalendarCustomDayCell } from './calendar-kit/CalendarCustomDayCell/Cale
 import { CalendarRange } from './CalendarRange';
 import { DateRange } from './calendar-kit';
 
-export default { title: 'Calendar' };
+export default { title: 'Calendar', component: Calendar };
 
 export function Showcase() {
   const date = new Date();

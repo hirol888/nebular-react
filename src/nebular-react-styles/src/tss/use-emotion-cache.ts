@@ -1,7 +1,5 @@
-import createCache from '@emotion/cache';
 import { useEmotionCacheContext } from '../theme/NebularProvider';
-
-export const defaultNebularEmotionCache = createCache({ key: 'nebular', prepend: true });
+import { defaultNebularEmotionCache } from './default-emotion-cache';
 
 export function useEmotionCache() {
   const cache = useEmotionCacheContext();

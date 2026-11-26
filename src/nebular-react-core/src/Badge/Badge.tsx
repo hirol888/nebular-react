@@ -3,9 +3,9 @@ import {
   ComponentOrCustomStatus,
   DefaultProps,
   Selectors,
-  useComponentDefaultProps
+  useComponentDefaultProps,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import useStyles, { BadgeStylesParams } from './Badge.style';
 import { BadgePosition } from './types';
 
@@ -18,7 +18,8 @@ export interface BaseBadgeProps {
 }
 
 export interface BadgeProps
-  extends DefaultProps<BadgeStylesNames, BadgeStylesParams>,
+  extends
+    DefaultProps<BadgeStylesNames, BadgeStylesParams>,
     BaseBadgeProps,
     React.ComponentPropsWithoutRef<'div'> {
   position?: BadgePosition;
@@ -31,50 +32,32 @@ const defaultProps: Partial<BadgeProps> = {
   dotMode: false
 };
 
-const _Badge = forwardRef<HTMLDivElement, BadgeProps & { component: any }>((props, ref) => {
-  const { className, text, position, status, dotMode, classNames, styles, unstyled, ...others } =
-    useComponentDefaultProps(defaultProps, props);
-  const { classes, cx } = useStyles(
-    { position, status },
-    { name: 'badge', unstyled, classNames, styles }
-  );
-  const Element = props.component || 'div';
+const _Badge = forwardRef<HTMLDivElement, BadgeProps & { component: React.ElementType }>(
+  (props, ref) => {
+    const { className, text, position, status, dotMode, classNames, styles, unstyled, ...others } =
+      useComponentDefaultProps(defaultProps, props);
+    const { classes, cx } = useStyles(
+      { position, status },
+      { name: 'badge', unstyled, classNames, styles }
+    );
+    const Element = props.component || 'div';
 
-  const positionClass = () => {
-    if (position.includes('top')) {
-      return 'position-top';
-    }
-    if (position.includes('right')) {
-      return 'position-right';
-    }
-    if (position.includes('bottom')) {
-      return 'position-bottom';
-    }
-    if (position.includes('left')) {
-      return 'position-left';
-    }
-    if (position.includes('center')) {
-      return 'position-center';
-    }
-    if (position.includes('start')) {
-      return 'position-start';
-    }
-    if (position.includes('end')) {
-      return 'position-end';
-    }
-  };
+    const positionClasses = position.split(' ').map((item) => `position-${item}`);
 
-  return (
-    <Element
-      className={cx(classes.root, className, status, positionClass, { [classes.dotMode]: dotMode })}
-      ref={ref}
-      {...others}
-    >
-      {!dotMode && text}
-    </Element>
-  );
-});
+    return (
+      <Element
+        className={cx(classes.root, className, status, positionClasses, {
+          [classes.dotMode]: dotMode
+        })}
+        ref={ref}
+        {...others}
+      >
+        {!dotMode && text}
+      </Element>
+    );
+  }
+);
 
-_Badge.displayName = '@nebular-react/core/Badge';
+_Badge.displayName = 'Badge';
 
 export const Badge = createPolymorphicComponent<'div', BadgeProps>(_Badge);

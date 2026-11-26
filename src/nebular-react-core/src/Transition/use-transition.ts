@@ -2,12 +2,7 @@ import { useReducedMotion } from '@nebular-react/hooks';
 import { useEffect, useRef, useState } from 'react';
 
 export type TransitionStatus =
-  | 'entered'
-  | 'exited'
-  | 'entering'
-  | 'exiting'
-  | 'pre-exiting'
-  | 'pre-entering';
+  'entered' | 'exited' | 'entering' | 'exiting' | 'pre-exiting' | 'pre-entering';
 
 interface UseTransition {
   duration: number;
@@ -35,7 +30,7 @@ export function useTransition({
     mounted ? 'entered' : 'exited'
   );
   let transitionDuration = reduceMotion ? 0 : duration;
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleStateChange = (shouldMount: boolean) => {
     const preHandler = shouldMount ? onEnter : onExit;
@@ -63,8 +58,11 @@ export function useTransition({
     }
   };
 
+  const handleStateChangeRef = useRef(handleStateChange);
+  handleStateChangeRef.current = handleStateChange;
+
   useEffect(() => {
-    handleStateChange(mounted);
+    handleStateChangeRef.current(mounted);
   }, [mounted]);
 
   useEffect(() => () => clearTimeout(timeoutRef.current), []);

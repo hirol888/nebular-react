@@ -11,7 +11,7 @@ export function getOptionsOnly(optionsAndGroups: (OptionInternal | OptionGroup)[
         optionsOnly.push(_optionsAndGroups[i] as OptionInternal);
       }
       if (_optionsAndGroups[i].type === 'group' && !_optionsAndGroups[i].disabled) {
-        _getOptionsOnly((_optionsAndGroups[i] as OptionGroup).options);
+        _getOptionsOnly((_optionsAndGroups[i] as OptionGroup).options ?? []);
       }
     }
   };

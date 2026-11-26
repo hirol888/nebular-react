@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './SidebarFooter.style';
 
 export type SidebarFooterStylesNames = Selectors<typeof useStyles>;
 
 export interface SidebarFooterProps
-  extends DefaultProps<SidebarFooterStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<SidebarFooterStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
@@ -29,6 +27,6 @@ const _SidebarFooter = React.forwardRef<HTMLDivElement, SidebarFooterProps>(
   }
 );
 
-_SidebarFooter.displayName = '@nebular-react/core/SidebarFooter';
+_SidebarFooter.displayName = 'SidebarFooter';
 
 export const SidebarFooter = createPolymorphicComponent<'div', SidebarFooterProps>(_SidebarFooter);

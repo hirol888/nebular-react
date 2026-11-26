@@ -2,6 +2,7 @@
   "exclude": [
     "node_modules",
     "lib",
+    "lib-cjs",
     "esm",
     "cjs",
     "jest-config.js",
@@ -14,13 +15,14 @@
     "target": "ES2015",
     "lib": ["DOM", "ESNext"],
     "module": "ESNext",
-    "moduleResolution": "Node",
-    "jsx": "react",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "strict": false,
     "skipLibCheck": true,
     "noEmitOnError": true,
     "allowJs": true,
-    "baseUrl": "."
+    "types": ["node"]
   }
 }

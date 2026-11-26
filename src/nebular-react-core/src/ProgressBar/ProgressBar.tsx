@@ -4,15 +4,16 @@ import {
   ComponentSize,
   DefaultProps,
   Selectors,
-  useComponentDefaultProps
+  useComponentDefaultProps,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import useStyles, { ProgressBarStylesParams } from './ProgressBar.style';
 
 export type ProgressBarStylesNames = Selectors<typeof useStyles>;
 
 export interface ProgressBarProps
-  extends DefaultProps<ProgressBarStylesNames, ProgressBarStylesParams>,
+  extends
+    DefaultProps<ProgressBarStylesNames, ProgressBarStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   value?: number;
   status?: ComponentOrCustomStatus;
@@ -60,6 +61,6 @@ const _ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
   }
 );
 
-_ProgressBar.displayName = '@nebular-react/core/ProgressBar';
+_ProgressBar.displayName = 'ProgressBar';
 
 export const ProgressBar = createPolymorphicComponent<'div', ProgressBarProps>(_ProgressBar);

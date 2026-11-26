@@ -1,251 +1,294 @@
-import { debounce } from 'lodash';
-import React, { useEffect, useRef } from 'react';
+import debounce from 'lodash/debounce.js';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 export type TriggerType = 'click' | 'hover' | 'hint' | 'focus' | 'noop';
 
-const isOnTrigger = (element: Element, trigger: React.MutableRefObject<HTMLElement>): boolean =>
-  trigger.current?.contains(element);
+const isOnTrigger = (element: Element, trigger: React.RefObject<HTMLElement | null>): boolean =>
+  !!element && !!trigger.current?.contains(element);
 
-const isOnPane = (element: Element, pane: React.MutableRefObject<HTMLElement>): boolean =>
-  pane.current?.contains(element);
+const isOnPane = (element: Element, pane: React.RefObject<HTMLElement | null>): boolean =>
+  !!element && !!pane.current?.contains(element);
 
-const isNotOnTriggerOrPane = (
-  element: Element,
-  trigger: React.MutableRefObject<HTMLElement>,
-  pane: React.MutableRefObject<HTMLElement>
-): boolean => !isOnTrigger(element, trigger) && !isOnPane(element, pane);
+function useDebouncedHandler(handler: () => void, delay: number) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
+  const debouncedHandler = useMemo(
+    () => debounce(() => handlerRef.current(), delay, { leading: false, trailing: true }),
+    [delay]
+  );
+
+  useEffect(() => () => debouncedHandler.cancel(), [debouncedHandler]);
+
+  return debouncedHandler;
+}
 
 export function useOverlayTrigger(
-  trigger: React.MutableRefObject<HTMLElement>,
-  pane: React.MutableRefObject<HTMLElement>,
-  boundingBoxRef: React.MutableRefObject<HTMLElement>,
+  trigger: React.RefObject<HTMLElement | null>,
+  pane: React.RefObject<HTMLElement | null>,
+  boundingBoxRef: React.RefObject<HTMLElement | null>,
   triggerType: TriggerType,
   showHandler: () => void,
   hideHandler: () => void,
   delayEnter: number = 100,
   delayLeave: number = 30
 ) {
-  switch (triggerType) {
-    case 'click':
-      useOverlayClickTrigger(
-        trigger,
-        pane,
-        boundingBoxRef,
-        showHandler,
-        hideHandler,
-        delayEnter,
-        delayLeave
-      );
-      break;
-    case 'focus':
-      useOverlayFocusTrigger(
-        trigger,
-        pane,
-        boundingBoxRef,
-        showHandler,
-        hideHandler,
-        delayEnter,
-        delayLeave
-      );
-      break;
-    case 'hover':
-      useOverlayHoverTrigger(trigger, pane, showHandler, hideHandler, delayEnter, delayLeave);
-      break;
-    case 'hint':
-      useOverlayHintTrigger(trigger, showHandler, hideHandler, delayEnter, delayLeave);
-      break;
-  }
+  useOverlayClickTrigger(
+    trigger,
+    boundingBoxRef,
+    showHandler,
+    hideHandler,
+    delayEnter,
+    delayLeave,
+    triggerType === 'click'
+  );
+  useOverlayFocusTrigger(
+    trigger,
+    pane,
+    boundingBoxRef,
+    showHandler,
+    hideHandler,
+    delayEnter,
+    delayLeave,
+    triggerType === 'focus'
+  );
+  useOverlayHoverTrigger(
+    trigger,
+    pane,
+    showHandler,
+    hideHandler,
+    delayEnter,
+    delayLeave,
+    triggerType === 'hover'
+  );
+  useOverlayHintTrigger(
+    trigger,
+    showHandler,
+    hideHandler,
+    delayEnter,
+    delayLeave,
+    triggerType === 'hint'
+  );
 }
 
 function useOverlayClickTrigger(
-  trigger: React.MutableRefObject<HTMLElement>,
-  pane: React.MutableRefObject<HTMLElement>,
-  boundingBoxRef: React.MutableRefObject<HTMLElement>,
+  trigger: React.RefObject<HTMLElement | null>,
+  boundingBoxRef: React.RefObject<HTMLElement | null>,
   showHandler: () => void,
   hideHandler: () => void,
   delayEnter: number,
-  delayLeave: number
+  delayLeave: number,
+  enabled: boolean
 ) {
-  const debouncedShowHandler = debounce(showHandler, delayEnter, {
-    leading: false,
-    trailing: true
-  });
-  const debouncedHideHandler = debounce(hideHandler, delayLeave, {
-    leading: false,
-    trailing: true
-  });
+  const debouncedShowHandler = useDebouncedHandler(showHandler, delayEnter);
+  const debouncedHideHandler = useDebouncedHandler(hideHandler, delayLeave);
 
   useEffect(() => {
-    trigger.current?.addEventListener('click', clickListener);
+    if (!enabled) {
+      return undefined;
+    }
+
+    const element = trigger.current;
+
+    const clickListener = (event: MouseEvent) => {
+      const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
+      const shouldShow = !visible && isOnTrigger(event.target as Element, trigger);
+
+      if (shouldShow) {
+        debouncedHideHandler.cancel();
+        debouncedShowHandler();
+      } else {
+        debouncedShowHandler.cancel();
+        debouncedHideHandler();
+      }
+    };
+
+    element?.addEventListener('click', clickListener);
 
     return () => {
-      trigger.current?.removeEventListener('click', clickListener);
-    };
-  }, []);
-
-  const clickListener = (event: MouseEvent) => {
-    const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
-    const shouldShow = !visible && isOnTrigger(event.target as Element, trigger);
-
-    if (shouldShow) {
-      debouncedHideHandler.cancel();
-      debouncedShowHandler();
-    } else {
+      element?.removeEventListener('click', clickListener);
       debouncedShowHandler.cancel();
-      debouncedHideHandler();
-    }
-  };
+      debouncedHideHandler.cancel();
+    };
+  }, [enabled, trigger, boundingBoxRef, debouncedShowHandler, debouncedHideHandler]);
 }
 
 function useOverlayFocusTrigger(
-  trigger: React.MutableRefObject<HTMLElement>,
-  pane: React.MutableRefObject<HTMLElement>,
-  boundingBoxRef: React.MutableRefObject<HTMLElement>,
+  trigger: React.RefObject<HTMLElement | null>,
+  pane: React.RefObject<HTMLElement | null>,
+  boundingBoxRef: React.RefObject<HTMLElement | null>,
   showHandler: () => void,
   hideHandler: () => void,
   delayEnter: number,
-  delayLeave: number
+  delayLeave: number,
+  enabled: boolean
 ) {
-  const debouncedShowHandler = debounce(showHandler, delayEnter, {
-    leading: false,
-    trailing: true
-  });
-  const debouncedHideHandler = debounce(hideHandler, delayLeave, {
-    leading: false,
-    trailing: true
-  });
-
-  const focusInTarget = useRef<Element>(null);
+  const debouncedShowHandler = useDebouncedHandler(showHandler, delayEnter);
+  const debouncedHideHandler = useDebouncedHandler(hideHandler, delayLeave);
 
   useEffect(() => {
-    // no need clickOut event listener here
-    // useOverlayClickOutside is already handle this
-    trigger.current?.addEventListener('click', triggerClickInListener);
-    trigger.current?.addEventListener('focusin', focusInListener);
-    trigger.current?.addEventListener('focusout', focusoutListener);
+    if (!enabled) {
+      return undefined;
+    }
+
+    const element = trigger.current;
+
+    const triggerClickInListener = () => {
+      const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
+      if (!visible) {
+        debouncedHideHandler.cancel();
+        debouncedShowHandler();
+      }
+    };
+
+    const focusInListener = () => {
+      const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
+      if (!visible) {
+        debouncedHideHandler.cancel();
+        debouncedShowHandler();
+      }
+    };
+
+    const focusoutListener = (event: FocusEvent) => {
+      const nextTarget = event.relatedTarget as Element | null;
+
+      if (nextTarget && (isOnTrigger(nextTarget, trigger) || isOnPane(nextTarget, pane))) {
+        return;
+      }
+
+      debouncedShowHandler.cancel();
+      debouncedHideHandler();
+    };
+
+    element?.addEventListener('click', triggerClickInListener);
+    element?.addEventListener('focusin', focusInListener);
+    element?.addEventListener('focusout', focusoutListener);
 
     return () => {
-      trigger.current?.removeEventListener('click', triggerClickInListener);
-      trigger.current?.removeEventListener('focusin', focusInListener);
-      trigger.current?.removeEventListener('focusout', focusoutListener);
-    };
-  }, []);
-
-  const triggerClickInListener = () => {
-    const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
-    if (!visible) {
-      debouncedHideHandler.cancel();
-      debouncedShowHandler();
-    }
-  };
-
-  const focusInListener = (event: FocusEvent) => {
-    const visible = boundingBoxRef.current && boundingBoxRef.current?.style?.display !== 'none';
-    if (!visible) {
-      debouncedHideHandler.cancel();
-      debouncedShowHandler();
-      focusInTarget.current = event.target as Element;
-    }
-  };
-
-  const focusoutListener = () => {
-    if (isNotOnTriggerOrPane(focusInTarget.current, trigger, pane)) {
+      element?.removeEventListener('click', triggerClickInListener);
+      element?.removeEventListener('focusin', focusInListener);
+      element?.removeEventListener('focusout', focusoutListener);
       debouncedShowHandler.cancel();
-      debouncedShowHandler();
-    }
-  };
+      debouncedHideHandler.cancel();
+    };
+  }, [enabled, trigger, pane, boundingBoxRef, debouncedShowHandler, debouncedHideHandler]);
 }
 
 function useOverlayHoverTrigger(
-  trigger: React.MutableRefObject<HTMLElement>,
-  pane: React.MutableRefObject<HTMLElement>,
+  trigger: React.RefObject<HTMLElement | null>,
+  pane: React.RefObject<HTMLElement | null>,
   showHandler: () => void,
   hideHandler: () => void,
   delayEnter: number,
-  delayLeave: number
+  delayLeave: number,
+  enabled: boolean
 ) {
-  const debouncedShowHandler = debounce(showHandler, delayEnter, {
-    leading: false,
-    trailing: true
-  });
-  const debouncedHideHandler = debounce(
-    () => {
-      hideHandler();
-      pane.current?.removeEventListener('mouseenter', paneChildMouseEnterListener);
-      pane.current?.removeEventListener('mouseleave', debouncedHideHandler);
-    },
-    delayLeave,
-    { leading: false, trailing: true }
-  );
+  const debouncedShowHandler = useDebouncedHandler(showHandler, delayEnter);
+  const debouncedHideHandler = useDebouncedHandler(hideHandler, delayLeave);
+  const isOverPane = useRef(false);
 
   useEffect(() => {
-    trigger.current?.addEventListener('mouseenter', mouseEnterListener);
-    trigger.current?.addEventListener('mouseleave', mouseLeaveListener);
+    if (!enabled) {
+      return undefined;
+    }
+
+    const element = trigger.current;
+
+    const paneChildMouseEnterListener = () => {
+      isOverPane.current = true;
+      debouncedHideHandler.cancel();
+    };
+
+    const paneChildMouseLeaveListener = () => {
+      isOverPane.current = false;
+      debouncedHideHandler();
+    };
+
+    const detachPaneListeners = () => {
+      const paneElement = pane.current;
+      paneElement?.removeEventListener('mouseenter', paneChildMouseEnterListener);
+      paneElement?.removeEventListener('mouseleave', paneChildMouseLeaveListener);
+    };
+
+    const attachPaneListeners = () => {
+      const paneElement = pane.current;
+
+      if (!paneElement) {
+        return;
+      }
+
+      detachPaneListeners();
+      paneElement.addEventListener('mouseenter', paneChildMouseEnterListener);
+      paneElement.addEventListener('mouseleave', paneChildMouseLeaveListener);
+    };
+
+    const mouseEnterListener = () => {
+      debouncedHideHandler.cancel();
+      debouncedShowHandler();
+    };
+
+    const mouseLeaveListener = () => {
+      debouncedShowHandler.cancel();
+      attachPaneListeners();
+      if (!isOverPane.current) {
+        debouncedHideHandler();
+      }
+    };
+
+    element?.addEventListener('mouseenter', mouseEnterListener);
+    element?.addEventListener('mouseleave', mouseLeaveListener);
 
     return () => {
-      trigger.current?.removeEventListener('mouseenter', mouseEnterListener);
-      trigger.current?.removeEventListener('mouseleave', mouseLeaveListener);
+      element?.removeEventListener('mouseenter', mouseEnterListener);
+      element?.removeEventListener('mouseleave', mouseLeaveListener);
+      detachPaneListeners();
+      debouncedShowHandler.cancel();
+      debouncedHideHandler.cancel();
     };
-  }, []);
-
-  const mouseEnterListener = () => {
-    debouncedHideHandler.cancel();
-    debouncedShowHandler();
-  };
-
-  const mouseLeaveListener = () => {
-    debouncedShowHandler.cancel();
-    debouncedHideHandler();
-    pane.current?.addEventListener('mouseenter', paneChildMouseEnterListener);
-    pane.current?.addEventListener('mouseleave', debouncedHideHandler);
-  };
-
-  const paneChildMouseEnterListener = () => {
-    debouncedHideHandler.cancel();
-  };
+  }, [enabled, trigger, pane, debouncedShowHandler, debouncedHideHandler]);
 }
 
 /**
- * The difference between hover and hint is
- * Hint hides immediately when a mouse leave event occurs
- * Hover hides whe a mouse leave event occurs and stops out of the host and container
- * @param trigger
- * @param showHandler
- * @param hideHandler
+ * The difference between hover and hint is:
+ * Hint hides immediately when a mouse leave event occurs.
+ * Hover hides when a mouse leave event occurs and stops outside the host and container.
  */
 function useOverlayHintTrigger(
-  trigger: React.MutableRefObject<HTMLElement>,
+  trigger: React.RefObject<HTMLElement | null>,
   showHandler: () => void,
   hideHandler: () => void,
   delayEnter: number,
-  delayLeave: number
+  delayLeave: number,
+  enabled: boolean
 ) {
-  const debouncedShowHandler = debounce(showHandler, delayEnter, {
-    leading: false,
-    trailing: true
-  });
-  const debouncedHideHandler = debounce(hideHandler, delayLeave, {
-    leading: false,
-    trailing: true
-  });
+  const debouncedShowHandler = useDebouncedHandler(showHandler, delayEnter);
+  const debouncedHideHandler = useDebouncedHandler(hideHandler, delayLeave);
 
   useEffect(() => {
-    trigger.current?.addEventListener('mouseenter', mouseEnterListener);
-    trigger.current?.addEventListener('mouseleave', mouseLeaveListener);
+    if (!enabled) {
+      return undefined;
+    }
+
+    const element = trigger.current;
+
+    const mouseEnterListener = () => {
+      debouncedHideHandler.cancel();
+      debouncedShowHandler();
+    };
+
+    const mouseLeaveListener = () => {
+      debouncedShowHandler.cancel();
+      debouncedHideHandler();
+    };
+
+    element?.addEventListener('mouseenter', mouseEnterListener);
+    element?.addEventListener('mouseleave', mouseLeaveListener);
 
     return () => {
-      trigger.current?.removeEventListener('mouseenter', mouseEnterListener);
-      trigger.current?.removeEventListener('mouseleave', mouseLeaveListener);
+      element?.removeEventListener('mouseenter', mouseEnterListener);
+      element?.removeEventListener('mouseleave', mouseLeaveListener);
+      debouncedShowHandler.cancel();
+      debouncedHideHandler.cancel();
     };
-  }, []);
-
-  const mouseEnterListener = () => {
-    debouncedHideHandler.cancel();
-    debouncedShowHandler();
-  };
-
-  const mouseLeaveListener = () => {
-    debouncedShowHandler.cancel();
-    debouncedHideHandler();
-  };
+  }, [enabled, trigger, debouncedShowHandler, debouncedHideHandler]);
 }

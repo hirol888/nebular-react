@@ -7,8 +7,10 @@ import useStyles, { CalendarWeekNumberStylesParams } from './CalendarWeekNumber.
 
 export type CalendarWeekNumberStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarWeekNumberProps<TDate extends Date | Moment>
-  extends DefaultProps<CalendarWeekNumberStylesNames, CalendarWeekNumberStylesParams> {
+export interface CalendarWeekNumberProps<TDate extends Date | Moment> extends DefaultProps<
+  CalendarWeekNumberStylesNames,
+  CalendarWeekNumberStylesParams
+> {
   data: (TDate | null)[][];
   weekNumberSymbol?: string;
 }
@@ -28,10 +30,13 @@ function CalendarWeekNumber<TDate extends Date | Moment>(props: CalendarWeekNumb
   useEffect(() => {
     const _weekNumbers = data.map((week: (TDate | null)[]) => {
       const lastDay = [...week].reverse().find((day: TDate | null) => !!day);
-      return dateFns.getWeekNumber(lastDay);
+
+      return lastDay ? dateFns.getWeekNumber(lastDay) : 0;
     });
 
     _weekNumbers && setWeekNumbers(_weekNumbers);
+    // dateFns is recreated on every render; including it here would cause a render loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const uuid = useId();
@@ -50,6 +55,6 @@ function CalendarWeekNumber<TDate extends Date | Moment>(props: CalendarWeekNumb
   );
 }
 
-CalendarWeekNumber.displayName = '@nebular-react/core/CalendarWeekNumber';
+CalendarWeekNumber.displayName = 'CalendarWeekNumber';
 
 export { CalendarWeekNumber };

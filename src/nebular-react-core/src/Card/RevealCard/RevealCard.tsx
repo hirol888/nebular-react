@@ -1,14 +1,12 @@
 import React, { cloneElement, forwardRef, ReactElement, useState } from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './RevealCard.style';
 import { Icon } from '../../Icon';
 
 export type RevealCardStylesNames = Selectors<typeof useStyles>;
 
 export interface RevealCardProps
-  extends DefaultProps<RevealCardStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<RevealCardStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   customToggleButton?: React.ReactNode;
   front: React.ReactNode;
   back: React.ReactNode;
@@ -19,8 +17,12 @@ const _RevealCard = forwardRef<HTMLDivElement, RevealCardProps>((props, ref) => 
     props;
   const { classes, cx } = useStyles(null, { name: 'revealcard', classNames, styles, unstyled });
   const [revealed, setRevealed] = useState<boolean>(false);
-  const _front = cloneElement(front as ReactElement, { className: cx(classes.cardFront) });
-  const _back = cloneElement(back as ReactElement, { className: cx(classes.cardBack) });
+  const _front = cloneElement(front as ReactElement<{ className?: string }>, {
+    className: cx(classes.cardFront)
+  });
+  const _back = cloneElement(back as ReactElement<{ className?: string }>, {
+    className: cx(classes.cardBack)
+  });
 
   return (
     <div
@@ -42,6 +44,6 @@ const _RevealCard = forwardRef<HTMLDivElement, RevealCardProps>((props, ref) => 
   );
 });
 
-_RevealCard.displayName = '@nebular-react/core/RevealCard';
+_RevealCard.displayName = 'RevealCard';
 
 export const RevealCard = createPolymorphicComponent<'div', RevealCardProps>(_RevealCard);

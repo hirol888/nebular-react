@@ -1,26 +1,33 @@
-require('@testing-library/jest-dom');
+if (typeof window !== 'undefined') {
+  require('@testing-library/jest-dom');
 
-const { getComputedStyle } = window;
-window.getComputedStyle = (elt) => getComputedStyle(elt);
+  const { toHaveNoViolations } = require('jest-axe');
+  expect.extend(toHaveNoViolations);
 
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+  const { getComputedStyle } = window;
+  window.getComputedStyle = (elt) => getComputedStyle(elt);
 
-class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn()
+    }))
+  });
+
+  class ResizeObserver {
+    observe() {}
+
+    unobserve() {}
+
+    disconnect() {}
+  }
+
+  window.ResizeObserver = ResizeObserver;
 }
-
-window.ResizeObserver = ResizeObserver;

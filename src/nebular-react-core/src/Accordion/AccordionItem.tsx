@@ -9,8 +9,7 @@ import { useAccordionContext } from './Accordion.context';
 export type AccordionItemStylesNames = Selectors<typeof useStyles>;
 
 export interface AccordionItemProps
-  extends DefaultProps<AccordionItemStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<AccordionItemStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   value: string;
   disabled?: boolean;
   header: React.ReactNode;
@@ -38,7 +37,7 @@ function AccordionItem(props: AccordionItemProps) {
   );
 }
 
-AccordionItem.displayName = '@nebular-react/core/AccordionItem';
+AccordionItem.displayName = 'AccordionItem';
 AccordionItem.Header = AccordionItemHeader;
 AccordionItem.Body = AccordionItemBody;
 

@@ -1,4 +1,4 @@
-import { createUseExternalEvents } from '@mantine/utils';
+import { createUseExternalEvents } from '../utils/external-events';
 import { Direction, LayoutDimensions, NebularTheme, ScrollPosition } from './types';
 
 export type NebularThemeEvent = {

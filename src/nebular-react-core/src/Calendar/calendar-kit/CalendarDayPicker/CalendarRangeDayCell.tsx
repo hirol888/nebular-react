@@ -10,8 +10,18 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
   props: CalendarDayCellProps<TDate>
 ) {
   const { date, onSelect, className, classNames, styles, unstyled, ...others } = props;
-  const { locale, size, selectedValue, min, max, filter, visibleDate, dateType } =
-    useCalendarPickerContext<TDate>();
+  const {
+    locale,
+    size,
+    selectedValue,
+    min,
+    max,
+    filter,
+    disabledDates,
+    visibleDate,
+    dateType,
+    today
+  } = useCalendarPickerContext<TDate>();
   const dateFns = useDateFns<TDate>(locale);
   const { classes, cx } = useStyles(
     { size },
@@ -26,10 +36,11 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
     );
 
   const isInRange = (): boolean => {
-    if (date && hasRange()) {
+    const range = selectedValue as DateRange<TDate>;
+
+    if (date && hasRange() && range.start && range.end) {
       return (
-        dateFns.compareDates(date, (selectedValue as DateRange<TDate>).start) >= 0 &&
-        dateFns.compareDates(date, (selectedValue as DateRange<TDate>).end) <= 0
+        dateFns.compareDates(date, range.start) >= 0 && dateFns.compareDates(date, range.end) <= 0
       );
     }
 
@@ -42,7 +53,7 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
   const end = (): boolean =>
     !!(date && hasRange() && dateFns.isSameDay(date, (selectedValue as DateRange<TDate>).end));
 
-  const isToday = (): boolean => dateFns.isSameDay(date, dateFns.today(dateType));
+  const isToday = (): boolean => !!dateFns.isSameDay(date, today ?? dateFns.today(dateType));
 
   const isBoundingMonth = (): boolean => !dateFns.isSameMonth(date, visibleDate);
 
@@ -52,7 +63,11 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
     }
 
     if (selectedValue) {
-      return dateFns.isSameDay(date, (selectedValue as DateRange<TDate>).start);
+      const range = selectedValue as DateRange<TDate>;
+
+      if (range.start) {
+        return !!dateFns.isSameDay(date, range.start);
+      }
     }
 
     return false;
@@ -64,7 +79,18 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
 
   const dontFitFilter = (): boolean => !!(date && filter && !filter(date));
 
-  const isDisabled = (): boolean => smallerThanMin() || greaterThanMax() || dontFitFilter();
+  const isDisabledByList = (): boolean => {
+    if (!date || !disabledDates) {
+      return false;
+    }
+
+    return Array.isArray(disabledDates)
+      ? disabledDates.some((disabledDate) => dateFns.isSameDay(date, disabledDate))
+      : disabledDates(date);
+  };
+
+  const isDisabled = (): boolean =>
+    smallerThanMin() || greaterThanMax() || dontFitFilter() || isDisabledByList();
 
   const handleClick = () => {
     if (isDisabled() || !date) {
@@ -96,6 +122,6 @@ function CalendarRangeDayCell<TDate extends Date | Moment = Date>(
   );
 }
 
-CalendarRangeDayCell.displayName = '@nebular-react/core/CalendarRangeDayCell';
+CalendarRangeDayCell.displayName = 'CalendarRangeDayCell';
 
 export { CalendarRangeDayCell };

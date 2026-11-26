@@ -6,7 +6,7 @@ import { Button } from '../Button';
 import { Popover, PopoverRef } from './Popover';
 import { Input } from '../Input';
 
-export default { title: 'Popover' };
+export default { title: 'Popover', component: Popover };
 
 const createPopoverStyles = createStyles(() => ({
   popoverContainer: {
@@ -112,8 +112,8 @@ export function Dynamic() {
     </Card>
   );
 
-  const [content, setContent] = useState<JSX.Element | string>(listContent());
-  const [timer, setTimer] = useState<NodeJS.Timer>();
+  const [content, setContent] = useState<React.JSX.Element | string>(listContent());
+  const [timer, setTimer] = useState<NodeJS.Timeout>();
 
   const changeContent = (contentType: string) => {
     switch (contentType) {

@@ -9,7 +9,11 @@ interface OptionListContextType {
   onOptionSelected?: (option: { label?: string; value?: string; selected?: boolean }) => void;
 }
 
-export const OptionListContext = React.createContext<OptionListContextType>(null);
+export const OptionListContext = React.createContext<OptionListContextType>({
+  multiple: false,
+  size: 'medium',
+  keyManagerType: 'focus'
+});
 
 export function useOptionListContext(): OptionListContextType {
   return (

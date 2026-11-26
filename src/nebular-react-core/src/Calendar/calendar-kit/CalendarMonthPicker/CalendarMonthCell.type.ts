@@ -6,5 +6,6 @@ import useStyles, { CalendarMonthCellStylesParams } from './CalendarMonthCell.st
 export type CalendarMonthCellStylesNames = Selectors<typeof useStyles>;
 
 export interface CalendarMonthCellProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarMonthCellStylesNames, CalendarMonthCellStylesParams>,
+  extends
+    DefaultProps<CalendarMonthCellStylesNames, CalendarMonthCellStylesParams>,
     Omit<BaseCalendarCellProps<TDate>, 'classNames' | 'styles' | 'unstyled'> {}

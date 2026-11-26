@@ -531,7 +531,8 @@ interface NebularFnsTheme {
 export interface NebularTheme extends NebularThemeBase, NebularFnsTheme {}
 
 export interface NebularThemeBase
-  extends NebularThemeCore,
+  extends
+    NebularThemeCore,
     NebularThemeAccordin,
     NebularThemeActions,
     NebularThemeAlert,

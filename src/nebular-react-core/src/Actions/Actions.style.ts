@@ -1,4 +1,5 @@
 import { ComponentSize, createStyles } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 
 export interface ActionsStylesParams {
   size: ComponentSize;
@@ -18,7 +19,7 @@ export default createStyles((theme, { size }: ActionsStylesParams) => ({
     '.nebular-action-root': {
       color: 'var(--actions-text-color)',
       fontFamily: 'var(--actions-text-font-family)',
-      fontWeight: 'var(--actions-text-font-weight)' as any,
+      fontWeight: 'var(--actions-text-font-weight)' as unknown as Property.FontWeight,
       lineHeight: 'var(--actions-text-line-height)',
       fontSize: `var(--actions-${size}-text-font-size)`,
 

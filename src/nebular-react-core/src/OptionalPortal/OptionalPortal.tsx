@@ -13,4 +13,4 @@ export function OptionalPortal({ withinPortal = true, children, ...others }: Opt
   return <>{children}</>;
 }
 
-OptionalPortal.displayName = '@nebular-react/core/OptionalPortal';
+OptionalPortal.displayName = 'OptionalPortal';

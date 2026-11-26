@@ -11,8 +11,9 @@ import { CalendarYearCellProps } from '../CalendarYearPicker/CalendarYearCell.ty
 
 export type CalendarPickerStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarPickerProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarPickerStylesNames> {
+export interface CalendarPickerProps<
+  TDate extends Date | Moment = Date
+> extends DefaultProps<CalendarPickerStylesNames> {
   data: (TDate | null)[][] | null;
   cellComponent:
     | React.FC<CalendarDayCellProps<TDate>>
@@ -51,6 +52,6 @@ function CalendarPicker<TDate extends Date | Moment = Date>(props: CalendarPicke
   );
 }
 
-CalendarPicker.displayName = '@nebular-react/core/CalendarPicker';
+CalendarPicker.displayName = 'CalendarPicker';
 
 export { CalendarPicker };

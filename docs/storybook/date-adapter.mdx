@@ -1,0 +1,92 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Date adapter" />
+
+# Date adapter
+
+Os componentes de data usam uma camada de adapter em `@nebular-react/hooks`.
+
+## Padrão
+
+Sem configuração, o adapter aceita `Date` e `Moment`, cria `Date` por padrão e usa
+`moment` para locale, parsing e formatação.
+
+```tsx
+import { Datepicker } from '@nebular-react/core';
+
+<Datepicker placeholder="Selecione uma data" />;
+```
+
+## Adapters embutidos
+
+```tsx
+import {
+  DateAdapterProvider,
+  momentDateAdapter,
+  nativeDateAdapter
+} from '@nebular-react/hooks';
+
+<DateAdapterProvider adapter={nativeDateAdapter}>
+  <App />
+</DateAdapterProvider>;
+```
+
+## dayjs
+
+```tsx
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { DateAdapterProvider, createDayjsDateAdapter } from '@nebular-react/hooks';
+
+dayjs.extend(customParseFormat);
+
+const adapter = createDayjsDateAdapter(dayjs);
+
+<DateAdapterProvider adapter={adapter}>
+  <Datepicker />
+</DateAdapterProvider>;
+```
+
+## date-fns
+
+```tsx
+import * as dateFns from 'date-fns';
+import { DateAdapterProvider, createDateFnsDateAdapter } from '@nebular-react/hooks';
+
+<DateAdapterProvider adapter={createDateFnsDateAdapter(dateFns)}>
+  <Datepicker />
+</DateAdapterProvider>;
+```
+
+## Temporal
+
+```tsx
+import { Temporal } from '@js-temporal/polyfill';
+import { DateAdapterProvider, createTemporalDateAdapter } from '@nebular-react/hooks';
+
+<DateAdapterProvider adapter={createTemporalDateAdapter(Temporal)}>
+  <Datepicker />
+</DateAdapterProvider>;
+```
+
+## Adapters customizados
+
+```tsx
+import { createDateAdapter, DateAdapterProvider } from '@nebular-react/hooks';
+
+const adapter = createDateAdapter('minha-lib', 'native', (locale) => ({
+  // createDate, today, parse, format, addDays, getYear, startOfMonth, ...
+  ...minhaImplementacao
+}));
+
+<DateAdapterProvider adapter={adapter}>{children}</DateAdapterProvider>;
+```
+
+## Limitações atuais
+
+- Timezone explícito ainda não faz parte do contrato.
+- `useDateFns`/`useCalendar` são hooks; use `createDateFns`/`createCalendar` fora do React.
+- `disabledDates` e presets já estão disponíveis; `min`/`max`/`filter` continuam
+  funcionando em conjunto com eles.
+
+Veja também `docs/guides/date-adapter.md` no repositório.

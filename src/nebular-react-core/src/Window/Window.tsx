@@ -13,8 +13,8 @@ export type WindowState = 'minimized' | 'maximized' | 'full-screen';
 export interface WindowProps extends DefaultProps {
   windowConfig: WindowConfig;
   apply: () => void;
-  paneRef: React.MutableRefObject<HTMLDivElement>;
-  globalWrapperRef: React.MutableRefObject<HTMLDivElement>;
+  paneRef: React.RefObject<HTMLDivElement | null>;
+  globalWrapperRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function Window(props: WindowProps) {
@@ -45,8 +45,8 @@ function Window(props: WindowProps) {
   } = windowConfig;
   const { classes, cx } = useStyles(null, { name: 'window' });
 
-  const [windowState, setWindowState] = useState<WindowState>(initialState);
-  const previousWindowState = useRef<WindowState>();
+  const [windowState, setWindowState] = useState<WindowState>(initialState ?? 'full-screen');
+  const previousWindowState = useRef<WindowState | undefined>(undefined);
 
   const close = () => {
     restoreFocus();
@@ -71,44 +71,52 @@ function Window(props: WindowProps) {
     restoreFocus
   } = useFocusTrap();
 
+  const focusActionsRef = useRef({ blurPreviousFocusedElement, focusInitialElement });
+  const closeRef = useRef(close);
+  const overlayActionsRef = useRef({ enableBlockStrategy, disableBlockStrategy });
+
+  focusActionsRef.current = { blurPreviousFocusedElement, focusInitialElement };
+  closeRef.current = close;
+  overlayActionsRef.current = { enableBlockStrategy, disableBlockStrategy };
+
   useEffect(() => {
     if (ftElementRef.current) {
-      blurPreviousFocusedElement();
-      focusInitialElement();
+      focusActionsRef.current.blurPreviousFocusedElement();
+      focusActionsRef.current.focusInitialElement();
     }
-  }, [ftElementRef.current]);
+  }, [ftElementRef]);
 
   useEffect(() => {
-    if (closeOnEsc) {
-      document.addEventListener('keyup', keyupListener);
+    if (!closeOnEsc) {
+      return undefined;
     }
 
-    return () => {
-      if (closeOnEsc) {
-        document.removeEventListener('keyup', keyupListener);
+    const keyupListener = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeRef.current();
       }
     };
-  }, []);
+
+    document.addEventListener('keyup', keyupListener);
+
+    return () => {
+      document.removeEventListener('keyup', keyupListener);
+    };
+  }, [closeOnEsc]);
 
   useEffect(() => {
     if (windowState === 'full-screen') {
-      enableBlockStrategy();
+      overlayActionsRef.current.enableBlockStrategy();
       if (hasBackdrop) {
         backdropElementRef.current?.removeAttribute('hidden');
       }
     } else {
-      disableBlockStrategy();
+      overlayActionsRef.current.disableBlockStrategy();
       if (hasBackdrop) {
         backdropElementRef.current?.setAttribute('hidden', '');
       }
     }
-  }, [windowState]);
-
-  const keyupListener = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      close();
-    }
-  };
+  }, [windowState, hasBackdrop, backdropElementRef]);
 
   const minimize = () => {
     if (windowState === 'minimized' && previousWindowState.current) {
@@ -139,6 +147,9 @@ function Window(props: WindowProps) {
           [classes.maximized]: windowState === 'maximized'
         })}
         ref={ftElementRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={typeof title === 'string' && title ? title : 'Window'}
       >
         <Card>
           <Card.Header>
@@ -151,6 +162,7 @@ function Window(props: WindowProps) {
               {hasMinimizeButton && (
                 <Button
                   appearance="ghost"
+                  aria-label="Minimize window"
                   onClick={() => minimize()}
                   prefixIcon={<Icon icon="minus-outline" pack="nebular-essentials" />}
                 />
@@ -158,6 +170,7 @@ function Window(props: WindowProps) {
               {hasMaximizeButton && windowState === 'full-screen' && (
                 <Button
                   appearance="ghost"
+                  aria-label="Maximize window"
                   onClick={() => maximize()}
                   prefixIcon={<Icon icon="collapse-outline" pack="nebular-essentials" />}
                 />
@@ -166,6 +179,7 @@ function Window(props: WindowProps) {
                 (windowState === 'minimized' || windowState === 'maximized') && (
                   <Button
                     appearance="ghost"
+                    aria-label="Full screen window"
                     onClick={() => maximizeOrFullScreen()}
                     prefixIcon={<Icon icon="expand-outline" pack="nebular-essentials" />}
                   />
@@ -173,6 +187,7 @@ function Window(props: WindowProps) {
               {hasCloseButton && (
                 <Button
                   appearance="ghost"
+                  aria-label="Close window"
                   onClick={() => close()}
                   prefixIcon={<Icon icon="close-outline" pack="nebular-essentials" />}
                 />

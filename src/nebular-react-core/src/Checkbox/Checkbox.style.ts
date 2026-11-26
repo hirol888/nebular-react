@@ -52,20 +52,20 @@ export default createStyles((theme, { status, checked, indeterminate }: Checkbox
     backgroundColor: indeterminate
       ? `var(--checkbox-${status}-indeterminate-background-color)`
       : checked
-      ? `var(--checkbox-${status}-checked-background-color)`
-      : `var(--checkbox-${status}-background-color)`,
+        ? `var(--checkbox-${status}-checked-background-color)`
+        : `var(--checkbox-${status}-background-color)`,
     borderColor: indeterminate
       ? `var(--checkbox-${status}-indeterminate-border-color)`
       : checked
-      ? `var(--checkbox-${status}-checked-border-color)`
-      : `var(--checkbox-${status}-border-color)`,
+        ? `var(--checkbox-${status}-checked-border-color)`
+        : `var(--checkbox-${status}-border-color)`,
 
     '.nebular-checkbox-icon': {
       color: indeterminate
         ? `var(--checkbox-${status}-indeterminate-checkmark-color)`
         : checked
-        ? `var(--checkbox-${status}-checked-checkmark-color)`
-        : null
+          ? `var(--checkbox-${status}-checked-checkmark-color)`
+          : undefined
     },
 
     '&:hover': {

@@ -1,0 +1,1070 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Components and props" />
+
+# Componentes e props
+
+As páginas de cada componente são geradas por **Autodocs** a partir das interfaces
+TypeScript. A tabela de props fica na seção **Controls** de cada página.
+
+## Catálogo
+
+As páginas de `InlineEdit`, `Toolbar`, `OverflowList`, `BulkActionBar`, `ImportPreview`,
+`ConflictResolutionDialog`, `SchemaForm`, `RecurrenceEditor`, `Combobox`,
+`TableOfContents` e `ChatSources` mostram exemplos de composição independentes da aplicação.
+As páginas de `CronInput` e `WorkflowDesigner` também incluem os novos modos opcionais.
+
+As páginas de `RepeatableFieldset`, `FilePreview`, `VersionHistory`, `ImageComparison`,
+`DockLayout`, `MediaPlayer` e `LocationPicker` apresentam exemplos prontos para experimentar.
+Em `FilterBuilder`, veja também o exemplo com grupos aninhados.
+
+Para edição de conteúdo e formulários, veja `PropertyGrid`, `TemplateEditor`, `FormDesigner`
+e `DataMappingEditor`. As páginas de `TimeSlotPicker`, `TranscriptViewer` e `ImageAnnotator`
+mostram os exemplos de reserva, reprodução sincronizada e marcação de imagens.
+
+Os editores e visualizadores compostos `RecordPicker`, `AvailabilityEditor`,
+`DecisionTableEditor`, `ChoiceCardGroup`, `IconPicker`, `OnboardingChecklist` e
+`TraceWaterfall` têm páginas com dados de exemplo, estados de carregamento/vazio e
+tabelas de props geradas por Autodocs.
+
+As stories de `Button` (loading), `Tabset` (abas fecháveis e `keepMounted`), `Tree`
+(checkboxes em cascata e carregamento assíncrono), `CommandPalette` (busca assíncrona,
+grupos e recentes), `TreeTable` (checkboxes e ordenação), `DataGrid` (densidade),
+`LineChart` (legenda interativa e zoom), `RingProgress`, `Select`/`Autocomplete`
+(`renderOption`), `MultiSelect` (grupos, busca assíncrona e virtualização),
+`TreeSelect` (checkboxes e carregamento assíncrono) e `Cascader` (busca e níveis
+assíncronos) mostram os estados interativos mais recentes.
+
+| Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estrutura   | Card, Layout, Sidebar, List, Table, Tabset, Accordion, Stepper, Pagination, Breadcrumbs, Divider, ScrollArea, Spoiler, AspectRatio, PageHeader, Kbd, CopyButton, Anchor, Carousel, AppShell, SplitPane, ErrorBoundary, VisuallyHidden, Typography, Stack, Flex, Grid, Container, Affix, BackTop, FloatButton, Watermark, SortableList, Masonry, Fieldset, ThemeIcon                                                                                                                                                                                                                                                                                             |
+| Dados       | DataGrid, PivotTable, TreeTable, Scheduler, GanttChart, Charts (Line/Area/Bar/Donut/Combo/Stacked/Funnel/TreeMap/Waterfall/Bullet/Sankey/Chord/Sunburst/BoxPlot/Candlestick/WordCloud/StreamGraph/StepLine/PolarArea/Violin/Waffle/Hexbin/RadialBar/ParallelCoordinates/Mekko/Network/Pictogram/Bubble/Dendrogram/Pie/Scatter/Radar/Gauge/Heatmap/Sparkline), ChartDataTable, Badge, User, AvatarGroup, Indicator, Icon, Chat, Stat/KpiCard, Timeline, Descriptions, Tree, Transfer, Image, QRCode, Barcode, CodeBlock, JsonViewer, JsonEditor, DiffViewer, Markdown, VirtualList, InfiniteScroll, Kanban, DashboardGrid, OrgChart, FileManager, CalendarHeatmap, NumberFormatter, ColorSwatch, DecisionTableEditor, RecordPicker, TraceWaterfall |
+| Formulários | Input, Checkbox, Radio, Toggle, Select, Autocomplete, Tags, Search, Button, ButtonGroup, Actions, SegmentedControl, MultiSelect, Chip, ChipGroup, SwitchGroup, FormControl, Form, Wizard, CheckboxGroup, InputGroup, PinInput, PhoneInput, DocumentInput, MaskedInput, CurrencyInput, FileInput, FileButton, CronInput, Textarea, NumberInput, NativeSelect, PasswordInput, PasswordStrength, Rating, Slider, RangeSlider, ColorPicker, Dropzone, RichTextEditor, CodeEditor, MarkdownEditor, EmojiPicker, TreeSelect, Cascader, FilterBuilder, ImageCropper, AvatarEditor, Mentions, SignaturePad, ChoiceCardGroup, IconPicker, AvailabilityEditor                                                                                                                                         |
+| Datas       | Calendar, Datepicker, Rangepicker, DatetimePicker, DateTimeRangePicker, Timepicker, TimeRangePicker, MonthPicker, YearPicker, WeekPicker, QuarterPicker, MonthRangePicker, YearRangePicker, TimeZonePicker                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Feedback    | Alert, Toastr, Loader, LoadingBar, ProgressBar, Skeleton, EmptyState, LoadingOverlay, Result, OnboardingChecklist, RingProgress                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Overlays    | Tooltip, Popover, Menu, ContextMenu, Dialog, Window, Portal, Drawer, ConfirmDialog, CommandPalette, HoverCard, Modal, Popconfirm, ImageViewer, Tour, NotificationCenter, Overlay                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+
+## Convenções comuns
+
+Todos os componentes que aceitam estilos estendem `DefaultProps`:
+
+```ts
+interface DefaultProps<StylesNames, StylesParams> {
+  className?: string;
+  style?: React.CSSProperties;
+  classNames?: Partial<Record<StylesNames, string>>;
+  styles?: Partial<Record<StylesNames, CSSObject>>;
+  unstyled?: boolean;
+}
+```
+
+- `classNames` e `styles` sobrescrevem partes internas sem CSS global.
+- `unstyled` remove os estilos padrão e mantém a estrutura/comportamento.
+- Componentes polimórficos aceitam `component`:
+
+```tsx
+<Button component="a" href="https://example.com">
+  Link
+</Button>
+```
+
+## Tamanho, status, forma e aparência
+
+```tsx
+<Button size="medium" status="primary" shape="rectangle" appearance="filled" />
+```
+
+Opções comuns:
+
+- `size`: `tiny` | `small` | `medium` | `large` | `giant`
+- `status`: `basic` | `primary` | `success` | `info` | `warning` | `danger` | `control`
+- `shape`: `rectangle` | `semiround` | `round`
+- `appearance`: `filled` | `outline` | `ghost` | `hero`
+
+## Controlado e não controlado
+
+| Componente           | Valor                     | Padrão                  | Callback            |
+| -------------------- | ------------------------- | ----------------------- | ------------------- |
+| Select               | `selected`                | `defaultSelected`       | `onSelect`          |
+| Autocomplete         | `value`                   | `defaultValue`          | `onChange`          |
+| DataGrid (página)    | `page`                    | `defaultPage`           | `onPageChange`      |
+| DataGrid (ordenação) | `sortKey`/`sortDirection` | `defaultSortKey`        | `onSortChange`      |
+| DataGrid (seleção)   | `selectedRowIds`          | `defaultSelectedRowIds` | `onSelectionChange` |
+| Pagination           | `page`                    | `defaultPage`           | `onChange`          |
+| Accordion            | `activeItems`             | `defaultActiveItems`    | `onChange`          |
+| Tabset               | `activeTabIndex`          | —                       | `onTabChange`       |
+| Tags                 | `value`                   | `defaultValue`          | `onChange`          |
+
+## Localização e i18n
+
+```tsx
+<NebularProvider locale="pt-BR" messages={{ 'dataGrid.undo': 'Voltar' }}>
+  <App />
+</NebularProvider>
+```
+
+- `locale` BCP 47 (`en-US` padrão) seleciona o catálogo embutido (`en-US`/`pt-BR`).
+- `messages` sobrescreve chaves do catálogo; `useNebularLocale()` expõe `t(key, fallback, params)`.
+- Datas, horas e números usam o locale do provider quando o componente não recebe `locale`.
+- Componentes com muitas strings aceitam `labels` tipados, com precedência sobre o catálogo.
+- `dir="rtl"` continua disponível no provider.
+
+## Select e Autocomplete
+
+```tsx
+<Select
+  options={options}
+  searchable
+  clearable
+  loading={isLoading}
+  nothingFoundMessage="Nenhum resultado"
+  onSearchChange={(query) => fetchOptions(query)}
+  onSelect={setSelected}
+/>
+```
+
+- `searchable` habilita o campo de busca no dropdown.
+- Com `onSearchChange`, a busca é assíncrona e o componente não filtra localmente.
+- Sem `onSearchChange`, o filtro local usa `filterOption`.
+- `virtualized`/`virtualizedMaxHeight` habilitam virtualização, inclusive em grupos.
+- O teclado navega apenas pelas opções visíveis.
+
+## DataGrid
+
+```tsx
+<DataGrid
+  data={users}
+  columns={[
+    { key: 'name', title: 'Nome', sortable: true },
+    { key: 'email', title: 'E-mail' },
+    { key: 'status', title: 'Status', render: (user) => <Badge text={user.status} /> }
+  ]}
+  pageSize={10}
+  withSelection
+  onSelectionChange={setSelectedIds}
+  caption="Usuários"
+/>
+```
+
+Recursos: ordenação, filtros por coluna, paginação, seleção controlada/não controlada,
+seleção da página com estado indeterminado, `emptyState`, `caption`, `ariaLabel`,
+virtualização de linhas e resize/reorder de colunas.
+
+## Filtros por coluna
+
+```tsx
+<DataGrid
+  data={users}
+  columns={[
+    { key: 'name', title: 'Nome', sortable: true, filterable: true },
+    { key: 'email', title: 'E-mail', filterable: true },
+    { key: 'status', title: 'Status', filterValue: (user) => user.status }
+  ]}
+  withColumnFilters
+  onFilterChange={setFilters}
+/>
+```
+
+- `column.filterable` habilita a busca da coluna.
+- `column.filterValue` permite filtrar por um valor derivado.
+- `filterValues`/`defaultFilterValues` controlam os filtros; `onFilterChange` recebe
+  `Record<string, string>`.
+- O filtro é case-insensitive, por substring, e volta para a página 1.
+
+## Virtualização de linhas
+
+```tsx
+<DataGrid
+  data={manyRows}
+  columns={columns}
+  pageSize={500}
+  withPagination={false}
+  virtualized
+  virtualizedRowHeight={44}
+  virtualizedMaxHeight={420}
+  overscan={3}
+/>
+```
+
+Apenas a janela visível da página atual é renderizada, com header sticky.
+
+## Redimensionamento de colunas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withColumnResize
+  columnWidths={{ name: 220, email: 260 }}
+  onColumnWidthChange={setWidths}
+  minColumnWidth={80}
+/>
+```
+
+Arraste o handle ou use `ArrowLeft`/`ArrowRight` com o handle focado (`Shift` move
+25px). `column.minWidth`/`column.maxWidth` refinam o limite por coluna.
+
+## Reordenação de colunas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withColumnReorder
+  columnOrder={order}
+  onColumnOrderChange={setOrder}
+/>
+```
+
+Arraste o handle ou use `Alt+ArrowLeft`/`Alt+ArrowRight`. A ordem é baseada em
+`column.key`; colunas novas são anexadas ao final.
+
+## Visibilidade de colunas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withColumnVisibility
+  hiddenColumnKeys={hidden}
+  onHiddenColumnsChange={setHidden}
+/>
+```
+
+`column.hideable={false}` impede ocultar uma coluna. A última coluna visível não pode ser
+ocultada.
+
+## Expansão de linhas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withRowExpansion
+  renderRowExpansion={(row) => <UserDetails user={row} />}
+/>
+```
+
+`expandedRowIds`/`defaultExpandedRowIds` controlam o estado. A expansão desativa a
+virtualização porque as linhas passam a ter altura variável.
+
+## Exportação CSV
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withExport
+  exportFileName="users.csv"
+  exportScope="filtered"
+  onExport={(csv, fileName) => upload(csv, fileName)}
+/>
+```
+
+`exportScope` aceita `filtered` ou `page`. `column.exportValue`/`exportTitle`/`exportable`
+customizam o CSV. Sem `onExport`, o componente baixa o arquivo via Blob. O helper
+`createDataGridCsv` também é exportado.
+
+## Agrupamento
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  groupBy="role"
+  groupLabel={(key, rows) => `${key} (${rows.length})`}
+  collapsibleGroups
+  expandedGroupKeys={expandedGroups}
+  onExpandedGroupsChange={setExpandedGroups}
+/>
+```
+
+`groupBy` aceita chave, array de chaves (agrupamento aninhado) ou função. `renderGroupHeader`
+customiza o cabeçalho. Agrupamento desativa a virtualização porque as linhas de grupo quebram
+a altura fixa.
+
+## Edição de linhas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withRowEditing
+  onRowEdit={(row, changes) => updateRow(row.id, changes)}
+/>
+```
+
+`column.editable={false}` remove a coluna do editor. `renderRowEditor(row, onSave,
+onCancel)` substitui o editor padrão. `onRowEdit` recebe somente os campos alterados.
+
+## Server-side
+
+```tsx
+<DataGrid
+  data={currentPageRows}
+  columns={columns}
+  serverSide
+  totalRows={total}
+  page={page}
+  pageSize={20}
+  onPageChange={setPage}
+  sortKey={sortKey}
+  sortDirection={sortDirection}
+  onSortChange={setSort}
+  filterValues={filters}
+  onFilterChange={setFilters}
+  loading={loading}
+/>
+```
+
+`serverSide` desativa paginação, ordenação e filtro locais; `data` contém apenas a página
+atual e `totalRows` define o total de páginas. Use estado controlado para refletir o
+servidor. `loading` exibe o overlay de carregamento.
+
+## Column pinning
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={[
+    { key: 'name', title: 'Nome', pinned: 'left', width: 200 },
+    { key: 'email', title: 'E-mail', width: 240 },
+    { key: 'status', title: 'Status', pinned: 'right', width: 140 }
+  ]}
+/>
+```
+
+`column.pinned` fixa à esquerda/direita; `pinnedColumns`/`defaultPinnedColumns`/
+`onPinnedColumnsChange` permitem controlar por `key`.
+Definir `width` explícito é recomendado. Pinning é ignorado quando há headers multi-nível.
+
+## Headers multi-nível
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={[
+    { key: 'name', title: 'Nome', sortable: true },
+    {
+      key: 'contact',
+      title: 'Contato',
+      children: [
+        { key: 'email', title: 'E-mail', sortable: true, filterable: true },
+        { key: 'phone', title: 'Telefone' }
+      ]
+    }
+  ]}
+  withColumnFilters
+/>
+```
+
+`children` cria grupos com `colSpan` automático; folhas mantêm sort/filter/resize/export.
+Virtualização é desativada com headers multi-nível.
+
+## Resumo e agregações
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={[
+    { key: 'name', title: 'Nome' },
+    { key: 'total', title: 'Total', aggregate: 'sum', summaryValue: (row) => row.total },
+    { key: 'ativos', title: 'Ativos', aggregate: (rows) => rows.filter((row) => row.active).length }
+  ]}
+  withSummary
+  summaryScope="filtered"
+  summaryLabel="Total"
+/>
+```
+
+`aggregate` aceita `sum`, `avg`, `min`, `max`, `count` ou função de `rows`.
+`summaryScope` alterna entre dados filtrados e página atual; `summaryFormatter` formata o valor.
+`withGroupSummary` adiciona subtotais por grupo.
+
+## Operadores de filtro
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={[
+    { key: 'name', title: 'Nome', filterable: true, filterOperator: 'startsWith' },
+    { key: 'total', title: 'Total', filterable: true, filterOperator: 'gte' }
+  ]}
+  withColumnFilters
+/>
+```
+
+`contains` (default), `notContains`, `equals`, `notEquals`, `startsWith`, `endsWith`,
+`gt`, `gte`, `lt`, `lte`, `isEmpty` e `isNotEmpty`.
+
+## Reordenação de linhas
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withRowReorder
+  onRowReorder={(fromIndex, toIndex) => move(fromIndex, toIndex)}
+/>
+```
+
+Handle de arraste + `Alt+ArrowUp`/`Alt+ArrowDown`; índices relativos à página atual.
+
+## Menu de coluna
+
+```tsx
+<DataGrid data={rows} columns={columns} withColumnMenu withColumnVisibility />
+```
+
+Ordenar, fixar à esquerda/direita, desafixar e ocultar; fecha com `Escape` ou clique fora.
+
+## Edição por célula
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={columns}
+  withCellEditing
+  onCellEdit={(row, columnKey, value) => update(row.id, columnKey, value)}
+/>
+```
+
+Clique/Enter inicia, Enter/blur confirma, `Escape` cancela. `editingCell`/`defaultEditingCell`/
+`onEditingCellChange` controlam a célula ativa e `renderCellEditor` substitui o input.
+
+## Virtualização de colunas
+
+```tsx
+<DataGrid data={rows} columns={columns} virtualizeColumns />
+```
+
+Renderiza apenas as colunas visíveis no scroll horizontal, com spacers e `<colgroup>`.
+Desativada com headers multi-nível, `groupBy` ou colunas fixas; helper
+`getVirtualColumnRange` exportado.
+
+## Saved views
+
+```tsx
+<DataGrid data={rows} columns={columns} withViews viewStorageKey="users-grid" />
+```
+
+`views`/`defaultViews`/`onViewsChange`, `activeViewId`/`onActiveViewChange`; salva sort, filtros,
+colunas, ordem, larguras, pinning e pageSize. `viewStorageKey` persiste no localStorage.
+
+## Filtros por range
+
+```tsx
+<DataGrid
+  data={rows}
+  columns={[
+    {
+      key: 'total',
+      title: 'Total',
+      filterable: true,
+      filterType: 'number',
+      filterOperator: 'between'
+    }
+  ]}
+  withColumnFilters
+/>
+```
+
+`filterType` `text`/`number`/`date`, operadores `between`/`notBetween` e limites abertos.
+
+## Seleção de intervalo e clipboard
+
+```tsx
+<DataGrid data={rows} columns={columns} withRangeSelection />
+```
+
+Clique + `Shift+clique` seleciona; `Ctrl/Cmd+C` copia o intervalo como TSV.
+`rangeSelection`/`onRangeSelectionChange` controlam a seleção.
+
+## Undo/redo, Excel e server-side
+
+```tsx
+<DataGrid data={rows} columns={columns} withUndoRedo withExcelExport excelFileName="clientes" />
+<DataGrid data={pageRows} columns={columns} serverSideSorting serverSideFiltering loading={loading} />
+```
+
+- `withUndoRedo`: histórico de edições/reordenação com `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`,
+  `Ctrl+Y` e botões acessíveis; `maxHistory` limita o histórico.
+- `withExcelExport`: HTML Office (`.xls`) com colunas visíveis/agregações e escape de fórmulas.
+- `serverSideSorting`/`serverSideFiltering`: não transformam localmente, apenas emitem
+  `onSortChange`/`onFilterChange`; `aria-busy` durante `loading`.
+- `getRowHeight` habilita virtualização com alturas variáveis (incompatível com spans/expansão).
+
+## Fundação visual
+
+- `Typography`, `Stack`, `Flex`, `Grid`, `Container` e `Result`.
+
+```tsx
+<Title order={2}>Dashboard</Title>
+<Text size="sm">Resumo</Text>
+<Stack gap="md">{items}</Stack>
+<Grid columns={12}><Grid.Col span={8}>Conteúdo</Grid.Col></Grid>
+<Container size="lg">{content}</Container>
+<Result status="success" title="Tudo certo" />
+```
+
+## Editores visuais
+
+- `WorkflowDesigner`: canvas com grid, nós/arestas, seleção, drag, zoom e conexão.
+- `MindMap`: árvore com ramos, expansão e teclado.
+
+```tsx
+<WorkflowDesigner nodes={nodes} edges={edges} editable onNodesChange={setNodes} />
+<MindMap root={root} collapsible />
+```
+
+## Layout e utilitários
+
+- `AppShell`: header, navbar, aside, footer e content responsivos.
+- `SplitPane`: painéis redimensionáveis por arraste ou teclado.
+- `LoadingBar`: barra determinada/indeterminada.
+- `VisuallyHidden`: conteúdo só para leitores de tela.
+- `ErrorBoundary`: fallback customizável e reset.
+- `Affix`/`BackTop`/`FloatButton`: fixação e ações flutuantes.
+- `Watermark`: marca d'água repetida em SVG.
+
+```tsx
+<AppShell header={<PageHeader title="Dashboard" />} navbar={<nav>...</nav>}>
+  <SplitPane defaultSize={60}>{panes}</SplitPane>
+</AppShell>
+<LoadingBar loading={saving} value={progress} />
+<ErrorBoundary onError={report}>{content}</ErrorBoundary>
+```
+
+## Página, overlays e utilidades
+
+- `Modal`: portal, foco, Escape/backdrop, title e footer.
+- `Popconfirm`: confirmação inline controlada/não controlada.
+- `PageHeader`: título, descrição, breadcrumbs, ações e tabs.
+- `AvatarGroup`/`Indicator`: avatares sobrepostos e badges de status.
+- `AspectRatio`: containers responsivos.
+- `CopyButton`/`Kbd`: utilidades de produtividade.
+
+```tsx
+<Modal opened={opened} onClose={close} title="Editar usuário">
+  Conteúdo
+</Modal>
+
+<Popconfirm message="Excluir este item?" onConfirm={remove}>
+  <Button status="danger">Excluir</Button>
+</Popconfirm>
+
+<PageHeader title="Usuários" actions={<Button>Novo usuário</Button>} />
+<AvatarGroup max={3} total={8}>{avatars}</AvatarGroup>
+<Indicator label={3} position="top-end">{icon}</Indicator>
+<AspectRatio ratio={16 / 9}>{content}</AspectRatio>
+<CopyButton value="npm install @nebular-react/core" />
+<p><Kbd>Ctrl</Kbd> + <Kbd>K</Kbd></p>
+
+<Affix offsetTop={64}><Toolbar /></Affix>
+<BackTop />
+<FloatButton icon={<Icon icon="plus-outline" />} label="Novo" />
+<Watermark text="Confidencial">{content}</Watermark>
+
+<Tour opened={tourOpened} onOpenChange={setTourOpened} steps={steps} onFinish={closeTour} />
+<NotificationCenter notifications={items} onMarkAllRead={markAllRead} onClear={clear} />
+```
+
+`Tour` usa spotlight, foco gerenciado e navegação por teclado. `NotificationCenter` mostra
+badge de não lidas, lista, marcar todas como lidas e limpar.
+
+## Formulários avançados
+
+- `FormControl`: label, descrição, erro (`role="alert"`) e required.
+- `CheckboxGroup`: seleção múltipla controlada/não controlada.
+- `InputGroup`: addons antes/depois do input.
+- `PinInput`: OTP com colagem, backspace e máscara.
+- `MaskedInput`: tokens `9`, `A`, `S`, `*`; helpers de format/parse.
+- `CurrencyInput`: `Intl.NumberFormat`, min/max, decimais e negativos.
+- `FileInput`: upload único com `accept`, clear, label e erro.
+- `useForm`/`Form`: regras, erros, touched, submit e `aria-describedby`.
+- `useFieldArray` + validação assíncrona (`validating`, `validateAsync`) e `schema` externo.
+- `PhoneInput`: formatação/validação global com `libphonenumber-js` para qualquer país ISO
+  3166-1 alpha-2, `country`/`defaultCountry`, `outputFormat`, AsYouType e `onChangeMeta`.
+- `DocumentInput`: CPF/CNPJ com validação de dígitos verificadores.
+- `CronInput`: validação, descrição e presets.
+
+```tsx
+<FormControl label="E-mail" required htmlFor="email">
+  <Input id="email" type="email" />
+</FormControl>
+
+<MaskedInput mask="999.999.999-99" aria-label="CPF" />
+<CurrencyInput currency="BRL" locale="pt-BR" defaultValue={1234.5} />
+<PinInput length={6} oneTimeCode ariaLabel="Código de verificação" />
+
+<Form form={form}>
+  <Input {...form.getInputProps('email')} />
+</Form>
+<PhoneInput country="BR" withCountryCode />
+<PhoneInput country="PT" outputFormat="e164" onChangeMeta={setPhoneMeta} />
+<DocumentInput documentType="auto" />
+<CronInput defaultValue="*/15 * * * *" />
+```
+
+## Conteúdo e assinatura
+
+- `Mentions`, `Markdown`, `MarkdownEditor`, `CodeEditor` e `SignaturePad`.
+
+```tsx
+<Mentions data={users} onChange={setMessage} />
+<Markdown value={markdown} />
+<MarkdownEditor value={markdown} onChange={setMarkdown} previewMode="split" />
+<CodeEditor language="json" value={json} onChange={setJson} lineNumbers />
+<SignaturePad value={signature} onChange={setSignature} />
+```
+
+## Charts
+
+```tsx
+<LineChart
+  labels={['Jan', 'Feb', 'Mar']}
+  series={[
+    { name: 'Revenue', data: [12, 19, 14] },
+    { name: 'Costs', data: [8, 11, 9] }
+  ]}
+/>
+
+<BarChart labels={['Q1', 'Q2']} series={[{ name: 'Revenue', data: [32, 48] }]} />
+
+<DonutChart
+  data={[
+    { label: 'Direct', value: 60 },
+    { label: 'Organic', value: 40 }
+  ]}
+  centerLabel="Total"
+/>
+
+<Sparkline data={[4, 8, 6, 12]} area ariaLabel="Weekly users" />
+
+<PolarAreaChart data={traffic} ariaLabel="Origem do tráfego" />
+<ViolinPlot data={scores} ariaLabel="Distribuição de notas" />
+<CalendarHeatmap data={activity} weeks={52} ariaLabel="Atividade do ano" />
+
+<WaffleChart data={channels} ariaLabel="Canais" />
+<HexbinChart data={points} xLabel="Preço" yLabel="Demanda" ariaLabel="Densidade" />
+<RadialBarChart data={goals} ariaLabel="Metas por equipe" />
+<ParallelCoordinates dimensions={dimensions} series={series} ariaLabel="Comparação" />
+<MekkoChart data={marketShare} ariaLabel="Share por canal" />
+<NetworkGraph nodes={services} edges={dependencies} layout="force" ariaLabel="Serviços" />
+<PictogramChart data={population} maxUnits={10} columns={10} ariaLabel="População" />
+<BubbleChart data={bubbles} xLabel="Receita" yLabel="Margem" ariaLabel="Oportunidades" />
+<Dendrogram data={taxonomy} orientation="top" ariaLabel="Taxonomia" />
+
+<ChartContainer title="Receita" exportable>
+  <ComboChart
+    labels={['Jan', 'Feb']}
+    series={[
+      { name: 'Receita', type: 'bar', data: [32, 48] },
+      { name: 'Margem', type: 'line', data: [12, 18] }
+    ]}
+  />
+</ChartContainer>
+
+<StackedBarChart
+  labels={['Q1', 'Q2']}
+  series={[
+    { name: 'Novos', data: [12, 18] },
+    { name: 'Recorrentes', data: [20, 30] }
+  ]}
+/>
+
+<FunnelChart data={funnel} />
+<TreeMapChart data={share} />
+<WaterfallChart data={cashflow} />
+<BulletChart data={[{ label: 'Receita', value: 78, target: 90, max: 100 }]} />
+```
+
+`LineChart`, `AreaChart`, `BarChart`, `DonutChart`, `PieChart`, `ScatterChart`,
+`RadarChart`, `Gauge`, `Heatmap`, `ComboChart`, `StackedBarChart`, `FunnelChart`,
+`TreeMapChart`, `WaterfallChart`, `BulletChart`, `SankeyChart`, `ChordChart`,
+`SunburstChart`, `BoxPlotChart`, `CandlestickChart`, `WordCloud`, `StreamGraphChart`,
+`StepLineChart`, `PolarAreaChart`, `ViolinPlot`, `WaffleChart`, `HexbinChart`,
+`RadialBarChart`, `ParallelCoordinates`, `MekkoChart`, `NetworkGraph`, `PictogramChart`,
+`BubbleChart`, `Dendrogram` e `Sparkline` em SVG puro, sem dependências externas.
+`CalendarHeatmap` cobre atividade por dia.
+`ChartContainer` adiciona responsividade, loading/empty, data table acessível
+(`showDataTable`), animações (`animated`) e export SVG/PNG. Tooltips, legenda, eixos
+e callbacks de clique são suportados.
+
+## Arquivos, imagens e organizações
+
+- `OrgChart`, `FileManager`, `ImageCropper`, `AvatarEditor` e `FileInput` múltiplo.
+- `FileManager`: multi-seleção, upload com progresso e menu de contexto
+  (renomear/download/excluir) com ações em lote; drag-and-drop entre pastas (`draggable`/`onMove`),
+  ordenação (`sortBy`/`sortDirection`) e preview lateral (`preview`/`renderPreview`).
+
+```tsx
+<OrgChart nodes={org} collapsible />
+<FileManager items={files} onOpen={openFile} searchable draggable sortBy="name" preview />
+<ImageCropper src="/cover.png" aspectRatio={16 / 9} />
+<AvatarEditor src="/avatar.png" shape="circle" />
+<FileInput multiple maxFiles={5} />
+```
+
+## Filtros, kanban e dashboards
+
+- `FilterBuilder`: regras AND/OR com operadores por tipo; helpers de avaliação.
+- `MultiSelect`: chips com busca, clear e limite.
+- `Wizard`: etapas com validação sync/async.
+- `SplitButton`/`SpeedDial`: ações compostas/flutuantes.
+- `JsonEditor`: edição com realce, validação e formatar/minificar.
+- `SortableList`: reordenação por pointer/teclado com anúncio acessível.
+- `Masonry`: layout responsivo por colunas com fallback SSR.
+- `PivotTable`: agregações, níveis de linha, export CSV e drill-down por célula/linha.
+- `GanttChart`: timeline day/week/month, progresso, dependências, "today", edição de tarefas,
+  caminho crítico (`showCriticalPath`), baselines (`showBaseline`), recursos (`resources`),
+  lanes por recurso (`resourceView`), arraste de progresso (`editableProgress`) e export SVG/PNG.
+- `Kanban`: drag and drop entre colunas/lanes, atalhos `Alt+setas`, WIP limits, virtualização,
+  edição inline (`editable`/`onCardEdit`), checklist com progresso e labels/assignees.
+- `DashboardGrid`: grid responsivo de 12 colunas com spans e edição.
+- `DiffViewer`, `VirtualList` e `InfiniteScroll`: diff por linhas, janela virtual e carregamento incremental.
+
+```tsx
+<FilterBuilder fields={fields} onChange={setRules} onApply={applyRules} />
+<MultiSelect data={permissions} value={selected} onChange={setSelected} searchable clearable />
+<Wizard steps={steps} onComplete={finish} />
+<SplitButton label="Salvar" onClick={save} items={items} />
+<SpeedDial actions={actions} />
+<JsonEditor value={json} onChange={setJson} height={240} />
+<SortableList items={items} keyExtractor={(item) => item.id} renderItem={renderItem} onReorder={setItems} />
+<Masonry columns={{ base: 1, md: 2, lg: 3 }} gap={16}>{cards}</Masonry>
+<PivotTable data={sales} rows={['region', 'country']} column="product" measures={[revenue, orders]} />
+<GanttChart tasks={tasks} view="week" showDependencies resourceView editableProgress exportable onTaskClick={openTask} />
+<Kanban columns={columns} onCardMove={moveCard} editable showChecklistProgress />
+<DashboardGrid widgets={widgets} editable onLayoutChange={setLayout} />
+<DiffViewer before={previous} after={current} mode="split" />
+<VirtualList items={rows} height={360} itemHeight={40} renderItem={renderRow} />
+<InfiniteScroll loadMore={loadMore} hasMore={hasMore}>{items}</InfiniteScroll>
+```
+
+## Mídia, árvores e navegação
+
+- `Image`: skeleton, fallback e `object-fit`.
+- `QRCode`: encoder em SVG puro; `encodeQRCodeMatrix` exportado.
+- `Anchor`: navegação por âncoras com `aria-current`.
+- `TreeSelect`: seleção hierárquica com busca, expansão e clear.
+- `Cascader`: seleção por níveis com caminho e `changeOnSelect`.
+- `Search`: controlado (`value`/`onChange`), submit e clear.
+- `Tags`: autocomplete (`withAutocomplete`/`autocompleteData`).
+- `Carousel`: slides com setas, indicadores, teclado, loop e autoplay.
+- `ImageViewer`: miniatura + overlay ampliado com foco, Escape e download.
+- `Barcode`: EAN-13/EAN-8/Code128/Code39 em SVG puro.
+- `CodeBlock`/`JsonViewer`: highlight, cópia, árvore JSON com busca.
+
+```tsx
+<Image src="/cover.png" alt="Capa" fit="cover" radius={12} />
+<QRCode value="https://example.com" size={160} ariaLabel="QR code do site" />
+<Anchor items={[{ key: 'intro', label: 'Introdução', href: '#intro' }]} />
+<TreeSelect data={tree} searchable clearable onChange={setCategory} />
+<Cascader options={locations} onChange={setLocation} />
+<Carousel withIndicators withControls>{slides}</Carousel>
+<ImageViewer src="/cover.png" alt="Capa" caption="Capa do relatório" />
+<Barcode value="5901234123457" format="EAN13" />
+<CodeBlock language="ts" code="export const sum = (a, b) => a + b;" />
+<JsonViewer data={payload} expandDepth={2} searchable />
+```
+
+## Chat
+
+```tsx
+<Chat
+  messages={messages}
+  onSend={send}
+  typingUsers={typingUsers}
+  showReadReceipts
+  threads={threads}
+  searchable
+  editable
+  deletable
+  virtualize
+/>
+```
+
+Threads com painel, indicador de digitação (`aria-live`), recibos de leitura e anexos tipados.
+Busca com contador/destaque, edição inline, exclusão com confirmação, reações e virtualização
+(altura fixa) complementam o componente.
+
+## RichTextEditor
+
+```tsx
+<RichTextEditor value={html} onChange={setHtml} placeholder="Write a description" minHeight={160} />
+```
+
+Toolbar com bold, italic, underline, strike, H1/H2, listas, alinhamento, undo/redo e
+limpar formatação. Atalhos `Ctrl/Cmd+B/I/U`. `readOnly`, `disabled`, `toolbar` e
+`minHeight`/`maxHeight` configuráveis. Tabelas, imagens (`onImageUpload`), links/unlink,
+mentions (`mentions`/`mentionTrigger`/`onMention`), code inline/block e find/replace
+(`findable`) com contador e case-sensitive. Paste sanitizado (`sanitizeHtml`). O HTML
+retornado deve ser sanitizado antes de ser renderizado em outro contexto.
+
+## Scheduler
+
+```tsx
+<Scheduler
+  events={events}
+  defaultView="month"
+  defaultDate={new Date()}
+  onEventClick={(event) => openEvent(event)}
+  onDateChange={setDate}
+  onViewChange={setView}
+/>
+```
+
+Views `day`, `week` e `month`, navegação de período e botão **Today**. `date`/`view`
+são controláveis via `onDateChange`/`onViewChange`. Eventos aceitam `start`, `end`,
+`allDay`, `color`, `data`, `timeZone` e `recurrence`; `renderEvent` customiza o conteúdo.
+`editable`/`onEventChange`/`onEventResize` habilitam drag e resize com `snapMinutes`;
+`expandRecurrence` expande ocorrências. `selectable`/`onRangeSelect` criam eventos por
+arraste, `resourceView` renderiza lanes por recurso e eventos `allDay` arrastam entre dias.
+
+## TreeTable
+
+```tsx
+<TreeTable
+  data={nodes}
+  columns={[
+    { key: 'name', title: 'Name' },
+    { key: 'type', title: 'Type' },
+    { key: 'size', title: 'Size', render: (node) => node.data.size }
+  ]}
+  defaultExpandedIds={['src']}
+  selectable
+  caption="Files"
+/>
+```
+
+`TreeTableNode<T>` contém `id`, `data` e `children`. A primeira coluna recebe expander e
+indentação. `expandedIds`/`selectedId` são controláveis; `selectable` habilita seleção por
+clique e teclado.
+
+## Novos componentes
+
+- Formulário: `SegmentedControl`, `Textarea`, `NumberInput`, `PasswordInput`,
+  `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`.
+- Exibição: `Divider`, `Breadcrumbs`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`,
+  `ScrollArea`, `Spoiler`, `LoadingOverlay`.
+- Dados: `Tree`, `Transfer`.
+- Overlays: `Drawer`, `ConfirmDialog`, `CommandPalette`, `HoverCard`.
+
+Exemplos interativos estão em **Catalog/Form components**, **Catalog/Display components**
+e **Catalog/Overlay and data components**.
+
+## Datas
+
+O adapter é plugável (`Date`, `Moment`, `dayjs`, `date-fns`, `Temporal`). Consulte o
+guia **Guides/Date adapter** no Storybook ou `docs/guides/date-adapter.md`.
+
+### Timezone
+
+```tsx
+<DatetimePicker timeZone="America/New_York" date={instant} onDateChange={setInstant} />
+<DateTimeRangePicker value={range} onChange={setRange} />
+<TimeRangePicker value={timeRange} onChange={setTimeRange} />
+<MonthPicker value={month} onChange={setMonth} />
+<YearPicker value={year} onChange={setYear} />
+<WeekPicker value={week} onChange={setWeek} />
+<QuarterPicker value={quarter} onChange={setQuarter} />
+<MonthRangePicker value={monthRange} onChange={setMonthRange} />
+<YearRangePicker value={yearRange} onChange={setYearRange} />
+<TimeZonePicker value={timeZone} onChange={setTimeZone} />
+<Datepicker timeZone="Asia/Tokyo" date={instant} onDateChange={setInstant} />
+<Rangepicker timeZone="Europe/London" range={range} onRangeChange={setRange} />
+<Timepicker timeZone="America/Sao_Paulo" date={time} onDateChange={setTime} />
+```
+
+O valor permanece um instante absoluto; `timeZone` controla exibição/parse no fuso (wall clock).
+Fuso inválido mantém o comportamento local; DST é resolvido via `Intl`. `TimeZonePicker`
+lista zonas IANA agrupadas por região e com offset.
+
+### Máscara e edição por teclado
+
+```tsx
+<Datepicker format="DD/MM/YYYY" withInputMask withKeyboardEdit />
+<DatetimePicker format="DD/MM/YYYY HH:mm" withInputMask withKeyboardEdit />
+<Rangepicker format="DD/MM/YYYY" withInputMask withKeyboardEdit />
+<Timepicker withInputMask withKeyboardEdit />
+```
+
+`withInputMask` deriva a máscara do formato numérico; `withKeyboardEdit` usa `ArrowUp`/`ArrowDown`
+para ajustar o segmento sob o caret. Formatos textuais não são mascarados.
+
+### Datas desabilitadas
+
+```tsx
+<Datepicker disabledDates={[new Date(2026, 10, 20)]} />
+<Datepicker disabledDates={(date) => date.getDay() === 0} />
+```
+
+`disabledDates` aceita lista ou predicado e funciona em Calendar, CalendarRange,
+Datepicker, Rangepicker, DatetimePicker e CalendarWithTime.
+
+### Presets
+
+```tsx
+<Datepicker presets />
+<Rangepicker presets />
+```
+
+Presets embutidos:
+
+- Datepicker/DatetimePicker: **Today**.
+- Rangepicker: **Today**, **Last 7 days**, **This month**.
+
+Personalize com `presets={[{ label, getValue }]}` para traduzir ou criar períodos
+próprios.
+
+`min`/`max`/`filter` continuam disponíveis.
+
+## Componentes utilitários
+
+### Chip e ChipGroup
+
+```tsx
+<Chip defaultChecked onChange={(checked) => save(checked)}>
+  React
+</Chip>
+
+<ChipGroup
+  label="Tecnologias"
+  description="Selecione todas as que usa"
+  data={['React', { value: 'vue', label: 'Vue' }]}
+  multiple
+  value={selected}
+  onChange={setSelected}
+  error={errors.technologies}
+/>
+```
+
+- `Chip` usa `role="checkbox"`, `aria-checked` e variantes `filled`/`outline`/`light`.
+- `ChipGroup` aceita `data` com strings ou `{ value, label, disabled }`; `multiple` alterna entre
+  seleção única e múltipla. `label`/`description`/`error`/`required`/`orientation` são suportados.
+- Em seleção múltipla o `onChange` recebe `string[]`; na única, `string` (ou `''` ao desmarcar).
+
+### Fieldset e NativeSelect
+
+```tsx
+<Fieldset legend="Conta" description="Dados básicos" disabled={readonly}>
+  <NativeSelect
+    label="País"
+    data={['BR', { value: 'US', label: 'Estados Unidos' }]}
+    value={country}
+    onChange={setCountry}
+    required
+  />
+</Fieldset>
+```
+
+- `Fieldset` agrupa controles com `legend`, `description`, `variant="filled"` e `withBorder`.
+- `NativeSelect` embrulha o `<select>` nativo e normaliza o callback para
+  `onChange(value, event)`. Suporta `placeholder`, `error`, `description`, `size` e `required`.
+- O asterisco de obrigatório é decorativo (`aria-hidden`); o nome acessível vem do `<label>`.
+
+### SwitchGroup e RadioGroup
+
+```tsx
+<SwitchGroup
+  label="Notificações"
+  data={['email', 'push', 'sms']}
+  value={channels}
+  onChange={setChannels}
+/>
+
+<RadioGroup
+  label="Plano"
+  data={[
+    { value: 'basic', label: 'Básico' },
+    { value: 'pro', label: 'Pro' }
+  ]}
+  value={plan}
+  onChange={setPlan}
+  orientation="horizontal"
+  name="plan"
+/>
+```
+
+- `SwitchGroup` trabalha com arrays (`value`/`defaultValue`/`onChange`) e renderiza `Toggle` com
+  `role="switch"`.
+- `RadioGroup` continua aceitando filhos (`Radio`) e agora também `data`, `label`, `description`,
+  `error`, `required`, `orientation` e `name`.
+- Ambos usam `role="group"`/`role="radiogroup"` com nome acessível derivado de `label` ou
+  `ariaLabel`.
+
+### FileButton
+
+```tsx
+<FileButton
+  onChange={(files) => setFiles(files)}
+  multiple
+  accept="image/*"
+  reset
+>
+  <Button>Enviar imagens</Button>
+</FileButton>
+```
+
+O input de arquivo fica oculto e é aberto pelo clique no elemento filho. `onChange` recebe
+`File[] | null`; `reset` limpa o input após cada seleção para permitir reenviar o mesmo arquivo.
+
+### ThemeIcon, ColorSwatch e Overlay
+
+```tsx
+<ThemeIcon status="success" variant="light" ariaLabel="Concluído">
+  <Icon icon="checkmark" />
+</ThemeIcon>
+
+<ColorSwatch color="#3366ff" checked ariaLabel="Azul" onClick={selectColor} />
+
+<Overlay fixed={false} opacity={0.6} blur={2} ariaLabel="Carregando" />
+```
+
+- `ThemeIcon`: `size`, `radius`, `variant` (`filled`/`light`/`outline`), `status`/`color`.
+  Sem `ariaLabel` o ícone é decorativo (`aria-hidden`).
+- `ColorSwatch`: `size`, `radius`, `withBorder`, `checked`; cores `transparent`/`none` usam o fundo
+  quadriculado. A cor é o nome acessível padrão, sobrescrito por `ariaLabel`.
+- `Overlay`: `opacity`, `color`, `blur`, `zIndex`, `fixed`, `center`; sem filhos e sem `ariaLabel`
+  é puramente decorativo.
+
+### NumberFormatter e PasswordStrength
+
+```tsx
+<NumberFormatter value={1234.5} locale="pt-BR" options={{ style: 'currency', currency: 'BRL' }} />
+
+<PasswordStrength value={password} minLength={10} onStrengthChange={setScore} />
+```
+
+- `formatNumber(value, locale?, options?)` é exportado como helper. Valores inválidos retornam
+  `''`; o componente usa `fallback` (padrão `—`) e aceita `prefix`/`suffix`/`as`.
+- `getPasswordStrength(value, minLength?, labels?)` retorna `{ score, label, percentage }` com score
+  de 0 a 4. O componente expõe `role="meter"` e `aria-valuenow`/`aria-valuetext`.
+
+## Filtros, formulários e operações
+
+| Componente            | Uso                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------- |
+| `ResponsiveFilterBar` | Filtros ativos, visualizações salvas e editor inline ou em painel inferior.        |
+| `FormErrorSummary`    | Resumo das falhas de validação com foco nos campos correspondentes.                |
+| `PermissionMatrix`    | Matriz de decisões explícitas, herdadas e parciais, com edição controlada.         |
+| `AuditTrail`          | Eventos agrupados com autor, horário e comparação expansível de valores.           |
+| `UploadQueue`         | Seleção de arquivos e acompanhamento individual com cancelamento e nova tentativa. |
+
+## Logs, datas e formulários tabulares
+
+- **LogViewer** apresenta logs virtualizados, com busca, pausa e quebra de linhas.
+- **DateField** edita datas segmentadas com teclado, localização e limites.
+- **MatrixField** reúne campos em linhas dinâmicas, com validação por célula.
+
+## Acessibilidade
+
+- Select/Autocomplete: `combobox`, `listbox`, `option`, `aria-expanded`,
+  `aria-activedescendant`.
+- Tabset: `tablist`/`tab`/`tabpanel`, `aria-selected`, `aria-controls`.
+- Dialog/Window: `role="dialog"`, `aria-modal`, `aria-label`.
+- DataGrid: `role="region"`, `aria-sort`, `aria-selected`.
+- Accordion: header com `role="button"` e `aria-expanded`.
+
+Veja também `docs/guides/components.md` no repositório.

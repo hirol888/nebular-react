@@ -24,5 +24,12 @@ export default createStyles(() => ({
     marginBottom: 0,
     padding: '1rem',
     borderRadius: '0.5rem'
+  },
+
+  highlight: {
+    padding: 0,
+    borderRadius: '0.125rem',
+    backgroundColor: 'var(--chat-search-highlight-background-color, #ffe58f)',
+    color: 'inherit'
   }
 }));

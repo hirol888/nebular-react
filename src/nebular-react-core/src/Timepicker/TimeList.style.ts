@@ -65,6 +65,16 @@ export default createStyles((theme) => ({
       color: 'var(--timepicker-cell-active-text-color)'
     },
 
+    '&.disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.4
+    },
+
+    '&.disabled:hover': {
+      backgroundColor: 'transparent',
+      color: 'var(--timepicker-cell-text-color)'
+    },
+
     color: 'var(--timepicker-cell-text-color)',
     fontSize: 'var(--timepicker-cell-text-font-size)',
     fontFamily: 'var(--timepicker-cell-text-font-family)',

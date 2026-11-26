@@ -1,13 +1,14 @@
-import { cloneDeep } from 'lodash';
 import { KeyManagerType } from '@nebular-react/hooks';
+import type { OptionGroup, OptionInternal } from '../../types';
+import { copyOptionItem } from '../copy-option-item';
 
-export function formatData<T>(
+export function formatData<T extends OptionInternal | OptionGroup>(
   data: (string | T)[],
   keyManagerType: KeyManagerType = 'focus',
   activeFirst: boolean = false
 ) {
   return data
-    ? cloneDeep(data).map((item, index) =>
+    ? data.map((item, index) =>
         typeof item === 'string'
           ? ({
               type: 'option',
@@ -19,7 +20,7 @@ export function formatData<T>(
                 keyManagerType === 'active_descendant' ? !!(activeFirst && index === 0) : false
             } as T)
           : {
-              ...item,
+              ...copyOptionItem(item),
               active:
                 keyManagerType === 'active_descendant' ? !!(activeFirst && index === 0) : false
             }

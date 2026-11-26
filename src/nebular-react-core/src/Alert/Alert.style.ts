@@ -56,10 +56,10 @@ export default createStyles(
 
       borderTop: accent
         ? `var(--alert-border-radius) solid var(--alert-accent-${accent}-color)`
-        : null,
+        : undefined,
       border: outline
         ? `var(--alert-outline-width) solid var(--alert-outline-${outline}-color)`
-        : null,
+        : undefined,
       ...getClosableStyles(closable, theme)
     },
 

@@ -1,4 +1,4 @@
-export function usePlatform() {
+export function getPlatform() {
   // Whether the current platform supports the V8 Break Iterator. The V8 check
   // is necessary to detect all Blink based browsers.
   let hasV8BreakIterator: boolean;
@@ -70,3 +70,6 @@ export function usePlatform() {
     SAFARI
   };
 }
+
+/** @deprecated Use `getPlatform` instead. This function is not a React hook. */
+export const usePlatform = getPlatform;

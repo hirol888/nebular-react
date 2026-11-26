@@ -10,7 +10,8 @@ function CalendarMonthCell<TDate extends Date | Moment = Date>(
   props: CalendarMonthCellProps<TDate>
 ) {
   const { date, onSelect, className, classNames, styles, unstyled, ...others } = props;
-  const { locale, selectedValue, min, max, size, dateType } = useCalendarPickerContext<TDate>();
+  const { locale, selectedValue, min, max, size, dateType, today } =
+    useCalendarPickerContext<TDate>();
   const { classes, cx } = useStyles(
     { size },
     {
@@ -47,7 +48,7 @@ function CalendarMonthCell<TDate extends Date | Moment = Date>(
     <div
       className={cx(classes.root, className, size, 'month-cell', {
         selected: dateFns.isSameMonth(date, selectedValue as TDate),
-        today: dateFns.isSameMonth(date, dateFns.today(dateType)),
+        today: dateFns.isSameMonth(date, today ?? dateFns.today(dateType)),
         disabled: isDisabled()
       })}
       onClick={handleClick}
@@ -60,6 +61,6 @@ function CalendarMonthCell<TDate extends Date | Moment = Date>(
   );
 }
 
-CalendarMonthCell.displayName = '@nebular-react/core/CalendarMonthCell';
+CalendarMonthCell.displayName = 'CalendarMonthCell';
 
 export { CalendarMonthCell };

@@ -1,1 +1,1 @@
-export type ScrollStrategy = 'noop' | 'block' | 'repositon';
+export type ScrollStrategy = 'noop' | 'block' | 'reposition' | 'repositon';

@@ -2,8 +2,10 @@ import fs from 'fs-extra';
 import path from 'path';
 import isDir from 'is-directory';
 import chalk from 'chalk';
+import { fileURLToPath } from 'node:url';
 import { Logger } from './utils/Logger';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logger = new Logger('check-conflicts');
 
 const src = path.join(__dirname, '../src');
@@ -15,7 +17,7 @@ const errors = fs
     try {
       fs.readJsonSync(path.join(src, folder, 'package.json'));
       return acc;
-    } catch (err) {
+    } catch {
       acc.push(folder);
       return acc;
     }
@@ -23,7 +25,7 @@ const errors = fs
 
 try {
   fs.readJsonSync(path.join(__dirname, '../package.json'));
-} catch (err) {
+} catch {
   errors.push('root');
 }
 

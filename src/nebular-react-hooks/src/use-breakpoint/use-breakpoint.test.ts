@@ -1,4 +1,5 @@
-import { fireEvent, act, renderHook } from '@testing-library/react';
+import { fireEvent, renderHook } from '@testing-library/react';
+import { act } from 'react';
 import { useBreakpoint } from './use-breakpoint';
 
 describe('@nebular-react/hooks/use-breakpoint', () => {

@@ -17,7 +17,8 @@ import { ButtonToggle } from './ButtonToggle';
 export type ButtonGroupStylesNames = Selectors<typeof useStyles>;
 
 export interface ButtonGroupProps<Multiple extends boolean = false>
-  extends DefaultProps<ButtonGroupStylesNames>,
+  extends
+    DefaultProps<ButtonGroupStylesNames>,
     Omit<React.ComponentPropsWithoutRef<'div'>, 'onChange'> {
   size?: ComponentSize;
   pressedStatus?: ComponentOrCustomStatus;
@@ -69,8 +70,8 @@ function ButtonGroup<Multiple extends boolean = false>(props: ButtonGroupProps<M
 
   const [_pressed, setPressed] = useUncontrolled<ItemValue<Multiple>>({
     value: pressed,
-    defaultValue: multiple ? ([] as any) : null,
-    finalValue: multiple ? ([] as any) : null,
+    defaultValue: (multiple ? [] : null) as ItemValue<Multiple>,
+    finalValue: (multiple ? [] : null) as ItemValue<Multiple>,
     onChange
   });
 
@@ -90,14 +91,15 @@ function ButtonGroup<Multiple extends boolean = false>(props: ButtonGroupProps<M
         handleActiveItemChange
       }}
     >
-      <div className={cx(classes.root, className)} role="group" {...others}>
+      <div {...others} className={cx(classes.root, className)} role="group">
         {children}
       </div>
     </ButtonGroupContext.Provider>
   );
 }
 
-ButtonGroup.displayName = '@nebular-react/core/ButtonGroup';
+ButtonGroup.displayName = 'ButtonGroup';
+ButtonGroup.Toggle = ButtonToggle;
 ButtonGroup.Toogle = ButtonToggle;
 
 export { ButtonGroup };

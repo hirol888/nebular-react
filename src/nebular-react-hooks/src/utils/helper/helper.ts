@@ -3,6 +3,8 @@ export function extendStyles(
   destination: CSSStyleDeclaration,
   source: CSSStyleDeclaration
 ): CSSStyleDeclaration {
+  // CSSStyleDeclaration exposes its properties through an index signature.
+  // eslint-disable-next-line @typescript-eslint/no-for-in-array
   for (const key in source) {
     if (source.hasOwnProperty(key)) {
       destination[key] = source[key];

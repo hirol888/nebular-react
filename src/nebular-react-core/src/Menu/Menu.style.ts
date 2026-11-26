@@ -84,7 +84,7 @@ export default createStyles((theme) => ({
         'var(--menu-item-divider-width) var(--menu-item-divider-style) var(--menu-item-divider-color)'
     },
 
-    '& > div > .nebular-menu-menuItems': {
+    '& > div > div > .nebular-menu-menuItems': {
       listStyleType: 'none',
       overflow: 'hidden',
       backgroundColor: 'var(--menu-submenu-background-color)',
@@ -147,7 +147,11 @@ export default createStyles((theme) => ({
     color: 'var(--menu-item-icon-color)',
     transitionProperty: 'transform',
     transitionDuration: '300ms',
-    transitionTimingFunction: 'ease-out'
+    transitionTimingFunction: 'ease-out',
+
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none'
+    }
   },
 
   expanded: {

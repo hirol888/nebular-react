@@ -6,7 +6,7 @@ interface CardContextType {
   accent?: ComponentStatus;
 }
 
-export const CardContext = React.createContext<CardContextType>(null);
+export const CardContext = React.createContext<CardContextType>({});
 
 export function useCardContext(): CardContextType {
   return useContext(CardContext) || {};

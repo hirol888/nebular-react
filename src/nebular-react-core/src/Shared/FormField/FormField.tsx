@@ -11,7 +11,8 @@ import useStyles, { FormFieldStylesParams } from './FormField.style';
 export type FormFieldStylesNames = Selectors<typeof useStyles>;
 
 export interface FormFieldProps
-  extends DefaultProps<FormFieldStylesNames, FormFieldStylesParams>,
+  extends
+    DefaultProps<FormFieldStylesNames, FormFieldStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   size?: ComponentSize;
   status?: ComponentOrCustomStatus;

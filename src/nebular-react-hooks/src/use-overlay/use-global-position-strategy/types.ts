@@ -131,7 +131,7 @@ export class GlobalPositionStrategy {
         return this.bottom().right();
 
       default:
-        return null;
+        return this;
     }
   }
 }

@@ -3,7 +3,7 @@ import { ControlStatusExample, ExampleItemsCol } from '../Shared';
 import { Card } from '../Card';
 import { Toggle } from './Toggle';
 
-export default { title: 'Toggle' };
+export default { title: 'Toggle', component: Toggle };
 
 export function Showcase() {
   const [checked, setChecked] = useState<boolean>(false);

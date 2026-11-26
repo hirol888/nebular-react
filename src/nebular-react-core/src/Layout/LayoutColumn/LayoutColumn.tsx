@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './LayoutColumn.style';
 
 export type LayoutColumnStylesNames = Selectors<typeof useStyles>;
 
 export interface LayoutColumnProps
-  extends DefaultProps<LayoutColumnStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<LayoutColumnStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   left?: boolean;
   start?: boolean;
   children?: React.ReactNode;
@@ -17,7 +15,7 @@ const _LayoutColumn = React.forwardRef<HTMLDivElement, LayoutColumnProps>(
   (props: LayoutColumnProps, ref) => {
     const { left, start, children, className, classNames, styles, unstyled, ...others } = props;
     const _start = left ? false : start;
-    const _left = start ? false : left;
+    const _left = left;
     const { classes, cx } = useStyles(null, {
       name: 'layout-column',
       classNames,
@@ -40,6 +38,6 @@ const _LayoutColumn = React.forwardRef<HTMLDivElement, LayoutColumnProps>(
   }
 );
 
-_LayoutColumn.displayName = '@nebular-react/core/LayoutColumn';
+_LayoutColumn.displayName = 'LayoutColumn';
 
 export const LayoutColumn = createPolymorphicComponent<'div', LayoutColumnProps>(_LayoutColumn);

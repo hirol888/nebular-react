@@ -5,7 +5,7 @@ import { Layout } from './Layout';
 import useStyles from './Layout.story.style';
 import { Action, Actions } from '../Actions';
 
-export default { title: 'Layout' };
+export default { title: 'Layout', component: Layout };
 
 export function Showcase() {
   const { classes, cx } = useStyles();

@@ -50,6 +50,7 @@ export function WindowProvider({ children, ...others }: WindowsProviderProps) {
           <div ref={paneRef} className="overlay-pane">
             {windowConfigs.map((config) => (
               <Window
+                key={config.id}
                 windowConfig={config}
                 apply={apply}
                 paneRef={paneRef}

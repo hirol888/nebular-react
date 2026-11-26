@@ -1,13 +1,18 @@
 import React from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import useStyles, { CardHeaderStylesParams } from './CardHeader.style';
 import { useCardContext } from '../Card.context';
 
 export type CardHeaderStylesNames = Selectors<typeof useStyles>;
 
 export interface CardHeaderProps
-  extends DefaultProps<CardHeaderStylesNames, CardHeaderStylesParams>,
+  extends
+    DefaultProps<CardHeaderStylesNames, CardHeaderStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
@@ -31,6 +36,6 @@ const _CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>((props, re
   );
 });
 
-_CardHeader.displayName = '@nebular-react/core/CardHeader';
+_CardHeader.displayName = 'CardHeader';
 
 export const CardHeader = createPolymorphicComponent<'div', CardHeaderProps>(_CardHeader);

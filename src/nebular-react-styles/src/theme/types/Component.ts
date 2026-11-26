@@ -1,12 +1,6 @@
 export type ComponentShape = 'rectangle' | 'semiround' | 'round';
 export type ComponentStatus =
-  | 'basic'
-  | 'primary'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'info'
-  | 'control';
+  'basic' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'control';
 export type ComponentOrCustomStatus = ComponentStatus | string;
 export type ComponentSize = 'tiny' | 'small' | 'medium' | 'large' | 'giant';
 export type ButtonAppearance = 'filled' | 'outline' | 'ghost' | 'hero';

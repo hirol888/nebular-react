@@ -1,13 +1,16 @@
 import React from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import useStyles from './CardFooter.style';
 
 export type CardFooterStylesNames = Selectors<typeof useStyles>;
 
 export interface CardFooterProps
-  extends DefaultProps<CardFooterStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<CardFooterStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
@@ -26,6 +29,6 @@ const _CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>((props, re
   );
 });
 
-_CardFooter.displayName = '@nebular-react/core/CardFooter';
+_CardFooter.displayName = 'CardFooter';
 
 export const CardFooter = createPolymorphicComponent<'div', CardFooterProps>(_CardFooter);

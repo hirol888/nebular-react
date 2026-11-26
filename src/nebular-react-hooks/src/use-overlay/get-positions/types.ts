@@ -14,11 +14,7 @@ export type Position =
   | 'start-top'
   | 'start-bottom';
 export type PositionAdjustment =
-  | 'noop'
-  | 'clockwise'
-  | 'counterclockwise'
-  | 'vertical'
-  | 'horizontal';
+  'noop' | 'clockwise' | 'counterclockwise' | 'vertical' | 'horizontal';
 
 export const POSITIONS = {
   right(offset: number) {

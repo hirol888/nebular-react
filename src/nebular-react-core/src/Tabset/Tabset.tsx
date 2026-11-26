@@ -6,8 +6,12 @@ import React, {
   ReactElement,
   useRef
 } from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import { useUncontrolled } from '@mantine/hooks';
 import { useId } from '@nebular-react/hooks';
 import { Tab } from './Tab';
@@ -16,19 +20,40 @@ import { TabTitle } from './TabTitle';
 
 export type TabsetStylesNames = Selectors<typeof useStyles>;
 
+type TabElement = ReactElement<{
+  children?: React.ReactNode;
+  responsive?: boolean;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+  title?: string;
+  badge?: React.ReactNode;
+  closable?: boolean;
+}>;
+
 export interface TabsetProps
-  extends DefaultProps<TabsetStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<TabsetStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   activeTabIndex?: number;
   lazyLoad?: boolean;
+  /** Keeps every tab panel mounted, even before its first activation. */
+  keepMounted?: boolean;
   fullWidth?: boolean;
   onTabChange?: (tabIndex: number) => void;
+  onTabClose?: (tabIndex: number) => void;
+  /** Accessible title for the close affordance. */
+  closeLabel?: (title: string | undefined, tabIndex: number) => string;
+  ariaLabel?: string;
   children?: React.ReactNode;
 }
 
+const defaultCloseLabel = (title: string | undefined, tabIndex: number) =>
+  `Close ${title ?? `tab ${tabIndex + 1}`}`;
+
 const defaultProps: Partial<TabsetProps> = {
   fullWidth: false,
-  lazyLoad: false
+  lazyLoad: false,
+  keepMounted: false,
+  closeLabel: defaultCloseLabel,
+  ariaLabel: 'Tabs'
 };
 
 const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
@@ -36,7 +61,11 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
     activeTabIndex,
     fullWidth,
     lazyLoad,
+    keepMounted,
     onTabChange,
+    onTabClose,
+    closeLabel,
+    ariaLabel,
     children,
     className,
     classNames,
@@ -55,7 +84,7 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
 
   const tabs = Children.toArray(children).filter(
     (child) => isValidElement(child) && child.type === Tab
-  );
+  ) as TabElement[];
 
   const initialLoaded = tabs.map((tab, index) => index === activeTabIndex);
   const loadedTabs = useRef<boolean[]>(initialLoaded);
@@ -72,6 +101,16 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
     }
   };
 
+  const requestClose = (index: number) => {
+    onTabClose?.(index);
+  };
+
+  const handleClose = (event: React.MouseEvent<HTMLElement>, index: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+    requestClose(index);
+  };
+
   const uuid = useId();
 
   return (
@@ -82,11 +121,13 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
       {...others}
       ref={ref}
     >
-      <ul className={cx(classes.tabsetUl)}>
-        {(tabs as ReactElement[])?.map((tab, index) => {
+      <ul className={cx(classes.tabsetUl)} role="tablist" aria-label={ariaLabel}>
+        {tabs?.map((tab, index) => {
           const tabTitle = Children.toArray(tab.props.children).find(
             (t) => isValidElement(t) && t.type === TabTitle
           );
+          const tabId = `${uuid}-tab-${index}`;
+          const panelId = `${uuid}-tabpanel-${index}`;
 
           return (
             <li
@@ -95,19 +136,46 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
                 active: index === active,
                 [classes.tabDisabled]: tab.props.disabled
               })}
-              key={`${uuid}-tab-header-${index}`}
-              tabIndex={tab.props.disabled ? -1 : 0}
+              key={tabId}
+              role="presentation"
               onClick={() => handleTabClick(index)}
               onKeyUp={(event) => handleKeyUp(event, index)}
             >
               <a
                 href="#"
+                id={tabId}
+                role="tab"
+                aria-selected={index === active}
+                aria-controls={panelId}
+                aria-disabled={tab.props.disabled || undefined}
+                aria-keyshortcuts={tab.props.closable && !tab.props.disabled ? 'Delete' : undefined}
                 onClick={(event) => event.preventDefault()}
-                tabIndex={-1}
+                onKeyDown={(event) => {
+                  if (
+                    (event.key === 'Delete' || event.key === 'Backspace') &&
+                    tab.props.closable &&
+                    !tab.props.disabled
+                  ) {
+                    event.preventDefault();
+                    requestClose(index);
+                  }
+                }}
+                tabIndex={index === active ? 0 : -1}
                 className={cx(classes.tabLink)}
               >
                 {tab.props.icon && <>{tab.props.icon}</>}
                 {tabTitle || <span className={cx(classes.tabText)}>{tab.props.title}</span>}
+                {tab.props.closable && !tab.props.disabled && (
+                  <span
+                    role="presentation"
+                    aria-hidden="true"
+                    title={closeLabel?.(tab.props.title, index)}
+                    className={cx(classes.tabClose)}
+                    onClick={(event) => handleClose(event, index)}
+                  >
+                    ×
+                  </span>
+                )}
               </a>
               {tab.props.badge && <>{tab.props.badge}</>}
             </li>
@@ -115,12 +183,16 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
         })}
       </ul>
       {tabs?.map((tab, index) =>
-        index === active || !lazyLoad || (lazyLoad && loadedTabs.current[index]) ? (
+        keepMounted || index === active || !lazyLoad || (lazyLoad && loadedTabs.current[index]) ? (
           <div
             className={cx(classes.tab, {
               [classes.tabActive]: index === active
             })}
-            key={`${uuid}-tab-${index}`}
+            key={`${uuid}-tabpanel-${index}`}
+            id={`${uuid}-tabpanel-${index}`}
+            role="tabpanel"
+            aria-labelledby={`${uuid}-tab-${index}`}
+            hidden={index !== active}
           >
             {tab}
           </div>
@@ -130,7 +202,7 @@ const _Tabset = forwardRef<HTMLDivElement, TabsetProps>((props, ref) => {
   );
 }) as any;
 
-_Tabset.displayName = '@nebular-react/core/Tabset';
+_Tabset.displayName = 'Tabset';
 _Tabset.Tab = Tab;
 _Tabset.Title = TabTitle;
 

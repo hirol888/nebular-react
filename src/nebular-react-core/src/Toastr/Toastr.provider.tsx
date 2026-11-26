@@ -13,9 +13,9 @@ export interface ToastrProviderProps extends DefaultProps {
 }
 
 export function ToastrProvider({
-  transition,
-  transitionDuration,
-  transitionTimingFunction,
+  transition = 'fade',
+  transitionDuration = 150,
+  transitionTimingFunction = 'ease',
   limit = 6,
   children,
   ...others

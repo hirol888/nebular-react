@@ -1,6 +1,5 @@
 import { useForceUpdate } from '@mantine/hooks';
-import React, { useContext, useRef } from 'react';
-import { Transition, TransitionGroup, TransitionStatus } from 'react-transition-group';
+import React, { useContext, useRef, createRef } from 'react';
 import {
   usePositionHelper,
   GlobalLogicalPosition,
@@ -8,7 +7,11 @@ import {
   useGlobalPositionStrategy,
   useDidUpdate
 } from '@nebular-react/hooks';
-import { transitions, useNebularDir } from '@nebular-react/styles';
+import {
+  //transitions,
+  useNebularDir
+} from '@nebular-react/styles';
+import { Transition, TransitionGroup, type TransitionStatusT } from './rtg-compat';
 import { Portal } from '../Portal';
 import { useToastrEvents } from './events';
 import { ToastContainer } from './ToastContainer';
@@ -22,13 +25,16 @@ export interface ToastrOverlayProps {
 
 function ToastrOverlay({ logicalPosition }: ToastrOverlayProps) {
   const forceUpdate = useForceUpdate();
-  const refs = useRef<Record<string, HTMLDivElement>>({});
+  const refs = useRef<Record<string, React.RefObject<HTMLDivElement | null>>>({});
+  // eslint-disable-next-line no-return-assign
+  const ensureRef = (id: string) => (refs.current[id] ??= createRef<HTMLDivElement>());
+  const transitionMs = 200;
   const previousLength = useRef<number>(0);
   const {
-    limit,
-    transition,
-    transitionDuration = 150,
-    transitionTimingFunction = 'cubic-bezier(.51,.3,0,1.21), cubic-bezier(.51,.3,0,1.21), linear'
+    limit
+    // transition,
+    // transitionDuration = 150,
+    // transitionTimingFunction = 'cubic-bezier(.51,.3,0,1.21), cubic-bezier(.51,.3,0,1.21), linear'
   } = useContext(ToastrContext);
   const { toasts, show, hide } = useToastrState({ limit });
   const positionStrategy = useRef<GlobalPositionStrategy>(
@@ -49,70 +55,70 @@ function ToastrOverlay({ logicalPosition }: ToastrOverlayProps) {
     previousLength.current = toasts.length;
   }, [toasts]);
 
-  const getToastStateStyles = (state: TransitionStatus): React.CSSProperties => {
-    let commonStyles: React.CSSProperties = {
-      transitionDuration: `${transitionDuration}ms`,
-      transitionTimingFunction
-    };
-    let inState: React.CSSProperties = {};
-    let outState: React.CSSProperties = {};
+  // const getToastStateStyles = (state: TransitionStatusT): React.CSSProperties => {
+  //   let commonStyles: React.CSSProperties = {
+  //     transitionDuration: `${transitionDuration}ms`,
+  //     transitionTimingFunction
+  //   };
+  //   let inState: React.CSSProperties = {};
+  //   let outState: React.CSSProperties = {};
 
-    const _transition = transition ?? {
-      in: { opacity: 1, transform: 'translateX(0)' },
-      out: {
-        opacity: 0,
-        transform:
-          dir === 'ltr'
-            ? logicalPosition.includes('end')
-              ? 'translateX(100%)'
-              : 'translateX(-100%)'
-            : logicalPosition.includes('start')
-            ? 'translateX(100%)'
-            : 'translateX(-100%)'
-      },
-      common: {
-        opacity: 0,
-        transform:
-          dir === 'ltr'
-            ? logicalPosition.includes('end')
-              ? 'translateX(100%)'
-              : 'translateX(-100%)'
-            : logicalPosition.includes('start')
-            ? 'translateX(100%)'
-            : 'translateX(-100%)'
-      },
-      transitionProperty: 'opacity, transform'
-    };
+  //   const _transition = transition ?? {
+  //     in: { opacity: 1, transform: 'translateX(0)' },
+  //     out: {
+  //       opacity: 0,
+  //       transform:
+  //         dir === 'ltr'
+  //           ? logicalPosition.includes('end')
+  //             ? 'translateX(100%)'
+  //             : 'translateX(-100%)'
+  //           : logicalPosition.includes('start')
+  //             ? 'translateX(100%)'
+  //             : 'translateX(-100%)'
+  //     },
+  //     common: {
+  //       opacity: 0,
+  //       transform:
+  //         dir === 'ltr'
+  //           ? logicalPosition.includes('end')
+  //             ? 'translateX(100%)'
+  //             : 'translateX(-100%)'
+  //           : logicalPosition.includes('start')
+  //             ? 'translateX(100%)'
+  //             : 'translateX(-100%)'
+  //     },
+  //     transitionProperty: 'opacity, transform'
+  //   };
 
-    if (typeof _transition === 'string') {
-      if (_transition in transitions) {
-        commonStyles = {
-          ...commonStyles,
-          transitionProperty: transitions[_transition].transitionProperty,
-          ...transitions[_transition].common
-        };
-        inState = { ...inState, ...transitions[_transition].in };
-        outState = { ...outState, ...transitions[_transition].out };
-      }
-    } else {
-      commonStyles = {
-        ...commonStyles,
-        transitionProperty: _transition.transitionProperty,
-        ..._transition.common
-      };
-      inState = { ...inState, ..._transition.in };
-      outState = { ...outState, ..._transition.out };
-    }
+  //   if (typeof _transition === 'string') {
+  //     if (_transition in transitions) {
+  //       commonStyles = {
+  //         ...commonStyles,
+  //         transitionProperty: transitions[_transition].transitionProperty,
+  //         ...transitions[_transition].common
+  //       };
+  //       inState = { ...inState, ...transitions[_transition].in };
+  //       outState = { ...outState, ...transitions[_transition].out };
+  //     }
+  //   } else {
+  //     commonStyles = {
+  //       ...commonStyles,
+  //       transitionProperty: _transition.transitionProperty,
+  //       ..._transition.common
+  //     };
+  //     inState = { ...inState, ..._transition.in };
+  //     outState = { ...outState, ..._transition.out };
+  //   }
 
-    const transitionStyles = {
-      entering: inState,
-      entered: inState,
-      exiting: outState,
-      exited: outState
-    };
+  //   const transitionStyles = {
+  //     entering: inState,
+  //     entered: inState,
+  //     exiting: outState,
+  //     exited: outState
+  //   };
 
-    return { ...commonStyles, ...transitionStyles[state] };
-  };
+  //   return { ...commonStyles, ...transitionStyles[state] };
+  // };
 
   const showToast = (toastDetails: {
     message: string;
@@ -127,7 +133,7 @@ function ToastrOverlay({ logicalPosition }: ToastrOverlayProps) {
 
     const toast = {
       message: toastDetails.message,
-      title: toastDetails.title,
+      title: toastDetails.title ?? '',
       config
     };
 
@@ -193,27 +199,18 @@ function ToastrOverlay({ logicalPosition }: ToastrOverlayProps) {
     controlToast
   });
 
-  const items = toasts.map((toast) => (
-    <Transition
-      key={toast.config.id}
-      timeout={transitionDuration}
-      nodeRef={{ current: refs.current[toast.config.id] }}
-    >
-      {(state) => (
-        <ToastContainer
-          style={{ ...getToastStateStyles(state) }}
-          toast={toast}
-          onHide={hide}
-          innerRef={(node) => {
-            refs.current[toast.config.id] = node;
-          }}
-          apply={apply}
-          paneRef={paneRef}
-          globalWrapperRef={globalWrapperRef}
-        />
-      )}
-    </Transition>
-  ));
+  const styleFrom = (s: TransitionStatusT) => {
+    switch (s) {
+      case 'entering':
+        return { opacity: 0 };
+      case 'entered':
+        return { opacity: 1, transition: `opacity ${transitionMs}ms` };
+      case 'exiting':
+        return { opacity: 0, transition: `opacity ${transitionMs}ms` };
+      default:
+        return {};
+    }
+  };
 
   return (
     <Portal>
@@ -224,7 +221,26 @@ function ToastrOverlay({ logicalPosition }: ToastrOverlayProps) {
       >
         <div className="overlay-pane" ref={paneRef}>
           <div className={`toastr-container-${logicalPosition}`}>
-            <TransitionGroup>{items}</TransitionGroup>
+            <TransitionGroup component={null}>
+              {toasts.map((t) => {
+                const nodeRef = ensureRef(t.config.id);
+                return (
+                  <Transition key={t.config.id} timeout={transitionMs} nodeRef={nodeRef}>
+                    {(state) => (
+                      <ToastContainer
+                        style={styleFrom(state)}
+                        toast={t}
+                        onHide={hide}
+                        innerRef={nodeRef}
+                        apply={apply}
+                        paneRef={paneRef}
+                        globalWrapperRef={globalWrapperRef}
+                      />
+                    )}
+                  </Transition>
+                );
+              })}
+            </TransitionGroup>
           </div>
         </div>
       </div>

@@ -1,28 +1,30 @@
-import { cloneDeep } from 'lodash';
 import { useEffect } from 'react';
 import { DropdownComponentState, OptionInternal } from '../../types';
+import { copyOptionItem } from '../copy-option-item';
 import { getOptionsOnly } from '../get-options-only/get-options-only';
 
 export function useActiveIndexUpdate<T extends DropdownComponentState>(
   activeItemIndex: number,
-  state: T,
   setState: (value: React.SetStateAction<T>) => void
 ) {
   useEffect(() => {
-    const optionsAndGroups = cloneDeep(state.optionsAndGroups);
-    const _options = getOptionsOnly(optionsAndGroups);
-    const options: OptionInternal[] = [];
-    // use for loop instead of map here because we want
-    // optionsOnly items have the same references as optionsAndGroups items have
-    for (let i = 0; i < _options.length; i++) {
-      _options[i].active = activeItemIndex === i;
-      options.push(_options[i]);
-    }
+    setState((current) => {
+      const optionsAndGroups = current.optionsAndGroups.map(copyOptionItem);
+      const _options = getOptionsOnly(optionsAndGroups);
+      const options: OptionInternal[] = [];
 
-    setState((current) => ({
-      ...current,
-      optionsAndGroups,
-      options
-    }));
-  }, [activeItemIndex]);
+      // Use a for loop instead of map here because we want the options-only
+      // items to keep the same references as the optionsAndGroups items.
+      for (let i = 0; i < _options.length; i++) {
+        _options[i].active = activeItemIndex === i;
+        options.push(_options[i]);
+      }
+
+      return {
+        ...current,
+        optionsAndGroups,
+        options
+      };
+    });
+  }, [activeItemIndex, setState]);
 }

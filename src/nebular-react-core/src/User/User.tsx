@@ -5,17 +5,16 @@ import {
   ComponentSize,
   DefaultProps,
   useComponentDefaultProps,
-  Selectors
+  Selectors,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import { Badge, BadgePosition } from '../Badge';
 import useStyles, { UserStylesParams } from './User.styles';
 
 export type UserStylesNames = Selectors<typeof useStyles>;
 
 export interface UserProps
-  extends DefaultProps<UserStylesNames, UserStylesParams>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<UserStylesNames, UserStylesParams>, React.ComponentPropsWithoutRef<'div'> {
   name?: string;
   title?: string;
   picture?: string;
@@ -105,6 +104,6 @@ const _User = React.forwardRef<HTMLDivElement, UserProps>((props, ref) => {
   );
 });
 
-_User.displayName = '@nebular-react/core/User';
+_User.displayName = 'User';
 
 export const User = createPolymorphicComponent<'div', UserProps>(_User);

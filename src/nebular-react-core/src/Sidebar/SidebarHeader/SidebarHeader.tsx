@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './SidebarHeader.style';
 
 export type SidebarHeaderStylesNames = Selectors<typeof useStyles>;
 
 export interface SidebarHeaderProps
-  extends DefaultProps<SidebarHeaderStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<SidebarHeaderStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
@@ -29,6 +27,6 @@ const _SidebarHeader = React.forwardRef<HTMLDivElement, SidebarHeaderProps>(
   }
 );
 
-_SidebarHeader.displayName = '@nebular-react/core/SidebarHeader';
+_SidebarHeader.displayName = 'SidebarHeader';
 
 export const SidebarHeader = createPolymorphicComponent<'div', SidebarHeaderProps>(_SidebarHeader);

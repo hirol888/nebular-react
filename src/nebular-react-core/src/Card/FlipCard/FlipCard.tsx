@@ -1,14 +1,12 @@
 import React, { forwardRef, useState } from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './FlipCard.style';
 import { Icon } from '../../Icon';
 
 export type FlipCardStylesNames = Selectors<typeof useStyles>;
 
 export interface FlipCardProps
-  extends DefaultProps<FlipCardStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<FlipCardStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   customToggleButton?: React.ReactNode;
   front: React.ReactNode;
   back: React.ReactNode;
@@ -52,6 +50,6 @@ const _FlipCard = forwardRef<HTMLDivElement, FlipCardProps>((props, ref) => {
   );
 });
 
-_FlipCard.displayName = '@nebular-react/core/FlipCard';
+_FlipCard.displayName = 'FlipCard';
 
 export const FlipCard = createPolymorphicComponent<'div', FlipCardProps>(_FlipCard);

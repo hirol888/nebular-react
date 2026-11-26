@@ -4,6 +4,7 @@ import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-reac
 import { DEFAULT_LOCALE, useDateFns, useCalendar } from '@nebular-react/hooks';
 import { BaseCalendarProps } from './types';
 import { CalendarActions, CalendarViewModeType } from './calendar-kit';
+import { useDefaultLocale } from '../Shared/hooks';
 import { Card } from '../Card';
 import { Calendar } from './Calendar';
 import useStyles, { CalendarWithTimeStylesParams } from './CalendarWithTime.style';
@@ -12,7 +13,8 @@ import { TimeList, TimeListProps } from '../Timepicker/TimeList';
 export type CalendarWithTimeStylesNames = Selectors<typeof useStyles>;
 
 export interface CalendarWithTimeProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarWithTimeStylesNames, CalendarWithTimeStylesParams>,
+  extends
+    DefaultProps<CalendarWithTimeStylesNames, CalendarWithTimeStylesParams>,
     BaseCalendarProps<TDate>,
     React.ComponentPropsWithoutRef<'div'> {
   date?: TDate;
@@ -39,6 +41,7 @@ const defaultProps: Partial<CalendarWithTimeProps> = {
 };
 
 function CalendarWithTime<TDate extends Date | Moment = Date>(props: CalendarWithTimeProps<TDate>) {
+  const defaultLocale = useDefaultLocale(props.locale);
   const {
     locale,
     boundingMonth,
@@ -47,6 +50,7 @@ function CalendarWithTime<TDate extends Date | Moment = Date>(props: CalendarWit
     max,
     date,
     filter,
+    disabledDates,
     size,
     visibleDate,
     showNavigation,
@@ -65,7 +69,7 @@ function CalendarWithTime<TDate extends Date | Moment = Date>(props: CalendarWit
     styles,
     unstyled
   } = useComponentDefaultProps<CalendarWithTimeProps<TDate>>(
-    defaultProps as CalendarWithTimeProps<TDate>,
+    { ...(defaultProps as CalendarWithTimeProps<TDate>), locale: defaultLocale },
     props
   );
   const { classes, cx } = useStyles(
@@ -97,11 +101,7 @@ function CalendarWithTime<TDate extends Date | Moment = Date>(props: CalendarWit
   };
 
   const handleTimeChange = (selectedTime: { time: TDate; save?: boolean }) => {
-    let newDate = (
-      dateType === 'moment'
-        ? dateFns.clone(dateValue as Moment)
-        : new Date((dateValue as Date).getTime())
-    ) as TDate;
+    let newDate = dateFns.clone(dateValue) as TDate;
 
     newDate = dateFns.setHours(newDate, dateFns.getHours(selectedTime.time));
     newDate = dateFns.setMinutes(newDate, dateFns.getMinutes(selectedTime.time));
@@ -122,6 +122,7 @@ function CalendarWithTime<TDate extends Date | Moment = Date>(props: CalendarWit
           min={min}
           max={max}
           filter={filter}
+          disabledDates={disabledDates}
           dayCellComponent={dayCellComponent}
           monthCellComponent={monthCellComponent}
           yearCellComponent={yearCellComponent}

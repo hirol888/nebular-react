@@ -59,14 +59,21 @@ export function createStyles<
 ) {
   const getCssObject = typeof input === 'function' ? input : () => input;
 
-  function useStyles(params: Params, options?: UseStylesOptions<Key, TTheme>) {
+  function useStyles(
+    params?: Params | Partial<Params> | null,
+    options?: UseStylesOptions<Key, TTheme>
+  ) {
     const theme = useNebularTheme<TTheme>();
     const dir = useNebularDir();
 
     const { css, cx } = useCss();
-    const cssObject = getCssObject(theme, params, dir, createRef);
+    const cssObject = getCssObject(theme, params as Params, dir, createRef);
 
-    const componentStyles = getStyles(options?.styles, theme, params);
+    const componentStyles = getStyles(
+      options?.styles,
+      theme,
+      params as unknown as Record<string, any>
+    );
 
     const classes = fromEntries(
       Object.keys(cssObject).map((key) => {

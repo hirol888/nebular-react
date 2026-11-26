@@ -1,6 +1,13 @@
-import { isMoment, Moment } from 'moment';
+import { Moment } from 'moment';
 import { batch, range } from '../utils';
-import { DateType, DAYS_IN_WEEK, DEFAULT_LOCALE, useDateFns } from '../use-date-fns/use-date-fns';
+import {
+  DateAdapter,
+  DateType,
+  DAYS_IN_WEEK,
+  DEFAULT_LOCALE,
+  defaultDateAdapter,
+  useDateAdapter
+} from '../use-date-fns/use-date-fns';
 
 export const YEARS_IN_VIEW = 12;
 export const YEARS_IN_ROW = 4;
@@ -8,8 +15,11 @@ export const MONTHS_IN_VIEW = 12;
 export const MONTHS_IN_COLUMN = 4;
 const MINUTES_AND_SECONDS = 60;
 
-export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAULT_LOCALE) {
-  const dateFns = useDateFns<TDate>(locale);
+export function createCalendar<TDate extends Date | Moment>(
+  locale: string = DEFAULT_LOCALE,
+  adapter: DateAdapter<TDate> = defaultDateAdapter as DateAdapter<TDate>
+) {
+  const dateFns = adapter.createDateFns(locale);
 
   const getYearsInView = (): number => YEARS_IN_VIEW;
 
@@ -29,7 +39,7 @@ export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAUL
   };
 
   const getHoursRange = (
-    dateType: DateType = 'native',
+    dateType: DateType = adapter.dateType,
     step: number = MINUTES_AND_SECONDS
   ): TDate[] => {
     let date: TDate = getResetTime(dateType);
@@ -46,7 +56,7 @@ export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAUL
     return result;
   };
 
-  const getResetTime = (dateType: DateType = 'native'): TDate => {
+  const getResetTime = (dateType: DateType = adapter.dateType): TDate => {
     let _today = dateFns.today(dateType);
     _today = dateFns.setHours(_today, 0);
     _today = dateFns.setMinutes(_today, 0);
@@ -90,7 +100,7 @@ export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAUL
       year,
       dateFns.getMonth(date),
       dateFns.getDate(date),
-      isMoment(date) ? 'moment' : 'native'
+      dateFns.getDateType(date)
     );
 
   const createDates = (activeMonth: TDate): TDate[][] => {
@@ -181,7 +191,7 @@ export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAUL
     return range(daysInMonth, (i) => {
       const year = dateFns.getYear(date);
       const month = dateFns.getMonth(date);
-      return dateFns.createDate(year, month, i + 1, isMoment(date) ? 'moment' : 'native');
+      return dateFns.createDate(year, month, i + 1, dateFns.getDateType(date));
     });
   };
   // #endregion
@@ -196,4 +206,15 @@ export function useCalendar<TDate extends Date | Moment>(locale: string = DEFAUL
     buildDateFormat,
     createDaysGrid
   };
+}
+
+export type CalendarFns<TDate extends Date | Moment = Date> = ReturnType<
+  typeof createCalendar<TDate>
+>;
+
+export function useCalendar<TDate extends Date | Moment = Date>(
+  locale: string = DEFAULT_LOCALE
+): CalendarFns<TDate> {
+  const adapter = useDateAdapter();
+  return createCalendar(locale, adapter as DateAdapter<TDate>);
 }

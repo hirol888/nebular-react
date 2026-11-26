@@ -9,8 +9,9 @@ import { CalendarYearCell } from './CalendarYearCell';
 
 export type CalendarYearPickerStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarYearPickerProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarYearPickerStylesNames> {
+export interface CalendarYearPickerProps<
+  TDate extends Date | Moment = Date
+> extends DefaultProps<CalendarYearPickerStylesNames> {
   year: TDate;
 }
 
@@ -27,7 +28,7 @@ function CalendarYearPicker<TDate extends Date | Moment = Date>(
     unstyled
   });
 
-  const [years, setYears] = useState<TDate[][]>();
+  const [years, setYears] = useState<TDate[][]>([]);
 
   useIsomorphicEffect(() => {
     const _years = calendarFns.getViewYears(year);
@@ -48,6 +49,6 @@ function CalendarYearPicker<TDate extends Date | Moment = Date>(
   );
 }
 
-CalendarYearPicker.displayName = '@nebular-react/core/CalendarYearPicker';
+CalendarYearPicker.displayName = 'CalendarYearPicker';
 
 export { CalendarYearPicker };

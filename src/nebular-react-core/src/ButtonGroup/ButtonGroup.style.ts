@@ -70,17 +70,18 @@ export default createStyles(
         },
 
         '.nebular-button-root': {
-          borderColor: appearance === 'filled' || appearance === 'ghost' ? 'transparent' : null,
+          borderColor:
+            appearance === 'filled' || appearance === 'ghost' ? 'transparent' : undefined,
           color:
             appearance === 'filled'
               ? `var(--button-group-filled-button-${notPressedStatus}-text-color)`
-              : null,
+              : undefined,
 
           '&.pressed': {
             color:
               appearance === 'filled'
                 ? `var(--button-group-filled-button-${pressedStatus}-text-color)`
-                : null
+                : undefined
           }
         },
 

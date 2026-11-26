@@ -7,8 +7,7 @@ import useStyles from './Menu.style';
 export type MenuStylesNames = Selectors<typeof useStyles>;
 
 export interface MenuProps<Multiple extends boolean = true>
-  extends DefaultProps,
-    Omit<React.ComponentPropsWithoutRef<'div'>, 'onSelect'> {
+  extends DefaultProps, Omit<React.ComponentPropsWithoutRef<'div'>, 'onSelect'> {
   multiple?: boolean;
   initialExpanded?: ItemValue<Multiple>;
   initialSelected?: string;
@@ -58,6 +57,6 @@ function Menu<Multiple extends boolean = true>(props: MenuProps<Multiple>) {
   );
 }
 
-Menu.displayName = '@nebular-react/core/Menu';
+Menu.displayName = 'Menu';
 
 export { Menu };

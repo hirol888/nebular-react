@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import execa from 'execa';
+import { execa } from 'execa';
 import { Logger } from './Logger';
 
 const logger = new Logger('publish-package');

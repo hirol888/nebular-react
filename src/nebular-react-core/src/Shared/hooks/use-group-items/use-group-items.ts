@@ -13,7 +13,7 @@ export function useGroupItems<Multiple extends boolean = false>(
 
   useEffect(() => {
     setActiveItems(initialActiveItems || (multiple ? ([] as any) : null));
-  }, [initialActiveItems]);
+  }, [initialActiveItems, multiple]);
 
   const isItemActive = (itemValue: string) =>
     Array.isArray(activeItems) ? activeItems.includes(itemValue) : itemValue === activeItems;
@@ -24,8 +24,8 @@ export function useGroupItems<Multiple extends boolean = false>(
         ? activeItems.filter((selectedItem) => selectedItem !== itemValue)
         : [...activeItems, itemValue]
       : itemValue === activeItems
-      ? null
-      : (itemValue as any);
+        ? null
+        : (itemValue as any);
 
     setActiveItems(newOpenedItems);
     typeof onChange === 'function' && onChange(newOpenedItems);

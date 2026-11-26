@@ -24,8 +24,10 @@ lerna-debug.log*
 
 # build
 lib/
+lib-cjs/
 cjs/
 esm/
+coverage/
 docs/.docgen/
 
 # typescript
@@ -33,6 +35,7 @@ docs/.docgen/
 
 # project
 .eslintcache
+.cache/
 docs/.cache
 docs/public
 storybook-static

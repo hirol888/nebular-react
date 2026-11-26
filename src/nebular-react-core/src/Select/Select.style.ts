@@ -1,3 +1,4 @@
+import type { Property } from 'csstype';
 import {
   ComponentOrCustomStatus,
   ComponentShape,
@@ -53,7 +54,7 @@ const getAppearanceStyles = (
   if (appearance === 'outline') {
     return getOutlineStyles(status, size, withPrefix, hasPlaceholder, theme);
   }
-  return null;
+  return {};
 };
 
 const getFilledStyles = (
@@ -75,9 +76,11 @@ const getFilledStyles = (
     ? `var(--select-filled-${status}-placeholder-text-color)`
     : `var(--select-filled-${status}-text-color)`,
 
-  fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : null,
-  fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : null,
-  fontWeight: hasPlaceholder ? (`var(--select-${size}-placeholder-text-font-weight)` as any) : null,
+  fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : undefined,
+  fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : undefined,
+  fontWeight: hasPlaceholder
+    ? (`var(--select-${size}-placeholder-text-font-weight)` as unknown as Property.FontWeight)
+    : undefined,
 
   '&:focus': {
     backgroundColor: `var(--select-filled-${status}-focus-background-color)`,
@@ -133,11 +136,11 @@ const getHeroStyles = (
       ? `var(--select-hero-${status}-placeholder-text-color)`
       : `var(--select-hero-${status}-text-color)`,
 
-    fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : null,
-    fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : null,
+    fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : undefined,
+    fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : undefined,
     fontWeight: hasPlaceholder
-      ? (`var(--select-${size}-placeholder-text-font-weight)` as any)
-      : null,
+      ? (`var(--select-${size}-placeholder-text-font-weight)` as unknown as Property.FontWeight)
+      : undefined,
 
     '&.placeholder': {
       ...getPlaceholderStyles('hero', status, size)
@@ -181,14 +184,16 @@ const getOutlineStyles = (
   ...getSelectDirStyles(size, withPrefix, theme),
 
   '.top': {
-    borderTopStyle: 'var(--select-outline-adjacent-border-style)' as any,
+    borderTopStyle:
+      'var(--select-outline-adjacent-border-style)' as unknown as Property.BorderTopStyle,
     borderTopWidth: 'var(--select-outline-adjacent-border-width)',
     borderColor: `var(--select-outline-${status}-open-border-color)`,
     borderTopColor: `var(--select-outline-${status}-adjacent-border-color)`
   },
 
   '.bottom': {
-    borderBottomStyle: 'var(--select-outline-adjacent-border-style)' as any,
+    borderBottomStyle:
+      'var(--select-outline-adjacent-border-style)' as unknown as Property.BorderBottomStyle,
     borderBottomWidth: 'var(--select-outline-adjacent-border-width)',
     borderColor: `var(--select-outline-${status}-open-border-color)`,
     borderBottomColor: `var(--select-outline-${status}-adjacent-border-color)`
@@ -200,9 +205,11 @@ const getOutlineStyles = (
     ? `var(--select-outline-${status}-placeholder-text-color)`
     : `var(--select-outline-${status}-text-color)`,
 
-  fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : null,
-  fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : null,
-  fontWeight: hasPlaceholder ? (`var(--select-${size}-placeholder-text-font-weight)` as any) : null,
+  fontFamily: hasPlaceholder ? 'var(--select-placeholder-text-font-family)' : undefined,
+  fontSize: hasPlaceholder ? `var(--select-${size}-placeholder-text-font-size)` : undefined,
+  fontWeight: hasPlaceholder
+    ? (`var(--select-${size}-placeholder-text-font-weight)` as unknown as Property.FontWeight)
+    : undefined,
 
   '&:focus': {
     backgroundColor: `var(--select-outline-${status}-focus-background-color)`,
@@ -235,7 +242,8 @@ const getPlaceholderStyles = (
 ): CSSObject => ({
   fontFamily: 'var(--select-placeholder-text-font-family)',
   fontSize: `var(--select-${size}-placeholder-text-font-size)`,
-  fontWeight: `var(--select-${size}-placeholder-text-font-weight)` as any,
+  fontWeight:
+    `var(--select-${size}-placeholder-text-font-weight)` as unknown as Property.FontWeight,
   color: `var(--select-${appearance}-${status}-placeholder-text-color)`
 });
 
@@ -255,6 +263,7 @@ export default createStyles(
   ) => ({
     root: {
       display: 'inline-block',
+      position: 'relative',
 
       '&:not(.nebular-select-fullWidth)': {
         maxWidth: `var(--select-${size}-max-width)`
@@ -280,14 +289,14 @@ export default createStyles(
 
       '> span': {
         fontSize: `var(--select-${size}-text-font-size)`,
-        fontWeight: `var(--select-${size}-text-font-weight)` as any,
+        fontWeight: `var(--select-${size}-text-font-weight)` as unknown as Property.FontWeight,
         lineHeight: `var(--select-${size}-text-line-height)`
       },
 
       '&::before': {
-        content: empty ? '" "' : null,
-        display: empty ? 'block' : null,
-        height: empty ? `var(--select-${size}-text-line-height)` : null
+        content: empty ? '" "' : undefined,
+        display: empty ? 'block' : undefined,
+        height: empty ? `var(--select-${size}-text-line-height)` : undefined
       },
 
       borderRadius: `var(--select-${shape}-border-radius)`,
@@ -314,6 +323,72 @@ export default createStyles(
       textOverflow: 'ellipsis',
       textTransform: 'none',
       whiteSpace: 'nowrap'
+    },
+
+    clearable: {
+      ...theme.fns.ltr({ paddingRight: 'calc(var(--select-icon-offset) + 1.35em)' }),
+      ...theme.fns.rtl({ paddingLeft: 'calc(var(--select-icon-offset) + 1.35em)' })
+    },
+
+    clearButton: {
+      position: 'absolute',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '0.15em',
+      border: 0,
+      background: 'transparent',
+      color: 'inherit',
+      cursor: 'pointer',
+      fontSize: '1em',
+      lineHeight: 1,
+      zIndex: 1,
+
+      ...theme.fns.ltr({ right: 'calc(var(--select-icon-offset) + 0.15em)' }),
+      ...theme.fns.rtl({ left: 'calc(var(--select-icon-offset) + 0.15em)' }),
+
+      '&:focus-visible': {
+        outline: '2px solid var(--select-outline-focus-border-color, currentColor)',
+        outlineOffset: '2px',
+        borderRadius: '2px'
+      }
+    },
+
+    searchContainer: {
+      padding: '0.5rem',
+      borderBottom:
+        '1px solid var(--select-search-border-color, var(--border-basic-color-3, #e4e9f2))'
+    },
+
+    searchInput: {
+      width: '100%',
+      padding: '0.4rem 0.5rem',
+      border:
+        '1px solid var(--select-search-input-border-color, var(--border-basic-color-3, #e4e9f2))',
+      borderRadius: 'var(--select-search-input-border-radius, 0.25rem)',
+      background: 'var(--select-search-input-background-color, transparent)',
+      color: 'inherit',
+      font: 'inherit',
+      outline: 'none',
+
+      '&::placeholder': {
+        color: 'var(--select-placeholder-text-color, var(--text-hint-color, #8f9bb3))'
+      },
+
+      '&:focus': {
+        borderColor:
+          'var(--select-search-input-focus-border-color, var(--color-primary-500, #3366ff))'
+      }
+    },
+
+    dropdownStatus: {
+      padding: '0.75rem 1rem',
+      minWidth: 'var(--select-min-width)',
+      color: 'var(--select-outline-basic-text-color, inherit)',
+      fontFamily: 'var(--select-text-font-family, inherit)',
+      textAlign: 'center'
     },
 
     fullWidth: {

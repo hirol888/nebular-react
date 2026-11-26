@@ -11,7 +11,7 @@ export const ThemeVariables = React.memo(({ theme }: { theme: NebularTheme }) =>
       }
     }
     return styles;
-  }, [JSON.stringify(theme)]);
+  }, [theme]);
 
   return <Global styles={{ ':root': styleVariables }} />;
 });

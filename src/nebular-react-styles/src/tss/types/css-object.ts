@@ -1,10 +1,7 @@
 import * as CSS from 'csstype';
 
 export interface CSSObject
-  extends CSSPropertiesWithMultiValues,
-    CSSPseudos,
-    CSSOthersObject,
-    CSSTssSpecials {}
+  extends CSSPropertiesWithMultiValues, CSSPseudos, CSSOthersObject, CSSTssSpecials {}
 
 export type CSSTssSpecials = {
   ref?: string;
@@ -17,7 +14,7 @@ export type CSSPropertiesWithMultiValues = {
 
 export type CSSPseudos = { [K in CSS.Pseudos]?: CSSObject };
 
-export interface ArrayCSSInterpolation extends Array<CSSInterpolation> {}
+export type ArrayCSSInterpolation = Array<CSSInterpolation>;
 
 export interface ComponentSelector {
   __emotion_styles: any;
@@ -51,5 +48,5 @@ export type InterpolationPrimitive =
 export type CSSInterpolation = InterpolationPrimitive | ArrayCSSInterpolation;
 
 export interface CSSOthersObject {
-  [propertiesName: string]: CSSInterpolation;
+  [propertiesName: string]: any;
 }

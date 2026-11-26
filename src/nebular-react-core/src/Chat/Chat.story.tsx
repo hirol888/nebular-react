@@ -1,11 +1,12 @@
 /* eslint-disable react/jsx-no-target-blank */
 import React, { useRef, useState } from 'react';
+import { NebularProvider } from '@nebular-react/styles';
 import { Chat } from './Chat';
 import { ChatForm, FileExt } from './ChatForm';
 import { ChatMessageType } from './types';
 import { Button } from '../Button';
 
-export default { title: 'Chat' };
+export default { title: 'Chat', component: Chat };
 
 const messages: ChatMessageType[] = [
   {
@@ -39,8 +40,7 @@ const messages: ChatMessageType[] = [
     files: [
       {
         url: 'https://i.gifer.com/no.gif',
-        type: 'image/jpeg',
-        icon: false
+        type: 'image/jpeg'
       }
     ],
     sender: 'John Doe',
@@ -292,6 +292,7 @@ export function Showcase() {
     const _files = !files
       ? []
       : files.map((file) => ({
+          name: file.name,
           url: file.src,
           type: file.type,
           icon: 'file-text-outline'
@@ -320,7 +321,7 @@ export function Showcase() {
       title="Nebular Conversational UI"
       size="large"
       messages={_messages}
-      style={{ width: '500px' }}
+      style={{ width: '100%', maxWidth: 500 }}
       chatFrom={<ChatForm onSend={(body) => sendMessage(body)} dropFiles />}
     />
   );
@@ -744,6 +745,405 @@ export function Sizes() {
       <Chat title="medium" size="medium" style={{ width: '300px', margin: '1rem' }} />
       <Chat title="Large" size="large" style={{ width: '300px', margin: '1rem' }} />
       <Chat title="Giant" size="giant" style={{ width: '300px', margin: '1rem' }} />
+    </div>
+  );
+}
+
+const threadStoryMessages: ChatMessageType[] = [
+  {
+    id: 'release-question',
+    message: 'When is the next release?',
+    sender: 'John Doe',
+    date: new Date(),
+    threadId: 'release-thread',
+    reply: true,
+    status: 'sent'
+  },
+  {
+    id: 'design-review',
+    message: 'The design review is scheduled for Thursday.',
+    sender: 'Jane Roe',
+    date: new Date()
+  }
+];
+
+const threadStoryReplies: ChatMessageType[] = [
+  {
+    id: 'release-reply-1',
+    message: 'Friday works for me.',
+    sender: 'Jane Roe',
+    date: new Date(),
+    readBy: ['John Doe']
+  },
+  {
+    id: 'release-reply-2',
+    message: 'I will update the changelog.',
+    sender: 'John Doe',
+    reply: true,
+    date: new Date(),
+    status: 'read',
+    readBy: ['Jane Roe']
+  }
+];
+
+const createThreadReply = (text: string): ChatMessageType => ({
+  message: text,
+  sender: 'John Doe',
+  reply: true,
+  date: new Date(),
+  status: 'sent'
+});
+
+const useThreadConversation = () => {
+  const [chatMessages, setChatMessages] = useState<ChatMessageType[]>(threadStoryMessages);
+  const [threads, setThreads] = useState<Record<string, ChatMessageType[]>>({
+    'release-thread': threadStoryReplies
+  });
+
+  const handleThreadReply = (message: ChatMessageType, text: string) => {
+    const threadKey = message.threadId ?? message.id;
+
+    if (!threadKey) {
+      return;
+    }
+
+    setThreads((current) => ({
+      ...current,
+      [threadKey]: [...(current[threadKey] ?? []), createThreadReply(text)]
+    }));
+  };
+
+  const handleSend = ({ message, files }: { message: string; files: FileExt[] }) => {
+    setChatMessages((current) => [
+      ...current,
+      {
+        message,
+        sender: 'John Doe',
+        reply: true,
+        date: new Date(),
+        status: 'sent',
+        type: files.length ? 'file' : 'text',
+        files: files.map((file) => ({
+          url: file.src ?? '',
+          type: file.type,
+          icon: 'file-text-outline'
+        }))
+      }
+    ]);
+  };
+
+  return { chatMessages, threads, handleThreadReply, handleSend };
+};
+
+export function Threads() {
+  const { chatMessages, threads, handleThreadReply, handleSend } = useThreadConversation();
+
+  return (
+    <Chat
+      title="Threads"
+      size="large"
+      style={{ width: '520px' }}
+      messages={chatMessages}
+      threads={threads}
+      threadLabel="Ver thread"
+      onThreadReply={handleThreadReply}
+      typingUsers={['Jane Roe']}
+      chatFrom={<ChatForm onSend={handleSend} />}
+    />
+  );
+}
+
+export function TypingAndReceipts() {
+  const receiptMessages: ChatMessageType[] = [
+    {
+      message: 'This message was sent.',
+      sender: 'John Doe',
+      reply: true,
+      status: 'sent',
+      date: new Date()
+    },
+    {
+      message: 'This message was delivered.',
+      sender: 'John Doe',
+      reply: true,
+      status: 'delivered',
+      date: new Date()
+    },
+    {
+      message: 'This message was read.',
+      sender: 'John Doe',
+      reply: true,
+      status: 'read',
+      readBy: ['Jane Roe'],
+      date: new Date()
+    }
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+      <Chat
+        title="Typing indicator"
+        size="medium"
+        messages={threadStoryMessages}
+        typingUsers={['Jane Roe']}
+        style={{ width: '360px', margin: '1rem' }}
+      />
+      <Chat
+        title="Typing indicator (custom label)"
+        size="medium"
+        messages={threadStoryMessages}
+        typingUsers={['Jane Roe', 'Mike Ross']}
+        typingLabel={(users) => `${users.join(' e ')} estão digitando…`}
+        style={{ width: '360px', margin: '1rem' }}
+      />
+      <Chat
+        title="Read receipts"
+        size="medium"
+        messages={receiptMessages}
+        readLabel={(users) => `Lida por ${users.join(', ')}`}
+        style={{ width: '360px', margin: '1rem' }}
+      />
+    </div>
+  );
+}
+
+export function ThreadPanel() {
+  const { chatMessages, threads, handleThreadReply, handleSend } = useThreadConversation();
+
+  return (
+    <Chat
+      title="Thread panel"
+      size="large"
+      style={{ width: '720px' }}
+      messages={chatMessages}
+      threads={threads}
+      threadLabel="Ver thread"
+      defaultOpenThreadId="release-thread"
+      onThreadReply={handleThreadReply}
+      readStatus="delivered"
+      chatFrom={<ChatForm onSend={handleSend} />}
+    />
+  );
+}
+
+const searchStoryMessages: ChatMessageType[] = [
+  {
+    id: 'search-1',
+    message: 'The release checklist is ready for review.',
+    sender: 'Jane Roe',
+    date: new Date()
+  },
+  {
+    id: 'search-2',
+    message: 'I will double check the migration guide today.',
+    sender: 'John Doe',
+    date: new Date()
+  },
+  {
+    id: 'search-3',
+    message: 'Thanks! The deploy window is Thursday at 9 AM.',
+    sender: 'Jane Roe',
+    reply: true,
+    date: new Date()
+  },
+  {
+    id: 'search-4',
+    type: 'quote',
+    quote: 'The deploy window is Thursday at 9 AM.',
+    message: 'Works for me.',
+    sender: 'John Doe',
+    reply: true,
+    date: new Date()
+  }
+];
+
+export function Search() {
+  const [query, setQuery] = useState('');
+
+  return (
+    <Chat
+      title="Search"
+      size="large"
+      style={{ width: '520px' }}
+      messages={searchStoryMessages}
+      searchable
+      searchValue={query}
+      onSearchChange={setQuery}
+      searchPlaceholder="Search messages"
+    />
+  );
+}
+
+const createReactionMessage = (): ChatMessageType => ({
+  id: 'edit-react-1',
+  message: 'Feel free to edit or delete this message.',
+  sender: 'Jane Roe',
+  reply: true,
+  date: new Date(),
+  status: 'read',
+  readBy: ['John Doe']
+});
+
+const createReactionTarget = (): ChatMessageType => ({
+  id: 'edit-react-2',
+  message: 'Toggle a reaction from the chip or the picker.',
+  sender: 'John Doe',
+  date: new Date(),
+  reactions: [
+    { emoji: '👍', users: ['John Doe'] },
+    { emoji: '❤️', users: ['Jane Roe', 'John Doe'] }
+  ]
+});
+
+export function EditAndReact() {
+  const currentUser = 'Jane Roe';
+  const [storyMessages, setStoryMessages] = useState<ChatMessageType[]>([
+    createReactionMessage(),
+    createReactionTarget()
+  ]);
+
+  const handleEditMessage = (message: ChatMessageType, text: string) => {
+    setStoryMessages((current) =>
+      current.map((item) =>
+        item.id === message.id ? { ...item, message: text, edited: true } : item
+      )
+    );
+  };
+
+  const handleDeleteMessage = (message: ChatMessageType) => {
+    setStoryMessages((current) => current.filter((item) => item.id !== message.id));
+  };
+
+  const handleSend = ({ message }: { message: string; files: FileExt[] }) => {
+    setStoryMessages((current) => [
+      ...current,
+      {
+        id: `edit-react-${current.length + 1}`,
+        message,
+        sender: currentUser,
+        reply: true,
+        date: new Date()
+      }
+    ]);
+  };
+
+  const handleReactionToggle = (message: ChatMessageType, emoji: string) => {
+    setStoryMessages((current) =>
+      current.map((item) => {
+        if (item.id !== message.id) {
+          return item;
+        }
+
+        const reactions = item.reactions ?? [];
+        const existing = reactions.find((reaction) => reaction.emoji === emoji);
+
+        if (!existing) {
+          return { ...item, reactions: [...reactions, { emoji, users: [currentUser] }] };
+        }
+
+        const hasReacted = existing.users.includes(currentUser);
+        const users = hasReacted
+          ? existing.users.filter((user) => user !== currentUser)
+          : [...existing.users, currentUser];
+
+        return {
+          ...item,
+          reactions: users.length
+            ? reactions.map((reaction) =>
+                reaction.emoji === emoji ? { ...reaction, users } : reaction
+              )
+            : reactions.filter((reaction) => reaction.emoji !== emoji)
+        };
+      })
+    );
+  };
+
+  return (
+    <Chat
+      title="Edit, delete & react"
+      size="large"
+      style={{ width: '520px' }}
+      messages={storyMessages}
+      editable
+      deletable
+      currentUser={currentUser}
+      onEditMessage={handleEditMessage}
+      onDeleteMessage={handleDeleteMessage}
+      onReactionToggle={handleReactionToggle}
+      chatFrom={<ChatForm onSend={handleSend} />}
+    />
+  );
+}
+
+export function Localized() {
+  const localizedMessages: ChatMessageType[] = [
+    {
+      id: 'localized-1',
+      message: 'Olá! Como você está?',
+      sender: 'Ana',
+      reply: true,
+      status: 'read',
+      readBy: ['João'],
+      date: new Date()
+    },
+    {
+      id: 'localized-2',
+      message: 'Tudo bem, obrigado!',
+      sender: 'João',
+      date: new Date(),
+      reactions: [{ emoji: '👍', users: ['Ana'] }]
+    }
+  ];
+
+  return (
+    <NebularProvider locale="pt-BR">
+      <Chat
+        title="Chat localizado (pt-BR)"
+        size="large"
+        style={{ width: '520px' }}
+        messages={localizedMessages}
+        searchable
+        editable
+        deletable
+        currentUser="João"
+        typingUsers={['Ana']}
+        onEditMessage={() => undefined}
+        onDeleteMessage={() => undefined}
+        onReactionToggle={() => undefined}
+        chatFrom={<ChatForm onSend={() => undefined} />}
+      />
+    </NebularProvider>
+  );
+}
+
+const virtualStoryMessages: ChatMessageType[] = Array.from({ length: 100 }, (_, index) => ({
+  id: `virtual-${index + 1}`,
+  message: `Message ${index + 1}`,
+  sender: index % 2 ? 'Jane Roe' : 'John Doe',
+  reply: index % 3 === 0,
+  status: index % 3 === 0 ? 'read' : undefined,
+  readBy: index % 3 === 0 ? ['Jane Roe'] : undefined,
+  date: new Date()
+}));
+
+export function Virtualized() {
+  return (
+    <div>
+      <p style={{ fontFamily: 'sans-serif', fontSize: '0.875rem', maxWidth: '520px' }}>
+        Virtualization requires a fixed row height: pass <code>height</code> (viewport) and{' '}
+        <code>itemHeight</code> (row height) so the window can be calculated without measuring the
+        DOM.
+      </p>
+      <Chat
+        title="Virtualized (100 messages)"
+        size="large"
+        style={{ width: '520px' }}
+        messages={virtualStoryMessages}
+        virtualize
+        height={360}
+        itemHeight={72}
+        overscan={5}
+      />
     </div>
   );
 }

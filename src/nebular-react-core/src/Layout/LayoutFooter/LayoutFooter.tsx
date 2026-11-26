@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './LayoutFooter.style';
 
 export type LayoutFooterStylesNames = Selectors<typeof useStyles>;
 
 export interface LayoutFooterProps
-  extends DefaultProps<LayoutFooterStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<LayoutFooterStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   fixed?: boolean;
   children?: React.ReactNode;
 }
@@ -23,13 +21,17 @@ const _LayoutFooter = React.forwardRef<HTMLDivElement, LayoutFooterProps>(
     });
 
     return (
-      <div className={cx(classes.root, className)} ref={ref} {...others}>
+      <div
+        className={cx(classes.root, { [classes.fixed]: fixed }, className)}
+        ref={ref}
+        {...others}
+      >
         <nav className={cx(classes.nav)}>{children}</nav>
       </div>
     );
   }
 );
 
-_LayoutFooter.displayName = '@nebular-react/core/LayoutFooter';
+_LayoutFooter.displayName = 'LayoutFooter';
 
 export const LayoutFooter = createPolymorphicComponent<'div', LayoutFooterProps>(_LayoutFooter);

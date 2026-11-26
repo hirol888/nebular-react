@@ -1,8 +1,8 @@
 interface Input<T extends Record<string, string>> {
   cx(...classNames: any): string;
   classes: T;
-  classNames: Partial<T>;
-  name: string | string[];
+  classNames?: Partial<T>;
+  name?: string | string[];
 }
 
 export function mergeClassNames<T extends Record<string, string>>({
@@ -21,8 +21,8 @@ export function mergeClassNames<T extends Record<string, string>>({
             .map((part) => `nebular-${part}-${className}`)
             .join(' ')
         : name
-        ? `nebular-${name}-${className}`
-        : null
+          ? `nebular-${name}-${className}`
+          : null
     );
     return acc;
   }, {}) as T;

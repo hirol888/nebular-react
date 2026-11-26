@@ -3,7 +3,7 @@ import { Moment } from 'moment';
 
 export function useCellTransition<TDate extends Date | Moment = Date>(
   date: TDate,
-  cellRef: React.MutableRefObject<HTMLDivElement>
+  cellRef: React.RefObject<HTMLDivElement | null>
 ) {
   // This solves the unneccessary transition issue.
   // If we add transition css directly on cell-content,
@@ -21,9 +21,9 @@ export function useCellTransition<TDate extends Date | Moment = Date>(
 
     return () => {
       if (cellRef.current) {
-        cellRef.current.style.transition = null;
-        cellRef.current.style.transitionProperty = null;
-        cellRef.current.style.transitionTimingFunction = null;
+        cellRef.current.style.transition = '';
+        cellRef.current.style.transitionProperty = '';
+        cellRef.current.style.transitionTimingFunction = '';
       }
     };
   }, [date]);

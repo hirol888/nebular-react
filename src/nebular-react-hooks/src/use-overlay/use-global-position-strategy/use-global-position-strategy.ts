@@ -12,8 +12,8 @@ export function useGlobalPositionStrategy(
   maxHeight?: Property.MaxHeight
 ): {
   apply: () => void;
-  paneRef: React.MutableRefObject<HTMLDivElement>;
-  globalWrapperRef: React.MutableRefObject<HTMLDivElement>;
+  paneRef: React.RefObject<HTMLDivElement | null>;
+  globalWrapperRef: React.RefObject<HTMLDivElement | null>;
 } {
   const paneRef = useRef<HTMLDivElement>(null);
   const globalWrapperRef = useRef<HTMLDivElement>(null);
@@ -27,6 +27,10 @@ export function useGlobalPositionStrategy(
     const shouldBeFlushVertically =
       (height === '100%' || height === '100vh') &&
       (!maxHeight || maxHeight === '100%' || maxHeight === '100vh');
+
+    if (!styles || !parentStyles) {
+      return;
+    }
 
     styles.position = 'static';
     styles.marginLeft = shouldBeFlushHorizontally ? '0' : globalPositionStrategy._leftOffset;

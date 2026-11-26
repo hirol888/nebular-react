@@ -11,16 +11,16 @@ export function mediaBreakpointBetween(
 ): CSSObject {
   let result: CSSObject = {};
 
-  const min = breakpointMin(lowerBreakpoint);
-  const max = breakpointMax(upperBreakpoint);
+  const min = lowerBreakpoint ? breakpointMin(lowerBreakpoint) : null;
+  const max = upperBreakpoint ? breakpointMax(upperBreakpoint) : null;
 
   if (min !== null && max !== null) {
     result = {
       [`@media (min-width: ${min}px) and (max-width: ${max}px)`]: propValuePairs
     };
-  } else if (max === null) {
+  } else if (max === null && lowerBreakpoint) {
     return mediaBreakpointUp(lowerBreakpoint, propValuePairs);
-  } else if (min === null) {
+  } else if (min === null && upperBreakpoint) {
     return mediaBreakpointDown(upperBreakpoint, propValuePairs);
   }
 

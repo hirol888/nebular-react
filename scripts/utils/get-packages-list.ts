@@ -1,12 +1,18 @@
-/* eslint-disable no-restricted-syntax, no-await-in-loop */
+/* eslint-disable no-await-in-loop */
 import path from 'path';
 import fs from 'fs-extra';
+
+import { fileURLToPath } from 'node:url';
+
+// recria __dirname em ambiente ESM
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface PackageJson {
   readonly name: string;
   readonly version: string;
   readonly private: boolean;
   readonly main: string;
+  readonly module?: string;
   readonly license: string;
   readonly types?: string;
   readonly author: string;

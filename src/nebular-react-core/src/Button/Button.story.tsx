@@ -4,7 +4,7 @@ import { Button } from './Button';
 import { ExampleItemsRows, ControlStatusExample } from '../Shared';
 import { Icon } from '../Icon';
 
-export default { title: 'Button' };
+export default { title: 'Button', component: Button };
 
 export function Status() {
   const statuses: ComponentStatus[] = ['primary', 'success', 'info', 'warning', 'danger'];
@@ -109,6 +109,23 @@ export function Showcase() {
     <ExampleItemsRows>
       <Button>Active</Button>
       <Button disabled>Disabled</Button>
+    </ExampleItemsRows>
+  );
+}
+
+export function Loading() {
+  return (
+    <ExampleItemsRows>
+      <Button status="primary" loading>
+        Save
+      </Button>
+      <Button status="primary" loading loadingText="Saving…">
+        Save
+      </Button>
+      <Button status="success" loading prefixIcon={<Icon icon="star" />} />
+      <Button status="danger" loading suffixIcon={<Icon icon="trash-outline" />}>
+        Delete
+      </Button>
     </ExampleItemsRows>
   );
 }

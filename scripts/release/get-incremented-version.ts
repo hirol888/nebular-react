@@ -79,9 +79,8 @@ export function getIncrementedVersion(
 
     // prerelease
     return `${rawVersion}-${updateStage(rawStage)}`;
-  } catch (e) {
+  } catch {
     logger.error('Failed to parse core package.json');
     process.exit(1);
-    return null;
   }
 }

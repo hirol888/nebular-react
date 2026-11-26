@@ -6,7 +6,7 @@ import { ExampleItemsRows } from '../Shared';
 import { Tabset } from '../Tabset';
 import './CustomLoader.css';
 
-export default { title: 'Loader' };
+export default { title: 'Loader', component: Loader };
 
 export function ButtonLoader() {
   const [isLoading, setIsLoading] = useState<boolean>(false);

@@ -1,4 +1,4 @@
-export type { CalendarType, BaseCalendarProps } from './types';
+export type { CalendarType, BaseCalendarProps, DisabledDates } from './types';
 export type { CalendarProps } from './Calendar';
 export { Calendar } from './Calendar';
 export type { CalendarRangeProps } from './CalendarRange';

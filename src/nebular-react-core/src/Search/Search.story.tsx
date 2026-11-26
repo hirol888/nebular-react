@@ -4,7 +4,7 @@ import { Sidebar } from '../Sidebar';
 import { Layout } from '../Layout';
 import { Search } from './Search';
 
-export default { title: 'Search' };
+export default { title: 'Search', component: Search };
 
 export function Showcase() {
   return (

@@ -87,11 +87,11 @@ function canBeEnabled(isEnabled: boolean, window: Window & typeof globalThis): b
   return body.scrollHeight > viewport.height || body.scrollWidth > viewport.width;
 }
 
+/** Cached result of the check that indicates whether the browser supports scroll behaviors. */
+let scrollBehaviorSupported: boolean | undefined;
+
 /** Check whether the browser supports scroll behaviors. */
 export function supportsScrollBehavior(): boolean {
-  /** Cached result of the check that indicates whether the browser supports scroll behaviors. */
-  let scrollBehaviorSupported: boolean | undefined;
-
   if (scrollBehaviorSupported == null) {
     // If we're not in the browser, it can't be supported. Also check for `Element`, because
     // some projects stub out the global `document` during SSR which can throw us off.
@@ -106,7 +106,7 @@ export function supportsScrollBehavior(): boolean {
     } else {
       // At this point we have 3 possibilities: `scrollTo` isn't supported at all, it's
       // supported but it doesn't handle scroll behavior, or it has been polyfilled.
-      // eslint-disable-next-line @typescript-eslint/ban-types
+
       const scrollToFunction: Function | undefined = Element.prototype.scrollTo;
 
       if (scrollToFunction) {

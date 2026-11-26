@@ -22,6 +22,8 @@ interface PkgConfigInput {
   analyze: boolean;
 }
 
+const iconPackExport = '@nebular-react/styles/icon-packs';
+
 export default async function createPackageConfig(config: PkgConfigInput): Promise<RollupOptions> {
   const packageJson = JSON.parse(
     fs.readFileSync(path.join(config.basePath, './package.json')).toString('utf-8')
@@ -32,10 +34,27 @@ export default async function createPackageConfig(config: PkgConfigInput): Promi
     find: new RegExp(`^${pkg.packageJson.name}`),
     replacement: path.resolve(pkg.path, 'src')
   }));
+  const useConditionalIconPacks =
+    packageJson.name === '@nebular-react/styles' && config.format !== 'umd';
+  const entry = config.entry || path.resolve(config.basePath, 'src/index.ts');
+  let input: RollupOptions['input'] = entry;
+
+  if (useConditionalIconPacks) {
+    input = [
+      entry,
+      ...['eva', 'essentials'].map((pack) =>
+        path.resolve(config.basePath, 'src/theme/icon-packs', `${pack}.ts`)
+      )
+    ];
+  }
 
   const plugins = [
     commonjs(),
     nodeExternals(),
+    // Leave the choice of catalog to the application resolving the published package.
+    ...(useConditionalIconPacks
+      ? [alias({ entries: { '../icon-packs/eva': iconPackExport } })]
+      : []),
     nodeResolve({ extensions: ['.ts', '.tsx', '.js', '.jsx'] }),
     esbuild({
       minify: config.format === 'umd',
@@ -57,22 +76,30 @@ export default async function createPackageConfig(config: PkgConfigInput): Promi
       })
     ];
   } else {
+    const packageNames = Object.keys({
+      ...packageJson.peerDependencies,
+      ...packageJson.dependencies
+    });
+    const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     externals = [
+      ...(useConditionalIconPacks ? [iconPackExport] : []),
       '@emotion/server/create-instance',
       '@emotion/cache',
       '@emotion/utils',
       '@emotion/serialize',
+      '@opentelemetry/api',
       ...(config?.externals || []),
-      ...Object.keys({
-        ...packageJson.peerDependencies,
-        ...packageJson.dependencies
-      })
+      ...packageNames,
+      // Keep subpath imports (e.g. `lodash/debounce.js`) external as well.
+      ...packageNames.map((name) => new RegExp(`^${escapeRegExp(name)}/`))
     ];
   }
 
   const output: OutputOptions = {
     name: packageJson.name,
     format: config.format as ModuleFormat,
+    interop: 'auto',
     externalLiveBindings: false,
     sourcemap: config.sourcemap
   };
@@ -86,6 +113,10 @@ export default async function createPackageConfig(config: PkgConfigInput): Promi
     output.dir = path.resolve(config.basePath, 'cjs');
     output.preserveModules = true;
     output.exports = 'named';
+  }
+
+  if (useConditionalIconPacks) {
+    output.preserveModulesRoot = path.resolve(config.basePath, 'src');
   }
 
   if (config.format === 'umd') {
@@ -122,9 +153,10 @@ export default async function createPackageConfig(config: PkgConfigInput): Promi
   }
 
   return {
-    input: config?.entry || path.resolve(config.basePath, 'src/index.ts'),
+    input,
     output,
     external: externals,
-    plugins
+    plugins,
+    ...(useConditionalIconPacks ? { treeshake: { moduleSideEffects: (id) => id !== iconPackExport } } : {})
   };
 }

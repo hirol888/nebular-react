@@ -54,11 +54,11 @@ export default createStyles((theme, { size }: CalendarWithTimeStylesParams) => (
     flexDirection: 'column',
 
     '.nebular-time-list-listItem': {
-      height: size === 'large' ? 'var(--calendar-day-cell-large-height)' : null
+      height: size === 'large' ? 'var(--calendar-day-cell-large-height)' : undefined
     },
 
     '.nebular-time-list-headerCell': {
-      height: size === 'large' ? 'var(--calendar-weekday-large-height)' : null
+      height: size === 'large' ? 'var(--calendar-weekday-large-height)' : undefined
     },
 
     ...theme.fns.ltr({

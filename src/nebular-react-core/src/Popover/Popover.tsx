@@ -14,7 +14,9 @@ import {
   useOverlayTrigger,
   useIsomorphicEffect,
   useFlexibleConnectedPositionStrategy,
-  useOverlayClickOutside
+  useOverlayClickOutside,
+  useOverlayKeyboard,
+  useRefEventListener
 } from '@nebular-react/hooks';
 import { Property } from 'csstype';
 import { Transition, TransitionState } from '../Transition';
@@ -25,7 +27,8 @@ import { transitionEnterHandler, transitionExitedHandler } from '../Shared/Optio
 export type PopoverStylesNames = Selectors<typeof useStyles>;
 
 export interface PopoverProps
-  extends DefaultProps<PopoverStylesNames, PopoverStylesParams>,
+  extends
+    DefaultProps<PopoverStylesNames, PopoverStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   triggerRef: React.RefObject<HTMLElement>;
   position?: Position;
@@ -114,10 +117,17 @@ const Popover = React.forwardRef<PopoverRef, PopoverProps>((props, ref) => {
     paneWrapperRef: boundingBoxRef,
     panelClass: popoverClass,
     opened: popoverState.mounted,
-    scrollStrategy: 'repositon'
+    scrollStrategy: 'reposition'
   });
   useOverlayTrigger(triggerRef, paneRef, boundingBoxRef, trigger, show, hide);
   useOverlayClickOutside([paneRef, triggerRef], hide);
+
+  const keydownHandler = useRefEventListener((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      hide();
+    }
+  });
+  useOverlayKeyboard(keydownHandler, popoverState.mounted);
 
   useIsomorphicEffect(() => {
     if (popoverState.mounted) {
@@ -127,48 +137,52 @@ const Popover = React.forwardRef<PopoverRef, PopoverProps>((props, ref) => {
 
   useImperativeHandle(ref, () => ({ show, hide }));
 
+  const shouldRender = popoverState.mountTransition || popoverState.mounted;
+
   return (
     <OptionalPortal withinPortal>
-      <Transition
-        mounted={popoverState.mountTransition}
-        transition={transition}
-        duration={transitionDuration}
-        timingFunction={transitionTimingFunction}
-        onEnter={() => transitionEnterHandler(setPopoverState, onPopoverOpen)}
-        onExited={() => transitionExitedHandler(setPopoverState, onPopoverClose)}
-      >
-        {(transitionStyles) => (
-          <div ref={boundingBoxRef} style={{ ...transitionStyles }}>
-            <div ref={paneRef} className="overlay-pane">
-              <div className={cx(classes.root, className)} {...others}>
-                <span
-                  className={cx(classes.arrow, {
-                    [classes.overlayTop]: appliedPosition === 'top',
-                    [classes.overlayTopStart]: appliedPosition === 'top-start',
-                    [classes.overlayTopEnd]: appliedPosition === 'top-end',
-                    [classes.overlayRight]:
-                      appliedPosition === 'right' || appliedPosition === 'end',
-                    [classes.overlayEndTop]: appliedPosition === 'end-top',
-                    [classes.overlayEndBottom]: appliedPosition === 'end-bottom',
-                    [classes.overlayBottom]: appliedPosition === 'bottom',
-                    [classes.overlayBottomStart]: appliedPosition === 'bottom-start',
-                    [classes.overlayBottomEnd]: appliedPosition === 'bottom-end',
-                    [classes.overlayLeft]:
-                      appliedPosition === 'left' || appliedPosition === 'start',
-                    [classes.overlayStartTop]: appliedPosition === 'start-top',
-                    [classes.overlayStartBottom]: appliedPosition === 'start-bottom'
-                  })}
-                />
-                <div className={cx(classes.textContainer)}>{children}</div>
+      {shouldRender && (
+        <Transition
+          mounted={popoverState.mountTransition}
+          transition={transition}
+          duration={transitionDuration}
+          timingFunction={transitionTimingFunction}
+          onEnter={() => transitionEnterHandler(setPopoverState, onPopoverOpen)}
+          onExited={() => transitionExitedHandler(setPopoverState, onPopoverClose)}
+        >
+          {(transitionStyles) => (
+            <div ref={boundingBoxRef} style={{ ...transitionStyles }}>
+              <div ref={paneRef} className="overlay-pane">
+                <div className={cx(classes.root, className)} {...others}>
+                  <span
+                    className={cx(classes.arrow, {
+                      [classes.overlayTop]: appliedPosition === 'top',
+                      [classes.overlayTopStart]: appliedPosition === 'top-start',
+                      [classes.overlayTopEnd]: appliedPosition === 'top-end',
+                      [classes.overlayRight]:
+                        appliedPosition === 'right' || appliedPosition === 'end',
+                      [classes.overlayEndTop]: appliedPosition === 'end-top',
+                      [classes.overlayEndBottom]: appliedPosition === 'end-bottom',
+                      [classes.overlayBottom]: appliedPosition === 'bottom',
+                      [classes.overlayBottomStart]: appliedPosition === 'bottom-start',
+                      [classes.overlayBottomEnd]: appliedPosition === 'bottom-end',
+                      [classes.overlayLeft]:
+                        appliedPosition === 'left' || appliedPosition === 'start',
+                      [classes.overlayStartTop]: appliedPosition === 'start-top',
+                      [classes.overlayStartBottom]: appliedPosition === 'start-bottom'
+                    })}
+                  />
+                  <div className={cx(classes.textContainer)}>{children}</div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </Transition>
+          )}
+        </Transition>
+      )}
     </OptionalPortal>
   );
 });
 
-Popover.displayName = '@nebular-react/core/Popover';
+Popover.displayName = 'Popover';
 
 export { Popover };

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../Card';
 import { RevealCard } from './RevealCard';
 
-export default { title: 'RevealCard' };
+export default { title: 'RevealCard', component: RevealCard };
 
 export function Showcase() {
   return (

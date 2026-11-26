@@ -1,4 +1,4 @@
-import { createPolymorphicComponent } from '@mantine/utils';
+import { createPolymorphicComponent } from '@nebular-react/styles';
 import React from 'react';
 
 const _TabTitle = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>(
@@ -12,7 +12,7 @@ const _TabTitle = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRe
   }
 );
 
-_TabTitle.displayName = '@nebular-react/core/TabTitle';
+_TabTitle.displayName = 'TabTitle';
 
 export const TabTitle = createPolymorphicComponent<'div', React.ComponentPropsWithoutRef<'div'>>(
   _TabTitle

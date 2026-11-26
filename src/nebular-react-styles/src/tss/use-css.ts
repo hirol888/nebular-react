@@ -9,7 +9,7 @@ import { useGuaranteedMemo } from './utils/use-guaranteed-memo/use-guaranteed-me
 const refPropertyName = 'ref' as const;
 
 function getRef(args: any[]) {
-  let ref: string;
+  let ref: string | undefined;
 
   if (args.length !== 1) {
     return { args, ref };

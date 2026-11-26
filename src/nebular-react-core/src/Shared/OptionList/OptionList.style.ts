@@ -43,5 +43,19 @@ export default createStyles((theme, { position, itemsCount }: OptionListStylesPa
       'var(--option-list-scrollbar-background-color)',
       'var(--option-list-scrollbar-width)'
     )
+  },
+
+  groupHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    height: '100%',
+    padding: '0 0.75rem',
+    color: 'var(--option-group-title-color, var(--text-hint-color, #8f9bb3))',
+    fontFamily: 'var(--option-group-title-font-family, inherit)',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    letterSpacing: '0.02em',
+    textTransform: 'uppercase',
+    boxSizing: 'border-box'
   }
 }));

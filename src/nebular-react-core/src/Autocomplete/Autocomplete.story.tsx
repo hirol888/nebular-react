@@ -3,7 +3,7 @@ import { Button } from '../Button';
 import { ExampleItemsCol, OptionInternal, OptionGroup } from '../Shared';
 import { Autocomplete } from './Autocomplete';
 
-export default { title: 'Autocomplete' };
+export default { title: 'Autocomplete', component: Autocomplete };
 
 const initialData = [
   'Apple',
@@ -52,6 +52,69 @@ export function ActiveFirst() {
   );
 }
 
+export function LocalFilter() {
+  return (
+    <Autocomplete
+      data={initialData}
+      placeholder="Type to filter"
+      aria-label="Type to filter"
+      type="text"
+    />
+  );
+}
+
+export function Virtualized() {
+  const longData = Array.from({ length: 1000 }, (_, index) => `Option ${index}`);
+
+  return (
+    <Autocomplete
+      data={longData}
+      placeholder="Virtualized autocomplete"
+      aria-label="Virtualized autocomplete"
+      type="text"
+      virtualized
+      virtualizedMaxHeight={320}
+    />
+  );
+}
+
+export function AsyncSearch() {
+  const [data, setData] = useState<string[]>(initialData);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = (query: string) => {
+    setLoading(true);
+
+    setTimeout(() => {
+      setData(initialData.filter((item) => item.toLowerCase().includes(query.toLowerCase())));
+      setLoading(false);
+    }, 300);
+  };
+
+  return (
+    <Autocomplete
+      data={data}
+      placeholder="Async search"
+      aria-label="Async search"
+      type="text"
+      loading={loading}
+      onSearchChange={handleSearch}
+    />
+  );
+}
+
+export function Empty() {
+  return (
+    <Autocomplete
+      data={[]}
+      placeholder="Empty"
+      aria-label="Empty"
+      type="text"
+      nothingFoundMessage="Nothing found"
+    />
+  );
+}
+
 export function CustomDisplay() {
   const [data, setData] = useState<string[]>(initialData);
 
@@ -67,6 +130,51 @@ export function CustomDisplay() {
       type="text"
       displayFn={(value) => value.toUpperCase()}
       onChange={inputChangeHandler}
+    />
+  );
+}
+
+const fruitDescriptions: Record<string, string> = {
+  Apple: 'Crisp and sweet',
+  Orange: 'Citrus favorite',
+  Banana: 'Rich in potassium',
+  Mango: 'Tropical treat',
+  Cherry: 'Sweet and tart',
+  Grape: 'Great for snacking'
+};
+
+const optionAvatarStyle: React.CSSProperties = {
+  alignItems: 'center',
+  background: 'var(--color-primary-transparent-300, rgba(51, 102, 255, 0.16))',
+  borderRadius: '50%',
+  color: 'var(--color-primary-500, #3366ff)',
+  display: 'inline-flex',
+  flex: '0 0 auto',
+  fontSize: '0.75rem',
+  fontWeight: 700,
+  height: '2rem',
+  justifyContent: 'center',
+  width: '2rem'
+};
+
+export function RenderOption() {
+  return (
+    <Autocomplete
+      data={initialData.slice(0, 6)}
+      placeholder="Search a fruit"
+      aria-label="Search a fruit"
+      type="text"
+      renderOption={(option) => (
+        <span style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
+          <span style={optionAvatarStyle}>{option.value.charAt(0).toUpperCase()}</span>
+          <span style={{ display: 'flex', flexDirection: 'column' }}>
+            <strong>{option.label}</strong>
+            <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+              {fruitDescriptions[option.value] ?? 'Fresh fruit'}
+            </span>
+          </span>
+        </span>
+      )}
     />
   );
 }

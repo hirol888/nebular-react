@@ -1,4 +1,5 @@
 import { ComponentSize, ComponentStatus, createStyles } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 
 export interface CardStylesParams {
   size: ComponentSize;
@@ -15,7 +16,7 @@ export default createStyles((theme, { size, accent }: CardStylesParams) => ({
     color: 'var(--card-text-color)',
     fontFamily: 'var(--card-text-font-family)',
     fontSize: 'var(--card-text-font-size)',
-    fontWeight: 'var(--card-text-font-weight)' as any,
+    fontWeight: 'var(--card-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--card-text-line-height)',
 
     marginBottom: 'var(--card-margin-bottom)',
@@ -25,11 +26,13 @@ export default createStyles((theme, { size, accent }: CardStylesParams) => ({
       'var(--card-scrollbar-background-color)',
       'var(--card-scrollbar-width)'
     ),
-    height: size ? `var(--card-height-${size})` : null,
+    height: size ? `var(--card-height-${size})` : undefined,
 
-    borderTopStyle: accent ? ('var(--card-border-style)' as any) : null,
-    borderTopWidth: accent ? 'var(--card-border-radius)' : null,
-    borderTopColor: accent ? `var(--card-header-${accent}-background-color)` : null,
+    borderTopStyle: accent
+      ? ('var(--card-border-style)' as unknown as Property.BorderTopStyle)
+      : undefined,
+    borderTopWidth: accent ? 'var(--card-border-radius)' : undefined,
+    borderTopColor: accent ? `var(--card-header-${accent}-background-color)` : undefined,
 
     display: 'flex',
     flexDirection: 'column'
