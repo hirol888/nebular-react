@@ -18,6 +18,7 @@ const defaultProps: Partial<FileExplorerProps> = {
   defaultPath: '/',
   defaultView: 'list',
   searchable: true,
+  tabs: false,
   selectionMode: 'multiple',
   readOnly: false,
   multiple: true,
@@ -152,6 +153,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     defaultView,
     onViewChange,
     searchable,
+    tabs,
     selectionMode,
     selectedKeys,
     defaultSelectedKeys,
@@ -160,6 +162,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     onOpenFolder,
     onRename,
     onDelete,
+    onMove,
+    onCopy,
     onCreateFolder,
     onUpload,
     onDownload,
@@ -209,6 +213,9 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       delete: t('fileExplorer.delete', 'Delete'),
       download: t('fileExplorer.download', 'Download'),
       upload: t('fileExplorer.upload', 'Upload'),
+      copy: t('fileExplorer.copy', 'Copy'),
+      cut: t('fileExplorer.cut', 'Cut'),
+      paste: t('fileExplorer.paste', 'Paste'),
       open: t('fileExplorer.open', 'Open'),
       selectAll: t('fileExplorer.selectAll', 'Select all'),
       clearSelection: t('fileExplorer.clearSelection', 'Clear selection'),
@@ -234,6 +241,9 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         t('fileExplorer.uploadProgress', 'Uploading {name} ({percent}%)', { name, percent }),
       uploadError: (name) => t('fileExplorer.uploadError', 'Upload failed: {name}', { name }),
       dropToUpload: t('fileExplorer.dropToUpload', 'Drop files to upload'),
+      tabs: t('fileExplorer.tabs', 'Open folders'),
+      newTab: t('fileExplorer.newTab', 'New tab'),
+      closeTab: (name) => t('fileExplorer.closeTab', 'Close {name}', { name }),
       ...labelsProp
     }),
     [t, labelsProp]
@@ -243,6 +253,9 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [internalPath, setInternalPath] = useState(defaultPath);
   const path = normalizePath(controlledPath ?? internalPath);
+  const tabCounterRef = useRef(1);
+  const [tabState, setTabState] = useState([{ id: 'tab-1', path }]);
+  const [activeTabId, setActiveTabId] = useState('tab-1');
   const [history, setHistory] = useState<string[]>([path]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [internalView, setInternalView] = useState<FileExplorerView>(defaultView);
@@ -269,7 +282,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const [renaming, setRenaming] = useState<FileEntry | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [deleting, setDeleting] = useState<FileEntry[] | null>(null);
+  const [clipboard, setClipboard] = useState<{
+    mode: 'copy' | 'cut';
+    entries: FileEntry[];
+  } | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [dragEntries, setDragEntries] = useState<FileEntry[] | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [upload, setUpload] = useState<FileUploadProgress | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewDismissed, setPreviewDismissed] = useState(false);
@@ -308,12 +327,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       if (controlledPath === undefined) {
         setInternalPath(normalized);
       }
+      setTabState((current) =>
+        current.map((tab) => (tab.id === activeTabId ? { ...tab, path: normalized } : tab))
+      );
       onPathChange?.(normalized);
       setQuery('');
       setSearching(false);
       applySelection([], []);
     },
-    [applySelection, controlledPath, historyIndex, onPathChange, path]
+    [applySelection, controlledPath, historyIndex, onPathChange, path, activeTabId]
   );
 
   useEffect(() => {
@@ -489,6 +511,33 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if ((event.ctrlKey || event.metaKey) && !event.altKey) {
+      const key = event.key.toLowerCase();
+
+      if (key === 'c' && selectedEntries.length > 0) {
+        event.preventDefault();
+        copySelection('copy');
+        return;
+      }
+
+      if (key === 'x' && selectedEntries.length > 0 && !readOnly) {
+        event.preventDefault();
+        copySelection('cut');
+        return;
+      }
+
+      if (
+        key === 'v' &&
+        clipboard &&
+        !readOnly &&
+        (clipboard.mode === 'cut' ? provider.move : provider.copy)
+      ) {
+        event.preventDefault();
+        pasteSelection().catch(() => undefined);
+        return;
+      }
+    }
+
     const currentIndex = selectedEntries[0]
       ? sortedEntries.findIndex((entry) => entry.path === selectedEntries[0].path)
       : -1;
@@ -628,6 +677,111 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }
   };
 
+  const copySelection = (mode: 'copy' | 'cut') => {
+    if (selectedEntries.length === 0) {
+      return;
+    }
+
+    setClipboard({ mode, entries: [...selectedEntries] });
+  };
+
+  const pasteSelection = async () => {
+    if (!clipboard || clipboard.entries.length === 0) {
+      return;
+    }
+
+    const paths = clipboard.entries.map((entry) => entry.path);
+
+    try {
+      if (clipboard.mode === 'cut') {
+        if (!provider.move) {
+          return;
+        }
+
+        await provider.move(paths, path);
+        onMove?.(clipboard.entries, path);
+        applySelection([], sortedEntries);
+        setClipboard(null);
+      } else {
+        if (!provider.copy) {
+          return;
+        }
+
+        await provider.copy(paths, path);
+        onCopy?.(clipboard.entries, path);
+      }
+
+      setRefreshToken((token) => token + 1);
+    } catch (reason) {
+      setError(reason);
+    }
+  };
+
+  const moveEntriesTo = async (destination: string) => {
+    if (!provider.move || !dragEntries || dragEntries.length === 0) {
+      return;
+    }
+
+    const draggedEntries = dragEntries;
+    setDragEntries(null);
+    setDropTarget(null);
+
+    try {
+      await provider.move(
+        draggedEntries.map((entry) => entry.path),
+        destination
+      );
+      onMove?.(draggedEntries, destination);
+      applySelection([], sortedEntries);
+      setRefreshToken((token) => token + 1);
+    } catch (reason) {
+      setError(reason);
+    }
+  };
+
+  const startEntryDrag = (entry: FileEntry, event: React.DragEvent) => {
+    if (readOnly) {
+      return;
+    }
+
+    const draggedSelection = selectedSet.has(entry.path) ? selectedEntries : [entry];
+    setDragEntries(draggedSelection);
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('application/x-nebular-file-explorer', '1');
+    }
+  };
+
+  const handleFolderDragOver = (entry: FileEntry, event: React.DragEvent) => {
+    if (
+      entry.type !== 'folder' ||
+      !dragEntries ||
+      dragEntries.some((dragged) => dragged.path === entry.path)
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    setDropTarget(entry.path);
+  };
+
+  const handleFolderDrop = (entry: FileEntry, event: React.DragEvent) => {
+    if (entry.type !== 'folder' || !dragEntries) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    moveEntriesTo(entry.path).catch(() => undefined);
+  };
+
   const uploadFiles = async (files: FileList | File[]) => {
     if (readOnly || !provider.upload) {
       return;
@@ -727,12 +881,22 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
             aria-selected={selectedSet.has(entry.path)}
             data-file-path={entry.path}
             className={cx(classes.row, {
-              [classes.rowSelected]: selectedSet.has(entry.path)
+              [classes.rowSelected]: selectedSet.has(entry.path),
+              [classes.rowDropTarget]: dropTarget === entry.path
             })}
             tabIndex={-1}
+            draggable={!readOnly && !!provider.move}
             onClick={(event) => toggleEntry(entry, index, event)}
             onDoubleClick={() => openEntry(entry)}
             onContextMenu={(event) => openMenu(entry, event)}
+            onDragStart={(event) => startEntryDrag(entry, event)}
+            onDragOver={(event) => handleFolderDragOver(entry, event)}
+            onDragLeave={() => {
+              if (dropTarget === entry.path) {
+                setDropTarget(null);
+              }
+            }}
+            onDrop={(event) => handleFolderDrop(entry, event)}
           >
             <span className={cx(classes.rowName)}>
               <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
@@ -765,12 +929,22 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
             aria-selected={selectedSet.has(entry.path)}
             data-file-path={entry.path}
             className={cx(classes.tile, {
-              [classes.tileSelected]: selectedSet.has(entry.path)
+              [classes.tileSelected]: selectedSet.has(entry.path),
+              [classes.tileDropTarget]: dropTarget === entry.path
             })}
             tabIndex={-1}
+            draggable={!readOnly && !!provider.move}
             onClick={(event) => toggleEntry(entry, index, event)}
             onDoubleClick={() => openEntry(entry)}
             onContextMenu={(event) => openMenu(entry, event)}
+            onDragStart={(event) => startEntryDrag(entry, event)}
+            onDragOver={(event) => handleFolderDragOver(entry, event)}
+            onDragLeave={() => {
+              if (dropTarget === entry.path) {
+                setDropTarget(null);
+              }
+            }}
+            onDrop={(event) => handleFolderDrop(entry, event)}
           >
             <span className={cx(classes.tileIcon)}>{getEntryIcon(entry)}</span>
             {renderEntryName(entry)}
@@ -831,13 +1005,23 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               aria-selected={selectedSet.has(entry.path)}
               data-file-path={entry.path}
               className={cx(classes.row, {
-                [classes.rowSelected]: selectedSet.has(entry.path)
+                [classes.rowSelected]: selectedSet.has(entry.path),
+                [classes.rowDropTarget]: dropTarget === entry.path
               })}
               style={{ gridTemplateColumns: columns }}
               tabIndex={-1}
+              draggable={!readOnly && !!provider.move}
               onClick={(event) => toggleEntry(entry, index, event)}
               onDoubleClick={() => openEntry(entry)}
               onContextMenu={(event) => openMenu(entry, event)}
+              onDragStart={(event) => startEntryDrag(entry, event)}
+              onDragOver={(event) => handleFolderDragOver(entry, event)}
+              onDragLeave={() => {
+                if (dropTarget === entry.path) {
+                  setDropTarget(null);
+                }
+              }}
+              onDrop={(event) => handleFolderDrop(entry, event)}
             >
               <span className={cx(classes.rowName)}>
                 <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
@@ -859,6 +1043,54 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
   const showPreviewPanel = showPreview && !!previewEntry;
+
+  const tabLabel = (tabPath: string) => pathSegments(tabPath).at(-1)?.name ?? labels.root;
+
+  const goToTabPath = (nextPath: string) => {
+    if (nextPath === path) {
+      return;
+    }
+
+    if (controlledPath === undefined) {
+      setInternalPath(nextPath);
+    }
+    onPathChange?.(nextPath);
+    setQuery('');
+    setSearching(false);
+    applySelection([], []);
+  };
+
+  const activateTab = (id: string) => {
+    const tab = tabState.find((item) => item.id === id);
+
+    setActiveTabId(id);
+
+    if (tab) {
+      goToTabPath(tab.path);
+    }
+  };
+
+  const addTab = () => {
+    const id = `tab-${++tabCounterRef.current}`;
+    setTabState((current) => [...current, { id, path }]);
+    setActiveTabId(id);
+  };
+
+  const closeTab = (id: string) => {
+    if (tabState.length <= 1) {
+      return;
+    }
+
+    const index = tabState.findIndex((tab) => tab.id === id);
+    const remaining = tabState.filter((tab) => tab.id !== id);
+    setTabState(remaining);
+
+    if (activeTabId === id) {
+      const next = remaining[Math.max(0, index - 1)] ?? remaining[0];
+      setActiveTabId(next.id);
+      goToTabPath(next.path);
+    }
+  };
 
   return (
     <div
@@ -891,6 +1123,11 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         }
       }}
       onDrop={(event) => {
+        if (dragEntries) {
+          setDropTarget(null);
+          return;
+        }
+
         if (provider.upload && !readOnly && event.dataTransfer.files.length > 0) {
           event.preventDefault();
           setDragging(false);
@@ -898,6 +1135,43 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         }
       }}
     >
+      {tabs && (
+        <div className={cx(classes.tabBar)} role="tablist" aria-label={labels.tabs}>
+          {tabState.map((tab) => (
+            <div key={tab.id} className={cx(classes.tab)}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab.id === activeTabId}
+                className={cx(classes.tabButton, {
+                  [classes.tabButtonActive]: tab.id === activeTabId
+                })}
+                onClick={() => activateTab(tab.id)}
+              >
+                {tabLabel(tab.path)}
+              </button>
+              <button
+                type="button"
+                className={cx(classes.tabClose)}
+                aria-label={labels.closeTab(tabLabel(tab.path))}
+                disabled={tabState.length <= 1}
+                onClick={() => closeTab(tab.id)}
+              >
+                <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className={cx(classes.tabNew)}
+            aria-label={labels.newTab}
+            title={labels.newTab}
+            onClick={addTab}
+          >
+            +
+          </button>
+        </div>
+      )}
       <div className={cx(classes.toolbar)}>
         <div className={cx(classes.navGroup)}>
           <button
@@ -1051,6 +1325,35 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                 onClick={() => setDeleting(selectedEntries)}
               >
                 {labels.delete}
+              </button>
+            )}
+            {selectedEntries.length > 0 && provider.move && (
+              <button
+                type="button"
+                className={cx(classes.actionButton)}
+                onClick={() => copySelection('cut')}
+              >
+                {labels.cut}
+              </button>
+            )}
+            {selectedEntries.length > 0 && provider.copy && (
+              <button
+                type="button"
+                className={cx(classes.actionButton)}
+                onClick={() => copySelection('copy')}
+              >
+                {labels.copy}
+              </button>
+            )}
+            {clipboard && (clipboard.mode === 'cut' ? provider.move : provider.copy) && (
+              <button
+                type="button"
+                className={cx(classes.actionButton)}
+                onClick={() => {
+                  pasteSelection().catch(() => undefined);
+                }}
+              >
+                {labels.paste}
               </button>
             )}
             {provider.upload && (
@@ -1248,6 +1551,34 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   {labels.rename}
                 </button>
               )}
+              {provider.copy && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={cx(classes.menuItem)}
+                  onClick={() => {
+                    applySelection([(menu.entry as FileEntry).path], sortedEntries);
+                    setClipboard({ mode: 'copy', entries: [menu.entry as FileEntry] });
+                    setMenu(null);
+                  }}
+                >
+                  {labels.copy}
+                </button>
+              )}
+              {provider.move && !readOnly && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={cx(classes.menuItem)}
+                  onClick={() => {
+                    applySelection([(menu.entry as FileEntry).path], sortedEntries);
+                    setClipboard({ mode: 'cut', entries: [menu.entry as FileEntry] });
+                    setMenu(null);
+                  }}
+                >
+                  {labels.cut}
+                </button>
+              )}
               {provider.download && menu.entry.type === 'file' && (
                 <button
                   type="button"
@@ -1304,6 +1635,22 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               {labels.upload}
             </button>
           )}
+          {!menu.entry &&
+            !readOnly &&
+            clipboard &&
+            (clipboard.mode === 'cut' ? provider.move : provider.copy) && (
+              <button
+                type="button"
+                role="menuitem"
+                className={cx(classes.menuItem)}
+                onClick={() => {
+                  pasteSelection().catch(() => undefined);
+                  setMenu(null);
+                }}
+              >
+                {labels.paste}
+              </button>
+            )}
         </div>
       )}
       <span id={`${listboxId}-status`} className={cx(classes.visuallyHidden)} aria-live="polite">

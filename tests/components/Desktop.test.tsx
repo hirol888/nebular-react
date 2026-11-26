@@ -5,6 +5,7 @@ import { axe } from 'jest-axe';
 import {
   Desktop,
   createMemoryLayoutAdapter,
+  createVersionedLayoutAdapter,
   serializeDesktopLayout,
   useDesktop,
   useDesktopDisplays,
@@ -1315,6 +1316,23 @@ describe('Desktop', () => {
 
     await user.unhover(button);
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('tracks revisions with a versioned layout adapter', async () => {
+    const snapshot = serializeDesktopLayout([]);
+    const transport = {
+      load: jest.fn().mockResolvedValue({ snapshot, revision: 3 }),
+      save: jest.fn().mockResolvedValue({ revision: 4 })
+    };
+    const adapter = createVersionedLayoutAdapter(transport);
+
+    expect(await adapter.load?.()).toEqual(snapshot);
+    await adapter.save?.(snapshot);
+
+    expect(transport.save).toHaveBeenCalledWith(snapshot, 3);
+
+    await adapter.flush?.(snapshot);
+    expect(transport.save).toHaveBeenLastCalledWith(snapshot, 4, { keepalive: true });
   });
 
   it('has no accessibility violations in RTL with the start menu open', async () => {

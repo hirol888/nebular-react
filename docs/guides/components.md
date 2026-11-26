@@ -1906,9 +1906,46 @@ const apps = [
   <Desktop layoutAdapter={adapter} onLayoutStatusChange={setStatus} />;
   ```
   `createLocalStorageLayoutAdapter`, `createSessionStorageLayoutAdapter`,
-  `createMemoryLayoutAdapter`, `serializeDesktopLayout` e `deserializeDesktopLayout` são
-  exportados. A gravação é debounced durante drag/resize e sofre flush em `pagehide` e no
-  unmount. Callbacks: `onLayoutLoaded`, `onLayoutError` e `onLayoutStatusChange`.
+  `createMemoryLayoutAdapter`, `createBroadcastLayoutAdapter`, `serializeDesktopLayout`,
+  `deserializeDesktopLayout` e `getDesktopDeviceId` são exportados. A gravação é debounced
+  durante drag/resize e sofre flush em `pagehide` e no unmount. Callbacks: `onLayoutLoaded`,
+  `onLayoutError` e `onLayoutStatusChange`.
+- No backend, o layout é escopado por **Profile + Tenant + App + Device**. O `AppId` vem do
+  host/proxy autenticado (cada aplicativo tem seu próprio menu/layout), não do body; o
+  `deviceId` vem de `getDesktopDeviceId()` e o fallback é o layout `shared` do mesmo App.
+  Exemplo para o Directory:
+  ```tsx
+  const deviceId = getDesktopDeviceId();
+  const adapter = createVersionedLayoutAdapter({
+    async load() {
+      const response = await fetch(
+        `/api/profile/desktop-layout?deviceId=${encodeURIComponent(deviceId)}`
+      );
+      if (response.status === 404) return null;
+      const payload = await response.json();
+      const dto = payload.resultGeneric;
+      return { snapshot: JSON.parse(dto.layout), revision: dto.revision };
+    },
+    async save(snapshot, revision, options) {
+      const response = await fetch(
+        `/api/profile/desktop-layout?deviceId=${encodeURIComponent(deviceId)}`,
+        {
+          method: 'POST', // alias do PUT aceito pelo Proxy
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            layout: JSON.stringify(snapshot),
+            revision,
+            scope: 'device'
+          }),
+          keepalive: options?.keepalive
+        }
+      );
+      if (response.status === 409) throw new Error('revision_conflict');
+      const payload = await response.json();
+      return { revision: payload.resultGeneric.revision };
+    }
+  });
+  ```
 - Estado serializável por janela: `window.state` + `useDesktopWindowState`:
   ```tsx
   const [state, setState] = useDesktopWindowState({ path: '/' });
@@ -1963,9 +2000,9 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
 - Providers embutidos: memória (`createMemoryFileSystemProvider`) e REST
   (`createRestFileSystemProvider`), com contrato documentado no arquivo de providers.
 - Views `list`, `grid` e `details`; navegação back/forward/up, breadcrumb, busca com debounce,
-  ordenação, seleção única/múltipla (Ctrl/Cmd e Shift), teclado, renomear inline (`F2`),
-  excluir com confirmação (`Del`), nova pasta, upload por input/drag-and-drop e preview de
-  imagem/texto.
+  ordenação, seleção única/múltipla (Ctrl/Cmd e Shift), teclado, copiar/cortar/colar
+  (`Ctrl/Cmd+C/X/V`), arrastar para pasta, abas (`tabs`), renomear inline (`F2`), excluir com
+  confirmação (`Del`), nova pasta, upload por input/drag-and-drop e preview de imagem/texto.
 - `sidebar`, `renderIcon`, `renderPreview`, `labels`, `readOnly`, `accept`, `multiple` e
   `emptyState` permitem customização.
 - Para integração com o Desktop, use `useDesktop().openFile(entry)` e declare

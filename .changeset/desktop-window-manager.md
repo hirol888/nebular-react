@@ -12,7 +12,8 @@ ou modais, bloqueando a janela-mãe com backdrop, `inert` e focus trap; `useDesk
 Inclui snap para bordas e cantos com preview, snap layouts no menu de contexto, navegação
 por teclado na taskbar e no menu Iniciar, `Alt+Tab`, anúncios `aria-live`, persistência de
 layout via `storageKey` ou `layoutAdapter` assíncrono (incluindo área de trabalho ativa e
-estado JSON por janela com `useDesktopWindowState`), agrupamento de janelas no taskbar com
+estado JSON por janela com `useDesktopWindowState`), escopo por Profile/Tenant/App/Device,
+`createBroadcastLayoutAdapter` para sincronização entre abas/surfaces, `getDesktopDeviceId`, agrupamento de janelas no taskbar com
 overflow, menu de contexto, busca/fixados/recentes no menu Iniciar, áreas de trabalho
 virtuais com tema, layout compacto responsivo, `alwaysOnTop`, `skipTaskbar`, `centerOnOpen`,
 `keepInBounds`, callbacks de ciclo de vida e `prefers-reduced-motion`. Janelas minimizadas
@@ -27,7 +28,8 @@ fechadas.
 
 Adiciona `FileExplorer`, uma evolução do `FileManager` orientada a um `FileSystemProvider`
 assíncrono, com providers em memória e REST, navegação back/forward/up, breadcrumb, busca,
-views list/grid/details, seleção múltipla, teclado, renomear, excluir, criar pasta, upload
+views list/grid/details, seleção múltipla, teclado, copiar/cortar/colar, arrastar para pasta,
+abas, renomear, excluir, criar pasta, upload
 por input/drag-and-drop, preview e sidebar.
 
 O catálogo i18n ganhou as chaves `desktop.*` e `fileExplorer.*`; o pacote de ícones

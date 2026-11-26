@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
@@ -178,6 +178,91 @@ describe('FileExplorer', () => {
     await user.keyboard('{ArrowDown}{Enter}');
 
     expect(await screen.findByText('notes.md')).toBeInTheDocument();
+  });
+
+  it('copies and pastes entries into another folder', async () => {
+    const user = userEvent.setup();
+
+    render(<FileExplorer provider={createProvider()} />);
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Copy' }));
+    await user.dblClick(screen.getByText('Documents'));
+
+    await screen.findByText('notes.md');
+    await user.click(screen.getByRole('button', { name: 'Paste' }));
+
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+    expect(screen.getByText('notes.md')).toBeInTheDocument();
+  });
+
+  it('cuts and moves entries into another folder', async () => {
+    const user = userEvent.setup();
+
+    render(<FileExplorer provider={createProvider()} />);
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Cut' }));
+    await user.dblClick(screen.getByText('Documents'));
+
+    await screen.findByText('notes.md');
+    await user.click(screen.getByRole('button', { name: 'Paste' }));
+
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Up' }));
+
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+  });
+
+  it('opens and closes tabs', async () => {
+    const user = userEvent.setup();
+
+    render(<FileExplorer provider={createProvider()} tabs />);
+
+    await screen.findByText('README.md');
+    expect(screen.getByRole('tablist', { name: 'Open folders' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'New tab' }));
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+
+    await user.click(screen.getAllByRole('tab')[0]);
+    await user.dblClick(screen.getByText('Documents'));
+    expect(await screen.findByText('notes.md')).toBeInTheDocument();
+
+    const tabs = screen.getAllByRole('tab');
+    await user.click(tabs[1]);
+
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+  });
+
+  it('moves entries by dragging onto a folder', async () => {
+    const user = userEvent.setup();
+    const dataTransfer = {
+      effectAllowed: '',
+      dropEffect: '',
+      setData: jest.fn(),
+      getData: jest.fn(),
+      types: []
+    } as unknown as DataTransfer;
+
+    render(<FileExplorer provider={createProvider()} />);
+
+    await screen.findByText('README.md');
+    const file = screen.getByRole('option', { name: /README\.md/ });
+    const folder = screen.getByRole('option', { name: /Documents/ });
+
+    fireEvent.dragStart(file, { dataTransfer });
+    fireEvent.dragOver(folder, { dataTransfer });
+    fireEvent.drop(folder, { dataTransfer });
+
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+    await user.dblClick(screen.getByText('Documents'));
+
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
   });
 
   it('uploads files through the provider', async () => {

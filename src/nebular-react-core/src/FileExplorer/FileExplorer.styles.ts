@@ -55,6 +55,103 @@ export const useStyles = createStyles((_theme) => ({
       'var(--file-explorer-toolbar-background-color, var(--background-basic-color-1, #ffffff))'
   },
 
+  tabBar: {
+    display: 'flex',
+    alignItems: 'stretch',
+    gap: '0.15rem',
+    flex: '0 0 auto',
+    minHeight: '2.15rem',
+    padding: '0.25rem 0.35rem 0',
+    overflowX: 'auto',
+    borderBottom:
+      '1px solid var(--file-explorer-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--file-explorer-tabbar-background-color, var(--background-basic-color-2, #f7f9fc))'
+  },
+
+  tab: {
+    display: 'inline-flex',
+    alignItems: 'stretch',
+    flex: '0 0 auto',
+    maxWidth: '13rem',
+    border: '1px solid transparent',
+    borderBottom: 0,
+    borderRadius: 'var(--file-explorer-radius, 0.35rem) var(--file-explorer-radius, 0.35rem) 0 0',
+    backgroundColor: 'transparent'
+  },
+
+  tabButton: {
+    minWidth: '5rem',
+    maxWidth: '11rem',
+    overflow: 'hidden',
+    padding: '0.25rem 0.45rem',
+    border: 0,
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    fontSize: '0.78rem',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    textAlign: 'start',
+    cursor: 'pointer',
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '-2px'
+    }
+  },
+
+  tabButtonActive: {
+    backgroundColor:
+      'var(--file-explorer-tab-active-background-color, var(--background-basic-color-1, #ffffff))',
+    fontWeight: 600
+  },
+
+  tabClose: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '1.3rem',
+    padding: 0,
+    border: 0,
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    cursor: 'pointer',
+
+    '&:hover:not(:disabled)': {
+      color: 'var(--color-danger-500, #ff3d71)'
+    },
+
+    '&:disabled': {
+      opacity: 0.3,
+      cursor: 'default'
+    }
+  },
+
+  tabNew: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '1.7rem',
+    marginBottom: '0.2rem',
+    border: 0,
+    borderRadius: 'var(--file-explorer-radius, 0.3rem)',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    fontSize: '1rem',
+    cursor: 'pointer',
+
+    '&:hover': {
+      backgroundColor: 'var(--file-explorer-hover-color, var(--background-basic-color-2, #f7f9fc))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '1px'
+    }
+  },
+
   navGroup: {
     display: 'flex',
     alignItems: 'center',
@@ -298,6 +395,12 @@ export const useStyles = createStyles((_theme) => ({
     backgroundColor: 'var(--file-explorer-selected-background-color, rgba(51, 102, 255, 0.12))'
   },
 
+  rowDropTarget: {
+    outline: '2px dashed var(--color-primary-500, #3366ff)',
+    outlineOffset: '-2px',
+    backgroundColor: 'var(--file-explorer-drop-background, rgba(51, 102, 255, 0.08))'
+  },
+
   rowName: {
     display: 'flex',
     alignItems: 'center',
@@ -367,6 +470,12 @@ export const useStyles = createStyles((_theme) => ({
   tileSelected: {
     borderColor: 'var(--color-primary-500, #3366ff)',
     backgroundColor: 'var(--file-explorer-selected-background-color, rgba(51, 102, 255, 0.12))'
+  },
+
+  tileDropTarget: {
+    borderColor: 'var(--color-primary-500, #3366ff)',
+    borderStyle: 'dashed',
+    backgroundColor: 'var(--file-explorer-drop-background, rgba(51, 102, 255, 0.08))'
   },
 
   tileIcon: {

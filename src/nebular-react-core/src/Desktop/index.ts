@@ -7,11 +7,14 @@ export {
   openDesktopSurfaces
 } from './Desktop.surfaces';
 export {
+  createBroadcastLayoutAdapter,
   createLocalStorageLayoutAdapter,
   createMemoryLayoutAdapter,
   createRestLayoutAdapter,
   createSessionStorageLayoutAdapter,
+  createVersionedLayoutAdapter,
   deserializeDesktopLayout,
+  getDesktopDeviceId,
   serializeDesktopLayout
 } from './Desktop.persistence';
 export type { UseDesktopDisplaysResult } from './Desktop.displays';
@@ -20,6 +23,8 @@ export type {
   RestLayoutAdapterOptions,
   SerializeDesktopLayoutOptions
 } from './Desktop.persistence';
+export type { BroadcastLayoutAdapter } from './Desktop.persistence';
+export type { VersionedLayoutTransport } from './Desktop.persistence';
 export type {
   DesktopApp,
   DesktopContextValue,

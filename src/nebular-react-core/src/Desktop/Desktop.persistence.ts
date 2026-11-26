@@ -176,26 +176,158 @@ export function createMemoryLayoutAdapter(
   };
 }
 
+export interface BroadcastLayoutAdapter extends DesktopPersistenceAdapter {
+  subscribe(listener: (snapshot: DesktopLayoutSnapshot) => void): () => void;
+}
+
+/**
+ * Experimental adapter that shares layout snapshots between same-origin tabs/windows
+ * using BroadcastChannel. Useful for the multi-surface mode.
+ */
+export function createBroadcastLayoutAdapter(
+  name = 'nebular-desktop-layout',
+  initial: DesktopLayoutSnapshot | null = null
+): BroadcastLayoutAdapter {
+  let snapshot = cloneJson(initial) ?? null;
+  const listeners = new Set<(value: DesktopLayoutSnapshot) => void>();
+  const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(name) : null;
+
+  const publish = (next: DesktopLayoutSnapshot) => {
+    snapshot = cloneJson(next) ?? null;
+
+    if (snapshot) {
+      channel?.postMessage(snapshot);
+      listeners.forEach((listener) => listener(snapshot as DesktopLayoutSnapshot));
+    }
+  };
+
+  channel?.addEventListener('message', (event) => {
+    const next = event.data as DesktopLayoutSnapshot;
+
+    if (next && Array.isArray(next.windows)) {
+      snapshot = next;
+      listeners.forEach((listener) => listener(next));
+    }
+  });
+
+  return {
+    load() {
+      return cloneJson(snapshot) ?? null;
+    },
+    save: publish,
+    flush: publish,
+    clear() {
+      snapshot = null;
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }
+  };
+}
+
+export interface VersionedLayoutTransport {
+  load?(signal?: AbortSignal): Promise<{
+    snapshot: DesktopLayoutSnapshot;
+    revision?: string | number;
+  } | null>;
+  save(
+    snapshot: DesktopLayoutSnapshot,
+    revision?: string | number,
+    options?: { keepalive?: boolean }
+  ): Promise<{ revision?: string | number } | void>;
+}
+
+/**
+ * Adapter for APIs with optimistic concurrency. The transport owns the HTTP details;
+ * the adapter tracks the latest revision returned by load/save and sends it on writes.
+ */
+export function createVersionedLayoutAdapter(
+  transport: VersionedLayoutTransport
+): DesktopPersistenceAdapter {
+  let revision: string | number | undefined;
+
+  return {
+    async load(signal) {
+      const result = await transport.load?.(signal);
+
+      if (!result) {
+        return null;
+      }
+
+      revision = result.revision;
+      return result.snapshot;
+    },
+    async save(snapshot) {
+      const result = await transport.save(snapshot, revision);
+
+      if (result && typeof result.revision !== 'undefined') {
+        revision = result.revision;
+      }
+    },
+    async flush(snapshot) {
+      const result = await transport.save(snapshot, revision, { keepalive: true });
+
+      if (result && typeof result.revision !== 'undefined') {
+        revision = result.revision;
+      }
+    }
+  };
+}
+
 export interface RestLayoutAdapterOptions {
   endpoint: string;
+  /** Override the read endpoint (e.g. query API) while writes go to the command API. */
+  loadEndpoint?: string;
+  /** Override the write endpoint. */
+  saveEndpoint?: string;
   headers?: Record<string, string> | (() => Record<string, string>);
   method?: 'PUT' | 'POST';
   credentials?: RequestCredentials;
   fetch?: typeof fetch;
+  deviceId?: string;
+  scope?: 'device' | 'shared';
+  /** Unwraps the API response into a desktop snapshot (defaults to the raw JSON). */
+  transformLoad?(payload: unknown): DesktopLayoutSnapshot | null;
+  /** Wraps a desktop snapshot into the API request body. */
+  transformSave?(snapshot: DesktopLayoutSnapshot): unknown;
 }
 
 export function createRestLayoutAdapter({
   endpoint,
+  loadEndpoint,
+  saveEndpoint,
   headers,
   method = 'PUT',
   credentials = 'same-origin',
-  fetch: fetchImpl
+  fetch: fetchImpl,
+  deviceId,
+  scope,
+  transformLoad,
+  transformSave
 }: RestLayoutAdapterOptions): DesktopPersistenceAdapter {
   const resolveHeaders = (): Record<string, string> => ({
     'Content-Type': 'application/json',
     ...(typeof headers === 'function' ? headers() : headers)
   });
   const request = fetchImpl ?? (typeof fetch !== 'undefined' ? fetch : undefined);
+  const withQuery = (url: string): string => {
+    const params: string[] = [];
+
+    if (deviceId) {
+      params.push(`deviceId=${encodeURIComponent(deviceId)}`);
+    }
+    if (scope) {
+      params.push(`scope=${encodeURIComponent(scope)}`);
+    }
+    if (params.length === 0) {
+      return url;
+    }
+
+    return `${url}${url.includes('?') ? '&' : '?'}${params.join('&')}`;
+  };
+  const readUrl = withQuery(loadEndpoint ?? endpoint);
+  const writeUrl = withQuery(saveEndpoint ?? endpoint);
 
   if (!request) {
     throw new Error('createRestLayoutAdapter requires a fetch implementation');
@@ -203,7 +335,7 @@ export function createRestLayoutAdapter({
 
   return {
     async load(signal) {
-      const response = await request(endpoint, {
+      const response = await request(readUrl, {
         method: 'GET',
         headers: resolveHeaders(),
         credentials,
@@ -218,14 +350,15 @@ export function createRestLayoutAdapter({
         throw new Error(`Desktop layout load failed with ${response.status}`);
       }
 
-      return (await response.json()) as DesktopLayoutSnapshot;
+      const payload = (await response.json()) as unknown;
+      return transformLoad ? transformLoad(payload) : (payload as DesktopLayoutSnapshot);
     },
     async save(snapshot) {
-      const response = await request(endpoint, {
+      const response = await request(writeUrl, {
         method,
         headers: resolveHeaders(),
         credentials,
-        body: JSON.stringify(snapshot)
+        body: JSON.stringify(transformSave ? transformSave(snapshot) : snapshot)
       });
 
       if (!response.ok) {
@@ -233,11 +366,11 @@ export function createRestLayoutAdapter({
       }
     },
     async flush(snapshot) {
-      const response = await request(endpoint, {
+      const response = await request(writeUrl, {
         method,
         headers: resolveHeaders(),
         credentials,
-        body: JSON.stringify(snapshot),
+        body: JSON.stringify(transformSave ? transformSave(snapshot) : snapshot),
         keepalive: true
       });
 
@@ -254,4 +387,25 @@ export function createLocalStorageLayoutAdapter(storageKey: string): DesktopPers
 
 export function createSessionStorageLayoutAdapter(storageKey: string): DesktopPersistenceAdapter {
   return createStorageLayoutAdapter(storageKey, 'session');
+}
+
+export function getDesktopDeviceId(storageKey = 'nebular-desktop-device-id'): string {
+  const storage = getStorage('local');
+
+  if (!storage) {
+    return 'shared';
+  }
+
+  const existing = storage.getItem(storageKey);
+
+  if (existing) {
+    return existing;
+  }
+
+  const id =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  storage.setItem(storageKey, id);
+  return id;
 }

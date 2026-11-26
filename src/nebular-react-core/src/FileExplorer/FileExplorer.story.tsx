@@ -87,10 +87,12 @@ function buildTree(entries: FileEntry[]): TreeNode[] {
 
 function Demo({
   initialView = 'list',
-  readOnly = false
+  readOnly = false,
+  tabs = false
 }: {
   initialView?: FileExplorerView;
   readOnly?: boolean;
+  tabs?: boolean;
 }) {
   const provider = useMemo(() => createMemoryFileSystemProvider(seed), []);
   const [path, setPath] = useState('/');
@@ -107,6 +109,7 @@ function Demo({
         view={view}
         onViewChange={setView}
         readOnly={readOnly}
+        tabs={tabs}
         selectedKeys={selected}
         onSelectionChange={setSelected}
         ariaLabel="Demo file explorer"
@@ -127,6 +130,7 @@ export const ListView = () => <Demo />;
 export const GridView = () => <Demo initialView="grid" />;
 export const DetailsView = () => <Demo initialView="details" />;
 export const ReadOnly = () => <Demo readOnly />;
+export const Tabs = () => <Demo tabs />;
 
 export function WithToolbar() {
   const [path, setPath] = useState('/');

@@ -64,7 +64,7 @@ interface InteractionState {
 
 const RESIZE_DIRECTIONS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;
 
-export function DesktopWindowFrame({
+function DesktopWindowFrameComponent({
   windowState,
   app,
   labels,
@@ -642,3 +642,6 @@ export function DesktopWindowFrame({
     </DesktopWindowContext.Provider>
   );
 }
+
+export const DesktopWindowFrame = React.memo(DesktopWindowFrameComponent);
+DesktopWindowFrame.displayName = 'DesktopWindowFrame';

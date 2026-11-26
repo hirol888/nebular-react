@@ -70,6 +70,9 @@ export interface FileExplorerLabels {
   delete: string;
   download: string;
   upload: string;
+  copy: string;
+  cut: string;
+  paste: string;
   open: string;
   selectAll: string;
   clearSelection: string;
@@ -93,12 +96,18 @@ export interface FileExplorerLabels {
   uploadProgress(name: string, percent: number): string;
   uploadError(name: string): string;
   dropToUpload: string;
+  tabs: string;
+  newTab: string;
+  closeTab(name: string): string;
 }
 
 export interface FileExplorerProps
   extends
     DefaultProps<FileExplorerStylesNames>,
-    Omit<React.ComponentPropsWithoutRef<'div'>, 'onSelect' | 'onChange'> {
+    Omit<
+      React.ComponentPropsWithoutRef<'div'>,
+      'onSelect' | 'onChange' | 'onCopy' | 'onCut' | 'onPaste'
+    > {
   provider: FileSystemProvider;
   path?: string;
   defaultPath?: string;
@@ -107,6 +116,7 @@ export interface FileExplorerProps
   defaultView?: FileExplorerView;
   onViewChange?(view: FileExplorerView): void;
   searchable?: boolean;
+  tabs?: boolean;
   selectionMode?: FileExplorerSelectionMode;
   selectedKeys?: string[];
   defaultSelectedKeys?: string[];
@@ -115,6 +125,8 @@ export interface FileExplorerProps
   onOpenFolder?(entry: FileEntry): void;
   onRename?(entry: FileEntry, name: string): void;
   onDelete?(entries: FileEntry[]): void;
+  onMove?(entries: FileEntry[], destinationPath: string): void;
+  onCopy?(entries: FileEntry[], destinationPath: string): void;
   onCreateFolder?(parentPath: string, name: string): void;
   onUpload?(entries: FileEntry[]): void;
   onDownload?(entry: FileEntry): void;
