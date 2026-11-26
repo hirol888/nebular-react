@@ -1858,7 +1858,9 @@ const apps = [
   janelas continuam utilizáveis, como em um desktop nativo). `Escape` fecha o modal ativo e
   o foco volta ao elemento que abriu a janela.
 - `tabs`/`activeTabId` renderizam abas por janela; fechar a última aba fecha a janela e
-  arrastar uma aba para fora faz tear-off para uma nova janela.
+  arrastar uma aba para fora faz tear-off para uma nova janela. Como título/conteúdo das abas
+  são React nodes, o snapshot persiste apenas a janela; recrie as abas a partir de
+  `window.state` ao restaurar o layout.
 - `toolbar`/`footer` (no app, na janela ou em `openWindow`) renderizam slots fora do body,
   abaixo das abas e acima do rodapé. Use `WindowBreadcrumb` na toolbar e `WindowStatusBar`
   no footer:
