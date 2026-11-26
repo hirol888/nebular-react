@@ -162,12 +162,13 @@
   Colaboração via `BroadcastChannel` ou WebSocket, merge LWW, presença e templates/conflito
   de layout. Inclui app registry com permissões/deep links/lazy loading, `DesktopAppFrame`
   sandbox e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST, navegação,
-  views, copiar/cortar/colar, abas, drag para pasta, fila de upload, permissões, paginação,
-  virtualização e preview.
-- **Testes**: 3.240 testes em 266 suítes, incluindo interação, teclado,
+  views, copiar/cortar/colar, abas, drag para pasta (inclusive entre panes), fila de upload,
+  permissões, paginação, virtualização, preview de imagem/texto/áudio/vídeo/PDF e arrastar
+  entre panes.
+- **Testes**: 3.243 testes em 266 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,70% de instruções,
-  80,28% de branches, 91,05% de funções e 90,70% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,77% de instruções,
+  80,32% de branches, 91,08% de funções e 90,71% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

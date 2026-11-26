@@ -677,6 +677,22 @@ export const useStyles = createStyles((_theme) => ({
     wordBreak: 'break-word'
   },
 
+  previewMedia: {
+    width: '100%',
+    maxHeight: '20rem',
+    borderRadius: 'var(--file-explorer-radius, 0.35rem)',
+    backgroundColor: 'var(--file-explorer-preview-media-background, #000000)'
+  },
+
+  previewPdf: {
+    width: '100%',
+    minHeight: '22rem',
+    border: 0,
+    borderRadius: 'var(--file-explorer-radius, 0.35rem)',
+    backgroundColor:
+      'var(--file-explorer-preview-background-color, var(--background-basic-color-1, #ffffff))'
+  },
+
   paginationBar: {
     display: 'flex',
     alignItems: 'center',

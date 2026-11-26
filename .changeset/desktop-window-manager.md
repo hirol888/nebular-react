@@ -49,7 +49,8 @@ presença/layout same-origin é acompanhado de transporte WebSocket, merge de la
 presença. O Desktop ganha Alt+Tab visual, flyout de snap layouts e transições de
 maximizar/restaurar/snap; `DesktopAppFrame` hospeda apps de terceiros em iframe sandbox. O
 FileExplorer ganha fila de upload com cancelar/retry, permissões por entrada, paginação
-server-side e virtualização de listas grandes.
+server-side, virtualização de listas grandes, preview de áudio/vídeo/PDF e arrastar entre
+os panes do dual-pane.
 
 O catálogo i18n ganhou as chaves `desktop.*`, `desktopLayoutSettings.*`,
 `desktopLayoutTemplates.*`, `fileExplorer.*`, `windowBreadcrumb.*` e `windowStatusBar.*`; o

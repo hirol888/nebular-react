@@ -123,6 +123,7 @@ export interface FileExplorerLabels {
   menuLabel(name: string): string;
   preview(name: string): string;
   closePreview: string;
+  noPreview: string;
   uploadProgress(name: string, percent: number): string;
   uploadError(name: string): string;
   uploadQueue: string;

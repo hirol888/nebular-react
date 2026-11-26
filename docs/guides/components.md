@@ -2160,8 +2160,10 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   (`createRestFileSystemProvider`), com contrato documentado no arquivo de providers.
 - Views `list`, `grid` e `details`; navegação back/forward/up, breadcrumb, busca com debounce,
   ordenação, seleção única/múltipla (Ctrl/Cmd e Shift), teclado, copiar/cortar/colar
-  (`Ctrl/Cmd+C/X/V`), arrastar para pasta, abas (`tabs`), renomear inline (`F2`), excluir com
-  confirmação (`Del`), nova pasta, upload por input/drag-and-drop e preview de imagem/texto.
+  (`Ctrl/Cmd+C/X/V`), arrastar para pasta (inclusive entre panes do dual-pane), abas
+  (`tabs`), renomear inline (`F2`), excluir com confirmação (`Del`), nova pasta, upload por
+  input/drag-and-drop e preview de imagem, texto, áudio, vídeo e PDF (com `noPreview`
+  quando o tipo não é suportado).
 - Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
 - `FileEntry.permissions` (`read`/`write`/`delete`/`download`) desabilita ações e atenua
   entradas sem leitura; `readOnly` continua global.

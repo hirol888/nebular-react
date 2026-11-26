@@ -166,6 +166,69 @@ function downloadBlob(blob: Blob, name: string) {
   URL.revokeObjectURL(url);
 }
 
+const EXTERNAL_DRAG_MIME = 'application/x-nebular-file-explorer-paths';
+const IMAGE_EXTENSION = /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i;
+const AUDIO_EXTENSION = /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus)$/i;
+const VIDEO_EXTENSION = /\.(mp4|webm|ogv|mov|m4v)$/i;
+const PDF_EXTENSION = /\.pdf$/i;
+
+type FilePreviewKind = 'image' | 'audio' | 'video' | 'pdf' | 'text' | 'none';
+
+function readExternalDragPaths(event: React.DragEvent): string[] {
+  try {
+    const raw = event.dataTransfer?.getData(EXTERNAL_DRAG_MIME);
+
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter(
+        (candidate): candidate is string =>
+          typeof candidate === 'string' && candidate.startsWith('/') && !candidate.includes('..')
+      )
+      .slice(0, 100);
+  } catch {
+    return [];
+  }
+}
+
+function getFilePreviewKind(entry: FileEntry): FilePreviewKind {
+  const mimeType = entry.mimeType?.toLowerCase() ?? '';
+
+  if (mimeType.startsWith('image/') || IMAGE_EXTENSION.test(entry.name)) {
+    return 'image';
+  }
+
+  if (mimeType.startsWith('audio/') || AUDIO_EXTENSION.test(entry.name)) {
+    return 'audio';
+  }
+
+  if (mimeType.startsWith('video/') || VIDEO_EXTENSION.test(entry.name)) {
+    return 'video';
+  }
+
+  if (mimeType === 'application/pdf' || PDF_EXTENSION.test(entry.name)) {
+    return 'pdf';
+  }
+
+  if (
+    mimeType.startsWith('text/') ||
+    mimeType === 'application/json' ||
+    /\.(md|txt|json|csv|log|ts|tsx|js|jsx|css|html|xml|yml|yaml)$/i.test(entry.name)
+  ) {
+    return 'text';
+  }
+
+  return 'none';
+}
+
 function FilePreview({
   entry,
   className,
@@ -176,11 +239,8 @@ function FilePreview({
   labels: FileExplorerLabels;
 }) {
   const [text, setText] = useState<string | null>(null);
-  const isImage = entry.mimeType?.startsWith('image/');
-  const isText =
-    entry.mimeType?.startsWith('text/') ||
-    entry.mimeType === 'application/json' ||
-    /\.(md|txt|json|csv|log|ts|tsx|js|jsx|css|html|xml|yml|yaml)$/i.test(entry.name);
+  const kind = getFilePreviewKind(entry);
+  const isText = kind === 'text';
 
   useEffect(() => {
     if (!isText || !entry.url || typeof fetch !== 'function') {
@@ -196,15 +256,33 @@ function FilePreview({
     return () => controller.abort();
   }, [entry.url, isText]);
 
-  if (isImage && entry.url) {
+  if (kind === 'image' && entry.url) {
     return <img className={className} src={entry.url} alt={entry.name} />;
+  }
+
+  if (kind === 'audio' && entry.url) {
+    return (
+      // eslint-disable-next-line jsx-a11y/media-has-caption -- previews user-supplied media; captions belong to the file/player.
+      <audio className={className} src={entry.url} controls aria-label={entry.name} />
+    );
+  }
+
+  if (kind === 'video' && entry.url) {
+    return (
+      // eslint-disable-next-line jsx-a11y/media-has-caption -- previews user-supplied media; captions belong to the file/player.
+      <video className={className} src={entry.url} controls aria-label={entry.name} />
+    );
+  }
+
+  if (kind === 'pdf' && entry.url) {
+    return <iframe className={className} src={entry.url} title={entry.name} />;
   }
 
   if (isText && text !== null) {
     return <pre className={className}>{text}</pre>;
   }
 
-  return <p className={className}>{labels.empty}</p>;
+  return <p className={className}>{labels.noPreview}</p>;
 }
 
 export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props, ref) => {
@@ -303,6 +381,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       menuLabel: (name) => t('fileExplorer.menuLabel', 'Actions for {name}', { name }),
       preview: (name) => t('fileExplorer.preview', 'Preview {name}', { name }),
       closePreview: t('fileExplorer.closePreview', 'Close preview'),
+      noPreview: t('fileExplorer.noPreview', 'No preview available'),
       uploadProgress: (name, percent) =>
         t('fileExplorer.uploadProgress', 'Uploading {name} ({percent}%)', { name, percent }),
       uploadError: (name) => t('fileExplorer.uploadError', 'Upload failed: {name}', { name }),
@@ -568,6 +647,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       ? selectedEntries[0]
       : undefined;
   const showPreview = !!previewEntry && !previewDismissed;
+  const previewKind = previewEntry ? getFilePreviewKind(previewEntry) : 'none';
   const selectedCanRead = selectedEntries.length > 0 && selectedEntries.every(canReadEntry);
   const selectedCanWrite = selectedEntries.length > 0 && selectedEntries.every(canWriteEntry);
   const selectedCanDelete = selectedEntries.length > 0 && selectedEntries.every(canDeleteEntry);
@@ -1018,10 +1098,20 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }
   };
 
-  const moveEntriesTo = async (destination: string) => {
+  const moveEntriesTo = async (destination: string, externalPaths: string[] = []) => {
     const movable = dragEntries?.filter(canWriteEntry) ?? [];
+    const localPaths = new Set(movable.map((entry) => entry.path));
+    const paths = [
+      ...movable.map((entry) => entry.path),
+      ...externalPaths.filter(
+        (externalPath) =>
+          !localPaths.has(externalPath) &&
+          externalPath !== destination &&
+          !destination.startsWith(`${externalPath}/`)
+      )
+    ];
 
-    if (!provider.move || movable.length === 0) {
+    if (!provider.move || paths.length === 0) {
       setDragEntries(null);
       setDropTarget(null);
       return;
@@ -1031,11 +1121,12 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     setDropTarget(null);
 
     try {
-      await provider.move(
-        movable.map((entry) => entry.path),
-        destination
-      );
-      onMove?.(movable, destination);
+      await provider.move(paths, destination);
+
+      if (movable.length > 0) {
+        onMove?.(movable, destination);
+      }
+
       applySelection([], sortedEntries);
       setRefreshToken((token) => token + 1);
     } catch (reason) {
@@ -1061,15 +1152,21 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('application/x-nebular-file-explorer', '1');
+      event.dataTransfer.setData(
+        EXTERNAL_DRAG_MIME,
+        JSON.stringify(draggedSelection.map((dragged) => dragged.path))
+      );
     }
   };
 
   const handleFolderDragOver = (entry: FileEntry, event: React.DragEvent) => {
+    const externalDrag = event.dataTransfer?.types?.includes(EXTERNAL_DRAG_MIME);
+
     if (
       entry.type !== 'folder' ||
       !canWriteEntry(entry) ||
-      !dragEntries ||
-      dragEntries.some((dragged) => dragged.path === entry.path)
+      (!dragEntries && !externalDrag) ||
+      dragEntries?.some((dragged) => dragged.path === entry.path)
     ) {
       return;
     }
@@ -1085,13 +1182,19 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const handleFolderDrop = (entry: FileEntry, event: React.DragEvent) => {
-    if (entry.type !== 'folder' || !canWriteEntry(entry) || !dragEntries) {
+    if (entry.type !== 'folder' || !canWriteEntry(entry)) {
+      return;
+    }
+
+    const externalPaths = readExternalDragPaths(event);
+
+    if (!dragEntries && externalPaths.length === 0) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
-    moveEntriesTo(entry.path).catch(() => undefined);
+    moveEntriesTo(entry.path, externalPaths).catch(() => undefined);
   };
 
   const updateUpload = useCallback((id: string, patch: Partial<UploadQueueItem>) => {
@@ -1539,6 +1642,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         } as React.CSSProperties
       }
       onDragOver={(event) => {
+        const externalDrag = event.dataTransfer?.types?.includes(EXTERNAL_DRAG_MIME);
+
+        if (externalDrag && provider.move && !readOnly) {
+          event.preventDefault();
+          return;
+        }
+
         if (provider.upload && !readOnly) {
           event.preventDefault();
           setDragging(true);
@@ -1552,6 +1662,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       onDrop={(event) => {
         if (dragEntries) {
           setDropTarget(null);
+          return;
+        }
+
+        const externalPaths = readExternalDragPaths(event);
+
+        if (externalPaths.length > 0 && provider.move && !readOnly) {
+          event.preventDefault();
+          setDragging(false);
+          moveEntriesTo(path, externalPaths).catch(() => undefined);
           return;
         }
 
@@ -2032,11 +2151,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               <FilePreview
                 entry={previewEntry}
                 labels={labels}
-                className={
-                  previewEntry.mimeType?.startsWith('image/')
-                    ? cx(classes.previewImage)
-                    : cx(classes.previewText)
-                }
+                className={cx(
+                  previewKind === 'image'
+                    ? classes.previewImage
+                    : previewKind === 'audio' || previewKind === 'video'
+                      ? classes.previewMedia
+                      : previewKind === 'pdf'
+                        ? classes.previewPdf
+                        : classes.previewText
+                )}
               />
             )}
           </aside>

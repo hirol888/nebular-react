@@ -51,6 +51,32 @@ const seed: FileEntry[] = [
   }
 ];
 
+function createDataTransfer() {
+  const store = new Map<string, string>();
+  const dataTransfer = {
+    types: [] as string[],
+    effectAllowed: 'all',
+    dropEffect: 'none',
+    files: [] as unknown as FileList,
+    setData(type: string, value: string) {
+      store.set(type, value);
+
+      if (!dataTransfer.types.includes(type)) {
+        dataTransfer.types.push(type);
+      }
+    },
+    getData(type: string) {
+      return store.get(type) ?? '';
+    },
+    clearData() {
+      store.clear();
+      dataTransfer.types = [];
+    }
+  };
+
+  return dataTransfer;
+}
+
 function createProvider() {
   return createMemoryFileSystemProvider(seed);
 }
@@ -685,6 +711,32 @@ describe('FileExplorerDualPane', () => {
     expect(separator).toHaveAttribute('aria-valuenow', '90');
   });
 
+  it('moves a dragged entry between panes', async () => {
+    const provider = createProvider();
+    const move = jest.spyOn(provider, 'move');
+    const { container } = render(
+      <FileExplorerDualPane
+        provider={provider}
+        defaultPrimaryPath="/"
+        defaultSecondaryPath="/Documents"
+      />
+    );
+
+    await screen.findByText('README.md');
+    await screen.findByText('notes.md');
+
+    const dataTransfer = createDataTransfer();
+    fireEvent.dragStart(screen.getByRole('option', { name: /README\.md/ }), { dataTransfer });
+
+    const secondary = container.querySelector('[data-pane="secondary"]') as HTMLElement;
+    const explorerRoot = secondary.firstElementChild as HTMLElement;
+
+    fireEvent.dragOver(explorerRoot, { dataTransfer });
+    fireEvent.drop(explorerRoot, { dataTransfer });
+
+    await waitFor(() => expect(move).toHaveBeenCalledWith(['/README.md'], '/Documents'));
+  });
+
   it('has no accessibility violations in dual-pane mode', async () => {
     const { container } = render(
       <FileExplorerDualPane
@@ -698,5 +750,88 @@ describe('FileExplorerDualPane', () => {
     await screen.findByText('notes.md');
 
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe('FileExplorer media preview', () => {
+  const mediaSeed: FileEntry[] = [
+    {
+      id: 'track',
+      name: 'track.mp3',
+      path: '/track.mp3',
+      type: 'file',
+      mimeType: 'audio/mpeg',
+      size: 1024,
+      url: 'data:audio/mpeg;base64,AAAA'
+    },
+    {
+      id: 'movie',
+      name: 'movie.mp4',
+      path: '/movie.mp4',
+      type: 'file',
+      mimeType: 'video/mp4',
+      size: 2048,
+      url: 'data:video/mp4;base64,AAAA'
+    },
+    {
+      id: 'manual',
+      name: 'manual.pdf',
+      path: '/manual.pdf',
+      type: 'file',
+      mimeType: 'application/pdf',
+      size: 4096,
+      url: 'data:application/pdf;base64,AAAA'
+    },
+    {
+      id: 'photo',
+      name: 'photo.png',
+      path: '/photo.png',
+      type: 'file',
+      size: 512,
+      url: 'data:image/png;base64,AAAA'
+    }
+  ];
+
+  it('renders audio, video, PDF and image previews', async () => {
+    const user = userEvent.setup();
+
+    render(<FileExplorer provider={createMemoryFileSystemProvider(mediaSeed)} />);
+
+    await screen.findByText('track.mp3');
+    await user.click(screen.getByRole('option', { name: /track\.mp3/ }));
+    expect(screen.getByLabelText('track.mp3').tagName).toBe('AUDIO');
+
+    await user.click(screen.getByRole('option', { name: /movie\.mp4/ }));
+    expect(screen.getByLabelText('movie.mp4').tagName).toBe('VIDEO');
+
+    await user.click(screen.getByRole('option', { name: /manual\.pdf/ }));
+    expect(screen.getByTitle('manual.pdf').tagName).toBe('IFRAME');
+
+    await user.click(screen.getByRole('option', { name: /photo\.png/ }));
+    expect(screen.getByAltText('photo.png').tagName).toBe('IMG');
+  });
+
+  it('falls back to the empty message for unsupported files', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FileExplorer
+        provider={createMemoryFileSystemProvider([
+          {
+            id: 'archive',
+            name: 'archive.zip',
+            path: '/archive.zip',
+            type: 'file',
+            mimeType: 'application/zip',
+            size: 10
+          }
+        ])}
+      />
+    );
+
+    await screen.findByText('archive.zip');
+    await user.click(screen.getByRole('option', { name: /archive\.zip/ }));
+
+    expect(screen.getByText('No preview available')).toBeInTheDocument();
   });
 });
