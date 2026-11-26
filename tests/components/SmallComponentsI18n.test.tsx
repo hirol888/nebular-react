@@ -86,7 +86,7 @@ describe('Small components i18n', () => {
 
     render(<NotificationCenter notifications={notifications} />);
 
-    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+    await user.click(screen.getByRole('button', { name: /Notifications/ }));
 
     expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mark all as read' })).toBeInTheDocument();
@@ -119,8 +119,12 @@ describe('Small components i18n', () => {
     expect(screen.getByRole('button', { name: 'Fechar alerta' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Limpar' })).toBeInTheDocument();
     expect(screen.getAllByPlaceholderText('Pesquisar')).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Mover selecionados para a direita' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Mover selecionados para a esquerda' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Mover selecionados para a direita' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Mover selecionados para a esquerda' })
+    ).toBeInTheDocument();
   });
 
   it('SmallComponentsI18n_ProviderPtBr_ShouldTranslateEmojiPickerLabels', async () => {
@@ -160,13 +164,13 @@ describe('Small components i18n', () => {
       </NebularProvider>
     );
 
-    expect(screen.getByRole('button', { name: 'Notificações' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Notificações/ })).toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Notificações' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Notificações' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Marcar todas como lidas' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Limpar' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Notificações' }));
+    await user.click(screen.getByRole('button', { name: /Notificações/ }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
