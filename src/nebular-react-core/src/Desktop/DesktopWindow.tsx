@@ -126,6 +126,18 @@ function DesktopWindowFrameComponent({
   const snapRef = useRef<DesktopSnapPosition | null>(null);
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
   const tabIdBase = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const [snapMenuOpen, setSnapMenuOpen] = useState(false);
+  const [snapMenuPosition, setSnapMenuPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const [interacting, setInteracting] = useState(false);
+  const maximizeButtonRef = useRef<HTMLButtonElement>(null);
+  const snapMenuRef = useRef<HTMLDivElement>(null);
+  const snapMenuCloseTimerRef = useRef<number | null>(null);
+  const snapFocusPendingRef = useRef<'first' | 'last' | null>(null);
+  const suppressSnapMenuRef = useRef(false);
+  const snapMenuId = `${tabIdBase}-snap-menu`;
   const tabs = windowState.tabs ?? [];
   const activeTab = getActiveWindowTab(windowState);
   const activeTabIndex = activeTab ? tabs.findIndex((tab) => tab.id === activeTab.id) : -1;
@@ -191,6 +203,37 @@ function DesktopWindowFrameComponent({
   }, [windowState.id, windowState.modal, hidden]);
 
   useEffect(() => () => onSnapPreview(null), [onSnapPreview]);
+
+  useEffect(
+    () => () => {
+      if (snapMenuCloseTimerRef.current !== null) {
+        window.clearTimeout(snapMenuCloseTimerRef.current);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!snapMenuOpen) {
+      return;
+    }
+
+    const pending = snapFocusPendingRef.current;
+
+    if (!pending) {
+      return;
+    }
+
+    snapFocusPendingRef.current = null;
+    const items = snapMenuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+
+    if (!items || items.length === 0) {
+      return;
+    }
+
+    const target = pending === 'first' ? items[0] : items[items.length - 1];
+    target?.focus();
+  }, [snapMenuOpen]);
 
   const applyInteraction = (clientX: number, clientY: number) => {
     const interaction = interactionRef.current;
@@ -321,6 +364,7 @@ function DesktopWindowFrameComponent({
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    setInteracting(true);
     interactionRef.current = {
       mode,
       direction,
@@ -353,6 +397,7 @@ function DesktopWindowFrameComponent({
 
     interactionRef.current = null;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
+    setInteracting(false);
 
     const snap = snapRef.current;
     snapRef.current = null;
@@ -390,6 +435,7 @@ function DesktopWindowFrameComponent({
   const handlePointerCancel = (event: React.PointerEvent<HTMLElement>) => {
     interactionRef.current = null;
     snapRef.current = null;
+    setInteracting(false);
     onSnapPreview(null);
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
@@ -590,6 +636,115 @@ function DesktopWindowFrameComponent({
     onSnap(windowState.id, position);
   };
 
+  const cancelSnapMenuClose = () => {
+    if (snapMenuCloseTimerRef.current !== null) {
+      window.clearTimeout(snapMenuCloseTimerRef.current);
+      snapMenuCloseTimerRef.current = null;
+    }
+  };
+
+  const scheduleSnapMenuClose = () => {
+    cancelSnapMenuClose();
+
+    snapMenuCloseTimerRef.current = window.setTimeout(() => {
+      snapMenuCloseTimerRef.current = null;
+
+      if (!snapMenuRef.current?.contains(document.activeElement)) {
+        setSnapMenuOpen(false);
+      }
+    }, 140);
+  };
+
+  const showSnapMenu = () => {
+    if (interactionRef.current) {
+      return;
+    }
+
+    cancelSnapMenuClose();
+    const rect = maximizeButtonRef.current?.getBoundingClientRect();
+    const menuWidth = 240;
+    const maxLeft =
+      typeof window === 'undefined' ? 8 : Math.max(8, window.innerWidth - menuWidth - 8);
+    const left = rect ? Math.min(Math.max(8, rect.right - menuWidth), maxLeft) : 8;
+
+    setSnapMenuPosition({ top: (rect?.bottom ?? 0) + 6, left });
+    setSnapMenuOpen(true);
+  };
+
+  const focusMaximizeButton = () => {
+    if (!maximizeButtonRef.current) {
+      return;
+    }
+
+    // Focusing the button reopens the flyout through onFocus; suppress that
+    // single programmatic focus so Escape/selection can close it for good.
+    suppressSnapMenuRef.current = true;
+    maximizeButtonRef.current.focus();
+    suppressSnapMenuRef.current = false;
+  };
+
+  const closeSnapMenu = (focusButton = false) => {
+    cancelSnapMenuClose();
+    setSnapMenuOpen(false);
+
+    if (focusButton) {
+      focusMaximizeButton();
+    }
+  };
+
+  const focusSnapMenuItem = (edge: 'first' | 'last') => {
+    const items = snapMenuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+
+    if (!items || items.length === 0) {
+      return false;
+    }
+
+    const target = edge === 'first' ? items[0] : items[items.length - 1];
+    target?.focus();
+    return !!target;
+  };
+
+  const handleSnapMenuKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeSnapMenu(true);
+      return;
+    }
+
+    const items = Array.from(
+      snapMenuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
+    );
+
+    if (items.length === 0) {
+      return;
+    }
+
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    let nextIndex: number | null = null;
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (currentIndex + 1) % items.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (currentIndex - 1 + items.length) % items.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = items.length - 1;
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      event.stopPropagation();
+      items[nextIndex]?.focus();
+    }
+  };
+
+  const applySnapFromMenu = (position: DesktopSnapPosition) => {
+    snapWindow(position);
+    closeSnapMenu(true);
+  };
+
   const handleTitleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (isMaximized) {
       if (event.altKey && event.key === 'ArrowDown') {
@@ -731,6 +886,24 @@ function DesktopWindowFrameComponent({
         height: windowState.height,
         zIndex
       };
+  const snapLayouts: { position: DesktopSnapPosition; label: string; wide?: boolean }[] = [
+    { position: 'left', label: labels.snapLeft },
+    { position: 'right', label: labels.snapRight },
+    { position: 'top-left', label: labels.snapTopLeft },
+    { position: 'top-right', label: labels.snapTopRight },
+    { position: 'bottom-left', label: labels.snapBottomLeft },
+    { position: 'bottom-right', label: labels.snapBottomRight },
+    { position: 'maximize', label: labels.snapMaximize, wide: true }
+  ];
+  const snapPreviewClassNames: Record<DesktopSnapPosition, string> = {
+    left: classes.snapMiniLeft,
+    right: classes.snapMiniRight,
+    'top-left': classes.snapMiniTopLeft,
+    'top-right': classes.snapMiniTopRight,
+    'bottom-left': classes.snapMiniBottomLeft,
+    'bottom-right': classes.snapMiniBottomRight,
+    maximize: classes.snapMiniMaximize
+  };
 
   return (
     <DesktopWindowContext.Provider value={windowContext}>
@@ -739,7 +912,8 @@ function DesktopWindowFrameComponent({
         className={cx(classes.window, {
           [classes.windowMaximized]: isMaximized,
           [classes.windowBlocked]: hasModalChild,
-          [classes.windowInactive]: !active && !hasModalChild
+          [classes.windowInactive]: !active && !hasModalChild,
+          [classes.windowInteracting]: interacting
         })}
         style={style}
         role="dialog"
@@ -791,18 +965,104 @@ function DesktopWindowFrameComponent({
               </button>
             )}
             {canMaximize && (
-              <button
-                type="button"
-                className={cx(classes.windowControl)}
-                aria-label={isMaximized ? labels.restore(title) : labels.maximize(title)}
-                onClick={toggleMaximize}
+              <div
+                className={cx(classes.snapLayoutHost)}
+                onPointerEnter={() => {
+                  cancelSnapMenuClose();
+                  showSnapMenu();
+                }}
+                onPointerLeave={scheduleSnapMenuClose}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    cancelSnapMenuClose();
+                    setSnapMenuOpen(false);
+                  }
+                }}
               >
-                <Icon
-                  icon={isMaximized ? 'collapse-outline' : 'expand-outline'}
-                  pack="nebular-essentials"
-                  aria-hidden="true"
-                />
-              </button>
+                <button
+                  ref={maximizeButtonRef}
+                  type="button"
+                  className={cx(classes.windowControl)}
+                  aria-label={isMaximized ? labels.restore(title) : labels.maximize(title)}
+                  aria-haspopup="menu"
+                  aria-expanded={snapMenuOpen}
+                  aria-controls={snapMenuOpen ? snapMenuId : undefined}
+                  title={labels.snapLayout}
+                  onClick={() => {
+                    closeSnapMenu();
+                    toggleMaximize();
+                  }}
+                  onFocus={() => {
+                    if (!suppressSnapMenuRef.current) {
+                      showSnapMenu();
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      const edge = event.key === 'ArrowDown' ? 'first' : 'last';
+
+                      if (snapMenuOpen && focusSnapMenuItem(edge)) {
+                        return;
+                      }
+
+                      snapFocusPendingRef.current = edge;
+                      showSnapMenu();
+                    }
+                  }}
+                >
+                  <Icon
+                    icon={isMaximized ? 'collapse-outline' : 'expand-outline'}
+                    pack="nebular-essentials"
+                    aria-hidden="true"
+                  />
+                </button>
+                {snapMenuOpen && (
+                  <div
+                    ref={snapMenuRef}
+                    id={snapMenuId}
+                    className={cx(classes.snapMenu)}
+                    style={snapMenuPosition ?? undefined}
+                    role="menu"
+                    aria-label={labels.snapLayout}
+                    tabIndex={-1}
+                    onPointerEnter={cancelSnapMenuClose}
+                    onPointerMove={cancelSnapMenuClose}
+                    onKeyDown={handleSnapMenuKeyDown}
+                  >
+                    {snapLayouts.map((option) => (
+                      <button
+                        key={option.position}
+                        type="button"
+                        role="menuitem"
+                        className={cx(classes.snapMenuItem, {
+                          [classes.snapMenuItemWide]: option.wide
+                        })}
+                        aria-label={option.label}
+                        title={option.label}
+                        tabIndex={-1}
+                        onClick={() => applySnapFromMenu(option.position)}
+                      >
+                        <span
+                          className={cx(classes.snapMini, {
+                            [classes.snapMiniWide]: option.wide
+                          })}
+                          aria-hidden="true"
+                        >
+                          <span
+                            className={cx(
+                              classes.snapMiniFill,
+                              snapPreviewClassNames[option.position]
+                            )}
+                          />
+                        </span>
+                        <span className={cx(classes.snapMenuLabel)}>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             {windowState.closable !== false && app?.closable !== false && (
               <button

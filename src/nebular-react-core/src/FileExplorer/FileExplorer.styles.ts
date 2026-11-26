@@ -395,6 +395,11 @@ export const useStyles = createStyles((_theme) => ({
     backgroundColor: 'var(--file-explorer-selected-background-color, rgba(51, 102, 255, 0.12))'
   },
 
+  rowDisabled: {
+    opacity: 0.55,
+    cursor: 'default'
+  },
+
   rowDropTarget: {
     outline: '2px dashed var(--color-primary-500, #3366ff)',
     outlineOffset: '-2px',
@@ -470,6 +475,11 @@ export const useStyles = createStyles((_theme) => ({
   tileSelected: {
     borderColor: 'var(--color-primary-500, #3366ff)',
     backgroundColor: 'var(--file-explorer-selected-background-color, rgba(51, 102, 255, 0.12))'
+  },
+
+  tileDisabled: {
+    opacity: 0.55,
+    cursor: 'default'
   },
 
   tileDropTarget: {
@@ -667,13 +677,78 @@ export const useStyles = createStyles((_theme) => ({
     wordBreak: 'break-word'
   },
 
-  uploadBar: {
+  paginationBar: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.35rem 0.5rem',
+    justifyContent: 'center',
+    flex: '0 0 auto',
+    padding: '0.3rem 0.5rem',
     borderTop: '1px solid var(--file-explorer-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--file-explorer-toolbar-background-color, var(--background-basic-color-1, #ffffff))'
+  },
+
+  uploadPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    flex: '0 0 auto',
+    maxHeight: '8rem',
+    overflowY: 'auto',
+    padding: '0.3rem 0.5rem',
+    borderTop: '1px solid var(--file-explorer-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--file-explorer-toolbar-background-color, var(--background-basic-color-1, #ffffff))',
     fontSize: '0.75rem'
+  },
+
+  uploadItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    minHeight: '1.45rem'
+  },
+
+  uploadName: {
+    flex: '0 1 9rem',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  uploadPercent: {
+    flex: '0 0 auto',
+    color: 'var(--text-hint-color, #8f9bb3)',
+    fontVariantNumeric: 'tabular-nums'
+  },
+
+  uploadState: {
+    flex: '0 1 auto',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  uploadStateSuccess: {
+    color: 'var(--color-success-500, #00d68f)'
+  },
+
+  uploadStateError: {
+    color: 'var(--color-danger-500, #ff3d71)'
+  },
+
+  uploadStateCanceled: {
+    color: 'var(--text-hint-color, #8f9bb3)'
+  },
+
+  uploadActions: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.1rem',
+    flex: '0 0 auto',
+    marginInlineStart: 'auto'
   },
 
   uploadTrack: {
@@ -720,13 +795,18 @@ export const useStyles = createStyles((_theme) => ({
     textAlign: 'start',
     cursor: 'pointer',
 
-    '&:hover': {
+    '&:hover:not(:disabled)': {
       backgroundColor: 'var(--file-explorer-hover-color, var(--background-basic-color-2, #f7f9fc))'
     },
 
     '&:focus-visible': {
       outline: '2px solid var(--color-primary-500, #3366ff)',
       outlineOffset: '-1px'
+    },
+
+    '&:disabled': {
+      opacity: 0.45,
+      cursor: 'default'
     }
   },
 

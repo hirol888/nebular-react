@@ -19,6 +19,7 @@ export type {
 } from './FileExplorerDualPane.types';
 export type {
   FileEntry,
+  FileEntryPermissions,
   FileExplorerLabels,
   FileExplorerProps,
   FileExplorerSelectionMode,
@@ -26,9 +27,12 @@ export type {
   FileExplorerSortDirection,
   FileExplorerView,
   FileListOptions,
+  FileListResponse,
+  FileListResult,
   FileSearchOptions,
   FileSystemProvider,
-  FileUploadProgress
+  FileUploadProgress,
+  FileUploadStatus
 } from './FileExplorer.types';
 export type { FileExplorerStylesNames } from './FileExplorer.styles';
 export type { FileExplorerDualPaneStylesNames } from './FileExplorerDualPane.styles';

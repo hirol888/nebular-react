@@ -483,3 +483,31 @@ export function PersistedLayout() {
     </div>
   );
 }
+
+export function WindowSwitcherAndSnapLayouts() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+        <strong>Alt+Tab and snap layouts</strong>
+        <span style={{ fontSize: '0.8rem' }}>
+          Hold Alt and press Tab (or Alt+Shift+Tab) to open the window switcher. Release Alt to
+          focus the highlighted window, or press Escape to cancel.
+        </span>
+        <span style={{ fontSize: '0.8rem' }}>
+          Hover or focus the maximize control of any window to reveal the snap layout flyout, then
+          pick a half, a quadrant, or maximize.
+        </span>
+      </div>
+      <div style={{ height: '32rem' }}>
+        <Desktop
+          apps={apps}
+          defaultWindows={[
+            windowState('switcher-notes', 'notes', 48, 48, 1),
+            windowState('switcher-tasks', 'tasks', 132, 96, 2),
+            windowState('switcher-settings', 'settings', 216, 144, 3)
+          ]}
+        />
+      </div>
+    </div>
+  );
+}

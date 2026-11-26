@@ -1884,6 +1884,13 @@ const apps = [
 
 - Arraste uma janela até a borda esquerda/direita para ocupar metade da área; cantos
   formam quartos e a borda superior maximiza. Um preview mostra o destino antes de soltar.
+- O botão de maximizar abre um **flyout de snap layouts** por hover/foco com metades,
+  quadrantes e maximizar.
+- `Alt+Tab`/`Alt+Shift+Tab` mostram um **switcher visual** com ícone, título, workspace,
+  display e estado; soltar Alt, `Enter`/`Espaço` ou clicar confirma, `Escape` cancela.
+- Maximizar, restaurar, snap e mover entre displays têm transição curta; drag/resize
+  desativam a transição para manter resposta imediata. `prefers-reduced-motion` e
+  `animation={false}` desligam as animações.
 - `snapThreshold` controla a distância da borda (padrão `24`).
 - Com a title bar focada: setas movem a janela (`Shift` move 1px), `Alt+seta` faz snap,
   `Alt+Shift+seta` redimensiona, `Alt+seta para baixo` restaura e duplo clique
@@ -1972,6 +1979,12 @@ const apps = [
   ```
   O estado entra no snapshot e é restaurado junto com a janela (ideal para Explorer, abas,
   filtros e documentos).
+- `layoutAdapter` também pode usar templates: `createDesktopLayoutTemplate`,
+  `sanitizeDesktopLayout`, `exportDesktopLayout` e `importDesktopLayout` validam/limitam
+  snapshots antes de gravar ou restaurar.
+- Colaboração same-origin: `createBroadcastCollaboration` propaga presença e layout via
+  `BroadcastChannel`; para multi-usuário, implemente `DesktopCollaborationAdapter` sobre
+  WebSocket/SignalR mantendo o mesmo contrato.
 - `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
   pode ser definido por app/janela.
 - `alwaysOnTop` mantém a janela acima das demais; `skipTaskbar` oculta o botão da taskbar;
@@ -2103,6 +2116,13 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   ordenação, seleção única/múltipla (Ctrl/Cmd e Shift), teclado, copiar/cortar/colar
   (`Ctrl/Cmd+C/X/V`), arrastar para pasta, abas (`tabs`), renomear inline (`F2`), excluir com
   confirmação (`Del`), nova pasta, upload por input/drag-and-drop e preview de imagem/texto.
+- Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
+- `FileEntry.permissions` (`read`/`write`/`delete`/`download`) desabilita ações e atenua
+  entradas sem leitura; `readOnly` continua global.
+- Providers podem retornar `{ entries, total, hasMore }` para paginação (`page` 0-based,
+  `pageSize`); a UI mostra “Carregar mais”.
+- Listas acima de `virtualizeThreshold` usam virtualização em list/details, mantendo
+  seleção, teclado e `aria-posinset`/`aria-setsize`.
 - `sidebar`, `renderIcon`, `renderPreview`, `labels`, `readOnly`, `accept`, `multiple` e
   `emptyState` permitem customização.
 - `FileExplorerDualPane` renderiza dois explorers independentes com divisor ajustável por

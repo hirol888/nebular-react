@@ -274,6 +274,8 @@ export interface DesktopLabels {
   reopenClosedWindow: string;
   overview: string;
   closeOverview: string;
+  windowSwitcher: string;
+  windowSwitcherHint: string;
 }
 
 export interface DesktopWindowContextValue {
@@ -392,7 +394,7 @@ export interface DesktopProps
   /** Switches to the compact layout below `compactBreakpoint`. */
   autoCompact?: boolean;
   compactBreakpoint?: number;
-  /** Enables Alt+Tab cycling inside the desktop. */
+  /** Enables Alt+Tab cycling inside the desktop with a visual window switcher. */
   keyboardShortcuts?: boolean;
   /** Initial placement for windows that do not specify x/y. */
   initialPosition?: 'cascade' | 'center';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
@@ -1566,6 +1566,178 @@ describe('Desktop', () => {
 
     await user.click(screen.getByRole('button', { name: 'Start' }));
 
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('shows the Alt+Tab switcher and focuses the selected window when Alt is released', async () => {
+    render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow(),
+          createWindow({
+            id: 'settings-window',
+            appId: 'settings',
+            title: 'Settings',
+            zIndex: 2
+          })
+        ]}
+      />
+    );
+
+    fireEvent.keyDown(screen.getByRole('region', { name: 'Desktop' }), {
+      key: 'Tab',
+      altKey: true
+    });
+
+    const switcher = screen.getByRole('dialog', { name: 'Switch windows' });
+    const listbox = within(switcher).getByRole('listbox', { name: 'Switch windows' });
+    const options = within(listbox).getAllByRole('option');
+
+    expect(options).toHaveLength(2);
+    expect(options[0]).toHaveAttribute('aria-selected', 'true');
+    expect(options[1]).toHaveAttribute('aria-selected', 'false');
+    expect(listbox).toHaveFocus();
+    expect(within(options[0]).getByText('Notes')).toBeInTheDocument();
+
+    fireEvent.keyDown(listbox, { key: 'Tab', altKey: true });
+    expect(options[0]).toHaveAttribute('aria-selected', 'false');
+    expect(options[1]).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyDown(listbox, { key: 'Tab', altKey: true, shiftKey: true });
+    expect(options[0]).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyUp(listbox, { key: 'Alt' });
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Switch windows' })).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toHaveFocus();
+  });
+
+  it('cycles the Alt+Tab switcher backwards and cancels with Escape', () => {
+    render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow(),
+          createWindow({
+            id: 'settings-window',
+            appId: 'settings',
+            title: 'Settings',
+            zIndex: 2
+          }),
+          createWindow({
+            id: 'preview-window',
+            appId: undefined,
+            title: 'Preview',
+            zIndex: 3
+          })
+        ]}
+      />
+    );
+
+    fireEvent.keyDown(screen.getByRole('region', { name: 'Desktop' }), {
+      key: 'Tab',
+      altKey: true,
+      shiftKey: true
+    });
+
+    const switcher = screen.getByRole('dialog', { name: 'Switch windows' });
+    const listbox = within(switcher).getByRole('listbox', { name: 'Switch windows' });
+
+    expect(within(listbox).getAllByRole('option')[1]).toHaveAttribute('aria-selected', 'true');
+
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog', { name: 'Switch windows' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Preview' })).not.toHaveFocus();
+    expect(document.querySelector('[data-desktop-area]')).toHaveFocus();
+  });
+
+  it('has no accessibility violations in the Alt+Tab switcher', async () => {
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow(),
+          createWindow({
+            id: 'settings-window',
+            appId: 'settings',
+            title: 'Settings',
+            zIndex: 2
+          })
+        ]}
+      />
+    );
+
+    fireEvent.keyDown(screen.getByRole('region', { name: 'Desktop' }), {
+      key: 'Tab',
+      altKey: true
+    });
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('shows snap layout zones on hover and applies a quadrant snap', async () => {
+    const user = userEvent.setup();
+    const onWindowSnap = jest.fn();
+    const { container } = render(
+      <Desktop apps={apps} defaultWindows={[createWindow()]} onWindowSnap={onWindowSnap} />
+    );
+    mockDesktopArea(container);
+
+    const maximize = screen.getByRole('button', { name: 'Maximize Notes' });
+
+    expect(maximize).toHaveAttribute('aria-haspopup', 'menu');
+    expect(maximize).toHaveAttribute('aria-expanded', 'false');
+
+    await user.hover(maximize);
+
+    const menu = screen.getByRole('menu', { name: 'Snap layout' });
+    expect(maximize).toHaveAttribute('aria-expanded', 'true');
+    expect(within(menu).getAllByRole('menuitem')).toHaveLength(7);
+
+    await user.click(within(menu).getByRole('menuitem', { name: 'Top right quarter' }));
+
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toHaveStyle({
+      left: '400px',
+      top: '0px',
+      width: '400px',
+      height: '300px'
+    });
+    expect(onWindowSnap).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'notes-window' }),
+      'top-right'
+    );
+    expect(screen.queryByRole('menu', { name: 'Snap layout' })).not.toBeInTheDocument();
+  });
+
+  it('opens the snap layout menu from the keyboard and closes it with Escape', () => {
+    render(<Desktop apps={apps} defaultWindows={[createWindow()]} />);
+
+    const maximize = screen.getByRole('button', { name: 'Maximize Notes' });
+    act(() => maximize.focus());
+
+    const menu = screen.getByRole('menu', { name: 'Snap layout' });
+    fireEvent.keyDown(maximize, { key: 'ArrowDown' });
+
+    const leftHalf = within(menu).getByRole('menuitem', { name: 'Left half' });
+    expect(leftHalf).toHaveFocus();
+
+    fireEvent.keyDown(leftHalf, { key: 'Escape' });
+
+    expect(screen.queryByRole('menu', { name: 'Snap layout' })).not.toBeInTheDocument();
+    expect(maximize).toHaveFocus();
+  });
+
+  it('has no accessibility violations with the snap layout menu open', async () => {
+    const { container } = render(<Desktop apps={apps} defaultWindows={[createWindow()]} />);
+
+    const maximize = screen.getByRole('button', { name: 'Maximize Notes' });
+    act(() => maximize.focus());
+
+    expect(screen.getByRole('menu', { name: 'Snap layout' })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 });

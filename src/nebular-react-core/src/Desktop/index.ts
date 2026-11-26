@@ -27,6 +27,17 @@ export type {
 } from './Desktop.persistence';
 export type { BroadcastLayoutAdapter } from './Desktop.persistence';
 export type { VersionedLayoutTransport } from './Desktop.persistence';
+export { createBroadcastCollaboration } from './Desktop.collaboration';
+export type { DesktopCollaborationAdapter, DesktopCollaborator } from './Desktop.collaboration';
+export {
+  createDesktopLayoutTemplate,
+  createTemplateWindows,
+  exportDesktopLayout,
+  importDesktopLayout,
+  layoutToTemplateSnapshot,
+  sanitizeDesktopLayout
+} from './Desktop.layouts';
+export type { DesktopLayoutTemplate, SanitizeDesktopLayoutOptions } from './Desktop.layouts';
 export type {
   DesktopApp,
   DesktopContextValue,

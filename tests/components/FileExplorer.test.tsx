@@ -7,7 +7,11 @@ import {
   FileExplorerDualPane,
   createMemoryFileSystemProvider,
   createRestFileSystemProvider,
-  type FileEntry
+  type FileEntry,
+  type FileListOptions,
+  type FileListResult,
+  type FileSystemProvider,
+  type FileUploadProgress
 } from '@nebular-react/core';
 
 const seed: FileEntry[] = [
@@ -49,6 +53,85 @@ const seed: FileEntry[] = [
 
 function createProvider() {
   return createMemoryFileSystemProvider(seed);
+}
+
+function createUploadMockProvider() {
+  const base = createMemoryFileSystemProvider(seed);
+  const attempts = new Map<string, number>();
+  const upload = jest.fn(
+    async (
+      parentPath: string,
+      files: File[],
+      options?: { signal?: AbortSignal; onProgress?(progress: FileUploadProgress): void }
+    ): Promise<FileEntry[]> => {
+      const file = files[0];
+      const attempt = (attempts.get(file.name) ?? 0) + 1;
+      attempts.set(file.name, attempt);
+      const uploaded: FileEntry = {
+        id: `uploaded-${file.name}`,
+        name: file.name,
+        path: `${parentPath}/${file.name}`,
+        type: 'file',
+        size: file.size
+      };
+
+      if (file.name === 'ok.txt') {
+        options?.onProgress?.({ file, percent: 40 });
+        options?.onProgress?.({ file, percent: 100 });
+        return [uploaded];
+      }
+
+      if (file.name === 'retry.txt' && attempt > 1) {
+        options?.onProgress?.({ file, percent: 100 });
+        return [uploaded];
+      }
+
+      if (file.name === 'retry.txt') {
+        throw new Error('network down');
+      }
+
+      options?.onProgress?.({ file, percent: 25 });
+
+      return new Promise<FileEntry[]>((_resolve, reject) => {
+        options?.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      });
+    }
+  );
+
+  return {
+    provider: { ...base, upload } as FileSystemProvider,
+    upload
+  };
+}
+
+function createPaginatedProvider(total = 5, pageSize = 2) {
+  const all: FileEntry[] = Array.from({ length: total }, (_, index) => ({
+    id: `page-${index}`,
+    name: `file-${index + 1}.txt`,
+    path: `/file-${index + 1}.txt`,
+    type: 'file',
+    size: 10 * (index + 1)
+  }));
+
+  const list = jest.fn(
+    async (_path: string, options?: FileListOptions): Promise<FileListResult> => {
+      const page = options?.page ?? 0;
+      const size = options?.pageSize ?? pageSize;
+      const entries = all.slice(page * size, (page + 1) * size);
+      return {
+        entries,
+        total,
+        hasMore: (page + 1) * size < total
+      };
+    }
+  );
+
+  return {
+    provider: { list } as FileSystemProvider,
+    list
+  };
 }
 
 describe('FileExplorer', () => {
@@ -279,6 +362,218 @@ describe('FileExplorer', () => {
     expect(await screen.findByText('upload.txt')).toBeInTheDocument();
   });
 
+  it('tracks multiple uploads independently and supports cancel, retry and dismiss', async () => {
+    const user = userEvent.setup();
+    const { provider, upload } = createUploadMockProvider();
+    const { container } = render(<FileExplorer provider={provider} />);
+
+    await screen.findByText('README.md');
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+    await user.upload(input, [
+      new File(['a'], 'ok.txt', { type: 'text/plain' }),
+      new File(['b'], 'retry.txt', { type: 'text/plain' }),
+      new File(['c'], 'slow.txt', { type: 'text/plain' })
+    ]);
+
+    expect(await screen.findByText('Uploaded ok.txt')).toBeInTheDocument();
+    expect(await screen.findByText('Upload failed: retry.txt')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25');
+    expect(screen.getByRole('progressbar')).toHaveAccessibleName('Uploading slow.txt (25%)');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel upload of slow.txt' }));
+
+    expect(await screen.findByText('Upload canceled: slow.txt')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Retry upload of retry.txt' }));
+
+    expect(await screen.findByText('Uploaded retry.txt')).toBeInTheDocument();
+    expect(upload.mock.calls.every(([, files]) => files.length === 1)).toBe(true);
+    expect(upload).toHaveBeenCalledTimes(4);
+
+    await user.click(screen.getByRole('button', { name: 'Dismiss ok.txt' }));
+
+    await waitFor(() => expect(screen.queryByText('Uploaded ok.txt')).not.toBeInTheDocument());
+  });
+
+  it('blocks actions denied by entry permissions', async () => {
+    const user = userEvent.setup();
+    const onOpen = jest.fn();
+    const download = jest.fn(async () => new Blob(['locked']));
+    const base = createMemoryFileSystemProvider([
+      ...seed,
+      {
+        id: 'audit',
+        name: 'audit.log',
+        path: '/audit.log',
+        type: 'file',
+        size: 400,
+        modifiedAt: '2026-03-01',
+        permissions: { read: false, write: false, delete: false, download: false }
+      },
+      {
+        id: 'contract',
+        name: 'contract.pdf',
+        path: '/contract.pdf',
+        type: 'file',
+        size: 500,
+        modifiedAt: '2026-03-02',
+        permissions: { write: false, delete: false, download: false }
+      },
+      {
+        id: 'shared',
+        name: 'Shared',
+        path: '/Shared',
+        type: 'folder',
+        modifiedAt: '2026-03-03',
+        permissions: { read: false }
+      }
+    ]);
+    const provider: FileSystemProvider = { ...base, download };
+
+    render(<FileExplorer provider={provider} onOpen={onOpen} />);
+
+    await screen.findByText('audit.log');
+    const lockedRow = screen.getByRole('option', { name: /audit\.log/ });
+
+    expect(lockedRow).toHaveAttribute('aria-disabled', 'true');
+    expect(lockedRow).toHaveAttribute('title', expect.stringContaining('Not allowed'));
+
+    await user.click(lockedRow);
+    expect(screen.getByRole('button', { name: 'Rename' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cut' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeDisabled();
+
+    await user.dblClick(lockedRow);
+    expect(onOpen).not.toHaveBeenCalled();
+
+    screen.getByRole('listbox').focus();
+    await user.keyboard('{Delete}');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    fireEvent.contextMenu(lockedRow);
+    expect(screen.getByRole('menuitem', { name: 'Open' })).toBeDisabled();
+    expect(screen.getByRole('menuitem', { name: 'Download' })).toBeDisabled();
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    const readOnlyRow = screen.getByRole('option', { name: /contract\.pdf/ });
+    await user.click(readOnlyRow);
+    expect(screen.getByRole('button', { name: 'Rename' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cut' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeEnabled();
+
+    await user.dblClick(readOnlyRow);
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ path: '/contract.pdf' }));
+
+    await user.dblClick(screen.getByRole('option', { name: /Shared/ }));
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).not.toHaveTextContent('Shared');
+  });
+
+  it('loads additional pages when the provider reports hasMore', async () => {
+    const user = userEvent.setup();
+    const { provider, list } = createPaginatedProvider();
+
+    const { rerender } = render(<FileExplorer provider={provider} pageSize={2} />);
+
+    expect(await screen.findByText('file-1.txt')).toBeInTheDocument();
+    expect(screen.getByText('file-2.txt')).toBeInTheDocument();
+    expect(screen.queryByText('file-3.txt')).not.toBeInTheDocument();
+    expect(list).toHaveBeenNthCalledWith(1, '/', expect.objectContaining({ page: 0, pageSize: 2 }));
+
+    await user.click(screen.getByRole('button', { name: 'Load more' }));
+
+    expect(await screen.findByText('file-3.txt')).toBeInTheDocument();
+    expect(screen.getByText('file-4.txt')).toBeInTheDocument();
+    expect(screen.queryByText('file-5.txt')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Load more' }));
+
+    expect(await screen.findByText('file-5.txt')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
+    );
+
+    rerender(<FileExplorer provider={provider} pageSize={2} path="/Other" />);
+
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith(
+        '/Other',
+        expect.objectContaining({ page: 0, pageSize: 2 })
+      )
+    );
+  });
+
+  it('virtualizes long lists while keeping keyboard navigation', async () => {
+    const user = userEvent.setup();
+    const manyEntries: FileEntry[] = Array.from({ length: 300 }, (_, index) => ({
+      id: `virtual-${index}`,
+      name: `file-${String(index + 1).padStart(3, '0')}.txt`,
+      path: `/file-${String(index + 1).padStart(3, '0')}.txt`,
+      type: 'file',
+      size: 100 + index
+    }));
+
+    render(<FileExplorer provider={createMemoryFileSystemProvider(manyEntries)} />);
+
+    await screen.findByText('file-001.txt');
+    expect(screen.getAllByRole('option').length).toBeLessThan(300);
+
+    const listbox = screen.getByRole('listbox');
+    listbox.focus();
+    await user.keyboard('{End}');
+
+    expect(await screen.findByText('file-300.txt')).toBeInTheDocument();
+    const lastRow = screen.getByRole('option', { name: /file-300\.txt/ });
+    expect(lastRow).toHaveAttribute('aria-selected', 'true');
+    expect(lastRow).toHaveAttribute('aria-setsize', '300');
+    await waitFor(() => expect(lastRow).toHaveFocus());
+    expect(screen.getAllByRole('option').length).toBeLessThan(300);
+
+    await user.click(screen.getByRole('button', { name: 'Details view' }));
+
+    expect(await screen.findByText('file-001.txt')).toBeInTheDocument();
+    expect(screen.getAllByRole('option').length).toBeLessThan(300);
+  });
+
+  it('has no accessibility violations with uploads and restricted entries', async () => {
+    const user = userEvent.setup();
+    const base = createMemoryFileSystemProvider([
+      ...seed,
+      {
+        id: 'audit',
+        name: 'audit.log',
+        path: '/audit.log',
+        type: 'file',
+        permissions: { read: false, write: false, delete: false, download: false }
+      }
+    ]);
+    const provider: FileSystemProvider = {
+      ...base,
+      upload: jest.fn(
+        (_parent: string, _files: File[], options?: { signal?: AbortSignal }) =>
+          new Promise<FileEntry[]>((_resolve, reject) => {
+            options?.signal?.addEventListener('abort', () => {
+              reject(new DOMException('Aborted', 'AbortError'));
+            });
+          })
+      )
+    };
+    const { container } = render(<FileExplorer provider={provider} />);
+
+    await screen.findByText('audit.log');
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+    await user.upload(input, new File(['x'], 'audit-upload.txt', { type: 'text/plain' }));
+    expect(await screen.findByRole('progressbar')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel upload of audit-upload.txt' }));
+    expect(await screen.findByText('Upload canceled: audit-upload.txt')).toBeInTheDocument();
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = render(
       <FileExplorer provider={createProvider()} view="details" sidebar={<span>Sidebar</span>} />
@@ -305,6 +600,34 @@ describe('FileExplorer', () => {
     expect(entries).toEqual([expect.objectContaining({ name: 'remote.txt', path: '/remote.txt' })]);
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.test/files/entries?path=%2F',
+      expect.objectContaining({ credentials: 'same-origin' })
+    );
+  });
+
+  it('maps paginated REST responses and forwards page options', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        entries: [{ id: 'one', name: 'remote.txt', path: '/remote.txt', type: 'file' }],
+        total: 10,
+        hasMore: true
+      })
+    });
+    const provider = createRestFileSystemProvider({
+      endpoint: 'https://api.example.test/files',
+      fetch: fetchMock as unknown as typeof fetch
+    });
+
+    const result = await provider.list('/', { page: 1, pageSize: 5 });
+
+    expect(result).toEqual({
+      entries: [expect.objectContaining({ name: 'remote.txt' })],
+      total: 10,
+      hasMore: true
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.test/files/entries?path=%2F&page=1&pageSize=5',
       expect.objectContaining({ credentials: 'same-origin' })
     );
   });

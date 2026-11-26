@@ -5,14 +5,33 @@ import { Icon } from '../Icon';
 import { useStyles } from './FileExplorer.styles';
 import type {
   FileEntry,
+  FileEntryPermissions,
   FileExplorerLabels,
   FileExplorerProps,
   FileExplorerSortBy,
   FileExplorerSortDirection,
   FileExplorerView,
-  FileUploadProgress
+  FileListResponse,
+  FileListResult,
+  FileUploadStatus
 } from './FileExplorer.types';
 import { FileSystemError, normalizePath, parentPath, pathSegments } from './FileExplorer.providers';
+
+const VIRTUAL_ROW_HEIGHT = 34;
+const VIRTUAL_OVERSCAN = 6;
+const DETAILS_COLUMNS = 'minmax(0, 1fr) 5rem 6rem 8rem';
+
+interface UploadQueueItem {
+  id: string;
+  file: File;
+  name: string;
+  destination: string;
+  percent: number;
+  status: FileUploadStatus;
+  error?: string;
+}
+
+type PermissionAction = keyof FileEntryPermissions;
 
 const defaultProps: Partial<FileExplorerProps> = {
   defaultPath: '/',
@@ -22,9 +41,54 @@ const defaultProps: Partial<FileExplorerProps> = {
   selectionMode: 'multiple',
   readOnly: false,
   multiple: true,
+  virtualizeThreshold: 200,
   ariaLabel: 'File explorer',
   sidebarWidth: '14rem'
 };
+
+function normalizeListResult(result: FileListResponse): FileListResult {
+  if (Array.isArray(result)) {
+    return { entries: result };
+  }
+
+  return {
+    entries: result.entries ?? [],
+    total: result.total,
+    hasMore: result.hasMore
+  };
+}
+
+function resolveHasMore(result: FileListResult, loadedCount: number): boolean {
+  if (typeof result.hasMore === 'boolean') {
+    return result.hasMore;
+  }
+
+  return typeof result.total === 'number' ? loadedCount < result.total : false;
+}
+
+function allowsPermission(entry: FileEntry, action: PermissionAction): boolean {
+  return entry.permissions?.[action] !== false;
+}
+
+function canReadEntry(entry: FileEntry): boolean {
+  return allowsPermission(entry, 'read');
+}
+
+function canWriteEntry(entry: FileEntry): boolean {
+  return allowsPermission(entry, 'write');
+}
+
+function canDeleteEntry(entry: FileEntry): boolean {
+  return allowsPermission(entry, 'delete');
+}
+
+function canDownloadEntry(entry: FileEntry): boolean {
+  return canReadEntry(entry) && allowsPermission(entry, 'download');
+}
+
+function matchesQuery(entry: FileEntry, query: string): boolean {
+  return entry.name.toLowerCase().includes(query.toLowerCase());
+}
 
 function formatSize(size?: number): string {
   if (typeof size !== 'number' || !Number.isFinite(size)) {
@@ -170,6 +234,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     readOnly,
     accept,
     multiple,
+    pageSize,
+    virtualizeThreshold,
     labels: labelsProp,
     ariaLabel,
     sidebar,
@@ -240,6 +306,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       uploadProgress: (name, percent) =>
         t('fileExplorer.uploadProgress', 'Uploading {name} ({percent}%)', { name, percent }),
       uploadError: (name) => t('fileExplorer.uploadError', 'Upload failed: {name}', { name }),
+      uploadQueue: t('fileExplorer.uploadQueue', 'Uploads'),
+      uploadCancel: (name) => t('fileExplorer.uploadCancel', 'Cancel upload of {name}', { name }),
+      uploadRetry: (name) => t('fileExplorer.uploadRetry', 'Retry upload of {name}', { name }),
+      uploadDismiss: (name) => t('fileExplorer.uploadDismiss', 'Dismiss {name}', { name }),
+      uploadSuccess: (name) => t('fileExplorer.uploadSuccess', 'Uploaded {name}', { name }),
+      uploadCanceled: (name) =>
+        t('fileExplorer.uploadCanceled', 'Upload canceled: {name}', { name }),
+      loadMore: t('fileExplorer.loadMore', 'Load more'),
+      loadingMore: t('fileExplorer.loadingMore', 'Loading more…'),
+      permissionDenied: (action) =>
+        t('fileExplorer.permissionDenied', 'Not allowed: {action}', { action }),
       dropToUpload: t('fileExplorer.dropToUpload', 'Drop files to upload'),
       tabs: t('fileExplorer.tabs', 'Open folders'),
       newTab: t('fileExplorer.newTab', 'New tab'),
@@ -250,7 +327,11 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   );
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadControllersRef = useRef(new Map<string, AbortController>());
+  const uploadIdRef = useRef(0);
+  const fetchTokenRef = useRef(0);
   const [internalPath, setInternalPath] = useState(defaultPath);
   const path = normalizePath(controlledPath ?? internalPath);
   const tabCounterRef = useRef(1);
@@ -262,6 +343,9 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const view = controlledView ?? internalView;
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState<unknown>(undefined);
   const [refreshToken, setRefreshToken] = useState(0);
   const [query, setQuery] = useState('');
@@ -289,8 +373,10 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const [dragging, setDragging] = useState(false);
   const [dragEntries, setDragEntries] = useState<FileEntry[] | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
-  const [upload, setUpload] = useState<FileUploadProgress | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploads, setUploads] = useState<UploadQueueItem[]>([]);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [focusPath, setFocusPath] = useState<string | null>(null);
   const [previewDismissed, setPreviewDismissed] = useState(false);
   const listboxId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -307,7 +393,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       );
       setPreviewDismissed(false);
     },
-    [onSelectionChange, selectedKeys]
+    [onSelectionChange, selectedKeys, setPreviewDismissed]
   );
 
   const navigate = useCallback(
@@ -344,26 +430,38 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }
 
     const controller = new AbortController();
+    const token = fetchTokenRef.current + 1;
+    fetchTokenRef.current = token;
     setLoading(true);
+    setLoadingMore(false);
     setError(undefined);
+    setPage(0);
+    setHasMore(false);
+
+    const options =
+      pageSize === undefined
+        ? { signal: controller.signal }
+        : { signal: controller.signal, page: 0, pageSize };
 
     provider
-      .list(path, { signal: controller.signal })
+      .list(path, options)
       .then((next) => {
-        if (!controller.signal.aborted) {
-          setEntries(next);
+        if (!controller.signal.aborted && fetchTokenRef.current === token) {
+          const result = normalizeListResult(next);
+          setEntries(result.entries);
+          setHasMore(resolveHasMore(result, result.entries.length));
           setLoading(false);
         }
       })
       .catch((reason) => {
-        if (!controller.signal.aborted) {
+        if (!controller.signal.aborted && fetchTokenRef.current === token) {
           setError(reason);
           setLoading(false);
         }
       });
 
     return () => controller.abort();
-  }, [provider, path, refreshToken, query, searching]);
+  }, [provider, path, refreshToken, query, searching, pageSize]);
 
   useEffect(() => {
     const normalized = query.trim();
@@ -374,28 +472,45 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }
 
     const controller = new AbortController();
+    const token = fetchTokenRef.current + 1;
+    fetchTokenRef.current = token;
+    setPage(0);
+    setHasMore(false);
+    setLoadingMore(false);
     const timeout = window.setTimeout(() => {
       setLoading(true);
       setError(undefined);
       setSearching(true);
 
-      const request = provider.search
-        ? provider.search(normalized, { signal: controller.signal, limit: 200 })
+      const listOptions =
+        pageSize === undefined
+          ? { signal: controller.signal }
+          : { signal: controller.signal, page: 0, pageSize };
+      const request: Promise<FileListResponse> = provider.search
+        ? provider.search(normalized, {
+            signal: controller.signal,
+            limit: pageSize ?? 200,
+            ...(pageSize === undefined ? {} : { page: 0, pageSize })
+          })
         : provider
-            .list(path, { signal: controller.signal })
-            .then((items) =>
-              items.filter((entry) => entry.name.toLowerCase().includes(normalized.toLowerCase()))
-            );
+            .list(path, listOptions)
+            .then((response) => normalizeListResult(response))
+            .then((result) => ({
+              ...result,
+              entries: result.entries.filter((entry) => matchesQuery(entry, normalized))
+            }));
 
       request
         .then((next) => {
-          if (!controller.signal.aborted) {
-            setEntries(next);
+          if (!controller.signal.aborted && fetchTokenRef.current === token) {
+            const result = normalizeListResult(next);
+            setEntries(result.entries);
+            setHasMore(resolveHasMore(result, result.entries.length));
             setLoading(false);
           }
         })
         .catch((reason) => {
-          if (!controller.signal.aborted) {
+          if (!controller.signal.aborted && fetchTokenRef.current === token) {
             setError(reason);
             setLoading(false);
           }
@@ -406,7 +521,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [provider, path, query, refreshToken]);
+  }, [provider, path, query, refreshToken, pageSize]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -453,6 +568,178 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       ? selectedEntries[0]
       : undefined;
   const showPreview = !!previewEntry && !previewDismissed;
+  const selectedCanRead = selectedEntries.length > 0 && selectedEntries.every(canReadEntry);
+  const selectedCanWrite = selectedEntries.length > 0 && selectedEntries.every(canWriteEntry);
+  const selectedCanDelete = selectedEntries.length > 0 && selectedEntries.every(canDeleteEntry);
+
+  const virtualEnabled =
+    (view === 'list' || view === 'details') &&
+    virtualizeThreshold > 0 &&
+    sortedEntries.length > virtualizeThreshold;
+  const virtualViewport = viewportHeight > 0 ? viewportHeight : VIRTUAL_ROW_HEIGHT * 10;
+  const visibleStart = virtualEnabled
+    ? Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_OVERSCAN)
+    : 0;
+  const visibleEnd = virtualEnabled
+    ? Math.min(
+        sortedEntries.length,
+        visibleStart + Math.ceil(virtualViewport / VIRTUAL_ROW_HEIGHT) + VIRTUAL_OVERSCAN * 2
+      )
+    : sortedEntries.length;
+  const visibleEntries = sortedEntries.slice(visibleStart, visibleEnd);
+
+  useEffect(() => {
+    if (!virtualEnabled) {
+      return undefined;
+    }
+
+    const element = scrollRef.current;
+
+    if (!element) {
+      return undefined;
+    }
+
+    const measure = () => setViewportHeight(element.clientHeight);
+    measure();
+
+    if (typeof ResizeObserver === 'undefined') {
+      if (typeof window === 'undefined') {
+        return undefined;
+      }
+
+      window.addEventListener('resize', measure);
+      return () => window.removeEventListener('resize', measure);
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [virtualEnabled, view, loading]);
+
+  useEffect(() => {
+    if (!focusPath) {
+      return;
+    }
+
+    const elements = contentRef.current?.querySelectorAll<HTMLElement>('[data-file-path]');
+    const target = elements
+      ? Array.from(elements).find((element) => element.getAttribute('data-file-path') === focusPath)
+      : undefined;
+
+    target?.focus();
+    setFocusPath(null);
+  }, [focusPath, visibleStart, visibleEnd]);
+
+  useEffect(() => {
+    setScrollTop(0);
+
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [path, query, view]);
+
+  const ensureIndexVisible = (index: number) => {
+    if (!virtualEnabled) {
+      return;
+    }
+
+    const element = scrollRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const itemTop = index * VIRTUAL_ROW_HEIGHT;
+    const itemBottom = itemTop + VIRTUAL_ROW_HEIGHT;
+    const currentTop = element.scrollTop;
+    const height = element.clientHeight || virtualViewport;
+    let nextTop = currentTop;
+
+    if (itemTop < currentTop) {
+      nextTop = itemTop;
+    } else if (itemBottom > currentTop + height) {
+      nextTop = itemBottom - height;
+    }
+
+    if (nextTop !== currentTop) {
+      element.scrollTop = nextTop;
+      setScrollTop(nextTop);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!hasMore || loadingMore || loading) {
+      return;
+    }
+
+    const searchTerm = query.trim();
+    const token = fetchTokenRef.current;
+    const nextPage = page + 1;
+    setLoadingMore(true);
+
+    try {
+      const pagination = pageSize === undefined ? { page: nextPage } : { page: nextPage, pageSize };
+      let result: FileListResult;
+
+      if (searchTerm && provider.search) {
+        result = normalizeListResult(
+          await provider.search(searchTerm, { ...pagination, limit: pageSize ?? 200 })
+        );
+      } else {
+        result = normalizeListResult(await provider.list(path, pagination));
+
+        if (searchTerm) {
+          result = {
+            ...result,
+            entries: result.entries.filter((entry) => matchesQuery(entry, searchTerm))
+          };
+        }
+      }
+
+      if (token !== fetchTokenRef.current) {
+        return;
+      }
+
+      setEntries((current) => {
+        const known = new Set(current.map((entry) => entry.path));
+        return [...current, ...result.entries.filter((entry) => !known.has(entry.path))];
+      });
+      setPage(nextPage);
+      setHasMore(resolveHasMore(result, entries.length + result.entries.length));
+    } catch (reason) {
+      if (token === fetchTokenRef.current) {
+        setError(reason);
+      }
+    } finally {
+      if (token === fetchTokenRef.current) {
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  const permissionActionLabel = (action: PermissionAction): string => {
+    switch (action) {
+      case 'read':
+        return labels.open;
+      case 'write':
+        return labels.rename;
+      case 'delete':
+        return labels.delete;
+      default:
+        return labels.download;
+    }
+  };
+
+  const entryRestrictionTitle = (entry: FileEntry): string | undefined => {
+    const denied = (['read', 'write', 'delete', 'download'] as PermissionAction[]).filter(
+      (action) =>
+        !allowsPermission(entry, action) && (action !== 'download' || entry.type === 'file')
+    );
+
+    return denied.length > 0
+      ? labels.permissionDenied(denied.map(permissionActionLabel).join(', '))
+      : undefined;
+  };
 
   const setView = (next: FileExplorerView) => {
     if (controlledView === undefined) {
@@ -462,6 +749,10 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const openEntry = (entry: FileEntry) => {
+    if (!canReadEntry(entry)) {
+      return;
+    }
+
     onOpen?.(entry);
 
     if (entry.type === 'folder') {
@@ -514,13 +805,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     if ((event.ctrlKey || event.metaKey) && !event.altKey) {
       const key = event.key.toLowerCase();
 
-      if (key === 'c' && selectedEntries.length > 0) {
+      if (key === 'c' && selectedCanRead) {
         event.preventDefault();
         copySelection('copy');
         return;
       }
 
-      if (key === 'x' && selectedEntries.length > 0 && !readOnly) {
+      if (key === 'x' && selectedCanWrite && !readOnly) {
         event.preventDefault();
         copySelection('cut');
         return;
@@ -559,7 +850,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       event.preventDefault();
       startRename(sortedEntries[currentIndex]);
       return;
-    } else if (event.key === 'Delete' && selectedEntries.length > 0) {
+    } else if (event.key === 'Delete' && !readOnly && selectedCanDelete) {
       event.preventDefault();
       setDeleting(selectedEntries);
       return;
@@ -581,16 +872,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       event.preventDefault();
       applySelection([sortedEntries[nextIndex].path], sortedEntries);
       setAnchorIndex(nextIndex);
-      contentRef.current?.querySelectorAll<HTMLElement>('[data-file-path]').forEach((element) => {
-        if (element.getAttribute('data-file-path') === sortedEntries[nextIndex].path) {
-          element.focus();
-        }
-      });
+      ensureIndexVisible(nextIndex);
+      setFocusPath(sortedEntries[nextIndex].path);
     }
   };
 
   const startRename = (entry: FileEntry) => {
-    if (readOnly || !provider.rename) {
+    if (readOnly || !provider.rename || !canWriteEntry(entry)) {
       return;
     }
 
@@ -600,7 +888,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const commitRename = async () => {
-    if (!renaming || !provider.rename) {
+    if (!renaming || !provider.rename || !canWriteEntry(renaming)) {
       return;
     }
 
@@ -645,14 +933,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const confirmDelete = async () => {
-    if (!deleting || !provider.remove) {
+    const deletable = deleting?.filter(canDeleteEntry) ?? [];
+
+    if (deletable.length === 0 || !provider.remove) {
       setDeleting(null);
       return;
     }
 
     try {
-      await provider.remove(deleting.map((entry) => entry.path));
-      onDelete?.(deleting);
+      await provider.remove(deletable.map((entry) => entry.path));
+      onDelete?.(deletable);
       setDeleting(null);
       applySelection([], sortedEntries);
       setRefreshToken((token) => token + 1);
@@ -664,7 +954,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const downloadEntry = async (entry: FileEntry) => {
     setMenu(null);
 
-    if (!provider.download) {
+    if (!provider.download || !canDownloadEntry(entry)) {
       return;
     }
 
@@ -678,11 +968,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const copySelection = (mode: 'copy' | 'cut') => {
-    if (selectedEntries.length === 0) {
+    const allowed = selectedEntries.filter((entry) =>
+      mode === 'cut' ? canWriteEntry(entry) : canReadEntry(entry)
+    );
+
+    if (allowed.length === 0) {
       return;
     }
 
-    setClipboard({ mode, entries: [...selectedEntries] });
+    setClipboard({ mode, entries: allowed });
   };
 
   const pasteSelection = async () => {
@@ -690,25 +984,32 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
-    const paths = clipboard.entries.map((entry) => entry.path);
+    const moveEntry = provider.move;
+    const copyEntry = provider.copy;
+
+    if (clipboard.mode === 'cut' ? !moveEntry : !copyEntry) {
+      return;
+    }
+
+    const entriesToPaste = clipboard.entries.filter((entry) =>
+      clipboard.mode === 'cut' ? canWriteEntry(entry) : canReadEntry(entry)
+    );
+
+    if (entriesToPaste.length === 0) {
+      return;
+    }
+
+    const paths = entriesToPaste.map((entry) => entry.path);
 
     try {
-      if (clipboard.mode === 'cut') {
-        if (!provider.move) {
-          return;
-        }
-
-        await provider.move(paths, path);
-        onMove?.(clipboard.entries, path);
+      if (clipboard.mode === 'cut' && moveEntry) {
+        await moveEntry(paths, path);
+        onMove?.(entriesToPaste, path);
         applySelection([], sortedEntries);
         setClipboard(null);
-      } else {
-        if (!provider.copy) {
-          return;
-        }
-
-        await provider.copy(paths, path);
-        onCopy?.(clipboard.entries, path);
+      } else if (copyEntry) {
+        await copyEntry(paths, path);
+        onCopy?.(entriesToPaste, path);
       }
 
       setRefreshToken((token) => token + 1);
@@ -718,20 +1019,23 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const moveEntriesTo = async (destination: string) => {
-    if (!provider.move || !dragEntries || dragEntries.length === 0) {
+    const movable = dragEntries?.filter(canWriteEntry) ?? [];
+
+    if (!provider.move || movable.length === 0) {
+      setDragEntries(null);
+      setDropTarget(null);
       return;
     }
 
-    const draggedEntries = dragEntries;
     setDragEntries(null);
     setDropTarget(null);
 
     try {
       await provider.move(
-        draggedEntries.map((entry) => entry.path),
+        movable.map((entry) => entry.path),
         destination
       );
-      onMove?.(draggedEntries, destination);
+      onMove?.(movable, destination);
       applySelection([], sortedEntries);
       setRefreshToken((token) => token + 1);
     } catch (reason) {
@@ -740,11 +1044,18 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const startEntryDrag = (entry: FileEntry, event: React.DragEvent) => {
-    if (readOnly) {
+    if (readOnly || !canWriteEntry(entry)) {
       return;
     }
 
-    const draggedSelection = selectedSet.has(entry.path) ? selectedEntries : [entry];
+    const draggedSelection = (selectedSet.has(entry.path) ? selectedEntries : [entry]).filter(
+      canWriteEntry
+    );
+
+    if (draggedSelection.length === 0) {
+      return;
+    }
+
     setDragEntries(draggedSelection);
 
     if (event.dataTransfer) {
@@ -756,6 +1067,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const handleFolderDragOver = (entry: FileEntry, event: React.DragEvent) => {
     if (
       entry.type !== 'folder' ||
+      !canWriteEntry(entry) ||
       !dragEntries ||
       dragEntries.some((dragged) => dragged.path === entry.path)
     ) {
@@ -773,13 +1085,88 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   };
 
   const handleFolderDrop = (entry: FileEntry, event: React.DragEvent) => {
-    if (entry.type !== 'folder' || !dragEntries) {
+    if (entry.type !== 'folder' || !canWriteEntry(entry) || !dragEntries) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
     moveEntriesTo(entry.path).catch(() => undefined);
+  };
+
+  const updateUpload = useCallback((id: string, patch: Partial<UploadQueueItem>) => {
+    setUploads((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  }, []);
+
+  const runUpload = async (item: UploadQueueItem) => {
+    if (!provider.upload) {
+      return;
+    }
+
+    const controller = new AbortController();
+    uploadControllersRef.current.set(item.id, controller);
+    updateUpload(item.id, { status: 'uploading', percent: 0, error: undefined });
+
+    let uploaded: FileEntry[];
+
+    try {
+      uploaded = await provider.upload(item.destination, [item.file], {
+        signal: controller.signal,
+        onProgress: (progress) => {
+          if (!controller.signal.aborted) {
+            updateUpload(item.id, {
+              percent: Math.max(0, Math.min(100, progress.percent)),
+              status: 'uploading'
+            });
+          }
+        }
+      });
+    } catch (reason) {
+      uploadControllersRef.current.delete(item.id);
+
+      if (controller.signal.aborted) {
+        updateUpload(item.id, { status: 'canceled' });
+        return;
+      }
+
+      updateUpload(item.id, {
+        status: 'error',
+        error: reason instanceof Error ? reason.message : undefined
+      });
+      return;
+    }
+
+    uploadControllersRef.current.delete(item.id);
+
+    if (controller.signal.aborted) {
+      return;
+    }
+
+    updateUpload(item.id, { status: 'success', percent: 100 });
+    setRefreshToken((token) => token + 1);
+    onUpload?.(uploaded);
+  };
+
+  const cancelUpload = (id: string) => {
+    uploadControllersRef.current.get(id)?.abort();
+    uploadControllersRef.current.delete(id);
+    updateUpload(id, { status: 'canceled' });
+  };
+
+  const retryUpload = (id: string) => {
+    const item = uploads.find((candidate) => candidate.id === id);
+
+    if (!item || !provider.upload) {
+      return;
+    }
+
+    runUpload(item).catch(() => undefined);
+  };
+
+  const dismissUpload = (id: string) => {
+    uploadControllersRef.current.get(id)?.abort();
+    uploadControllersRef.current.delete(id);
+    setUploads((current) => current.filter((item) => item.id !== id));
   };
 
   const uploadFiles = async (files: FileList | File[]) => {
@@ -793,21 +1180,27 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
-    setUploadError(null);
+    const destination = path;
+    const items: UploadQueueItem[] = list.map((file) => ({
+      id: `upload-${++uploadIdRef.current}`,
+      file,
+      name: file.name,
+      destination,
+      percent: 0,
+      status: 'uploading'
+    }));
 
-    try {
-      const uploaded = await provider.upload(path, list, {
-        onProgress: (progress) => setUpload(progress)
-      });
-      setUpload(null);
-      onUpload?.(uploaded);
-      setRefreshToken((token) => token + 1);
-    } catch (reason) {
-      setUpload(null);
-      setUploadError(reason instanceof Error ? reason.message : labels.uploadError(list[0].name));
-      setError(reason);
-    }
+    setUploads((current) => [...current.slice(-19), ...items]);
+    await Promise.all(items.map((item) => runUpload(item)));
   };
+
+  useEffect(
+    () => () => {
+      uploadControllersRef.current.forEach((controller) => controller.abort());
+      uploadControllersRef.current.clear();
+    },
+    []
+  );
 
   const openMenu = (entry: FileEntry | undefined, event: React.MouseEvent) => {
     event.preventDefault();
@@ -862,9 +1255,82 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     return <span className={cx(classes.entryName)}>{entry.name}</span>;
   };
 
+  const renderTopSpacer = () =>
+    virtualEnabled && visibleStart > 0 ? (
+      <div aria-hidden="true" style={{ height: visibleStart * VIRTUAL_ROW_HEIGHT }} />
+    ) : null;
+
+  const renderBottomSpacer = () =>
+    virtualEnabled && visibleEnd < sortedEntries.length ? (
+      <div
+        aria-hidden="true"
+        style={{ height: (sortedEntries.length - visibleEnd) * VIRTUAL_ROW_HEIGHT }}
+      />
+    ) : null;
+
+  const renderRow = (entry: FileEntry, index: number, details = false) => {
+    const disabled = !canReadEntry(entry);
+    const rowStyle: React.CSSProperties = {};
+
+    if (virtualEnabled) {
+      rowStyle.height = VIRTUAL_ROW_HEIGHT;
+    }
+
+    if (details) {
+      rowStyle.gridTemplateColumns = DETAILS_COLUMNS;
+    }
+
+    return (
+      <div
+        key={entry.path}
+        role="option"
+        aria-selected={selectedSet.has(entry.path)}
+        aria-disabled={disabled || undefined}
+        aria-posinset={index + 1}
+        aria-setsize={sortedEntries.length}
+        data-file-path={entry.path}
+        title={entryRestrictionTitle(entry)}
+        className={cx(classes.row, {
+          [classes.rowSelected]: selectedSet.has(entry.path),
+          [classes.rowDropTarget]: dropTarget === entry.path,
+          [classes.rowDisabled]: disabled
+        })}
+        style={Object.keys(rowStyle).length > 0 ? rowStyle : undefined}
+        tabIndex={-1}
+        draggable={!readOnly && !!provider.move && canWriteEntry(entry)}
+        onClick={(event) => toggleEntry(entry, index, event)}
+        onDoubleClick={() => openEntry(entry)}
+        onContextMenu={(event) => openMenu(entry, event)}
+        onDragStart={(event) => startEntryDrag(entry, event)}
+        onDragOver={(event) => handleFolderDragOver(entry, event)}
+        onDragLeave={() => {
+          if (dropTarget === entry.path) {
+            setDropTarget(null);
+          }
+        }}
+        onDrop={(event) => handleFolderDrop(entry, event)}
+      >
+        <span className={cx(classes.rowName)}>
+          <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
+          {renderEntryName(entry)}
+        </span>
+        {details && (
+          <span className={cx(classes.entryMeta)}>
+            {entry.type === 'folder' ? labels.folder : labels.file}
+          </span>
+        )}
+        <span className={cx(classes.entryMeta)}>{formatSize(entry.size)}</span>
+        <span className={cx(classes.entryMeta)}>{formatDate(entry.modifiedAt)}</span>
+      </div>
+    );
+  };
+
   const renderList = () => (
     <div
-      ref={contentRef}
+      ref={(element) => {
+        contentRef.current = element;
+        scrollRef.current = element;
+      }}
       className={cx(classes.content)}
       role="listbox"
       aria-label={ariaLabel}
@@ -872,40 +1338,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       tabIndex={0}
       onKeyDown={handleContentKeyDown}
       onContextMenu={(event) => openMenu(undefined, event)}
+      onScroll={(event) => {
+        if (virtualEnabled) {
+          setScrollTop(event.currentTarget.scrollTop);
+        }
+      }}
     >
       <div className={cx(classes.list)}>
-        {sortedEntries.map((entry, index) => (
-          <div
-            key={entry.path}
-            role="option"
-            aria-selected={selectedSet.has(entry.path)}
-            data-file-path={entry.path}
-            className={cx(classes.row, {
-              [classes.rowSelected]: selectedSet.has(entry.path),
-              [classes.rowDropTarget]: dropTarget === entry.path
-            })}
-            tabIndex={-1}
-            draggable={!readOnly && !!provider.move}
-            onClick={(event) => toggleEntry(entry, index, event)}
-            onDoubleClick={() => openEntry(entry)}
-            onContextMenu={(event) => openMenu(entry, event)}
-            onDragStart={(event) => startEntryDrag(entry, event)}
-            onDragOver={(event) => handleFolderDragOver(entry, event)}
-            onDragLeave={() => {
-              if (dropTarget === entry.path) {
-                setDropTarget(null);
-              }
-            }}
-            onDrop={(event) => handleFolderDrop(entry, event)}
-          >
-            <span className={cx(classes.rowName)}>
-              <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
-              {renderEntryName(entry)}
-            </span>
-            <span className={cx(classes.entryMeta)}>{formatSize(entry.size)}</span>
-            <span className={cx(classes.entryMeta)}>{formatDate(entry.modifiedAt)}</span>
-          </div>
-        ))}
+        {renderTopSpacer()}
+        {visibleEntries.map((entry, index) => renderRow(entry, visibleStart + index))}
+        {renderBottomSpacer()}
       </div>
     </div>
   );
@@ -922,95 +1364,26 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       onContextMenu={(event) => openMenu(undefined, event)}
     >
       <div className={cx(classes.grid)}>
-        {sortedEntries.map((entry, index) => (
-          <div
-            key={entry.path}
-            role="option"
-            aria-selected={selectedSet.has(entry.path)}
-            data-file-path={entry.path}
-            className={cx(classes.tile, {
-              [classes.tileSelected]: selectedSet.has(entry.path),
-              [classes.tileDropTarget]: dropTarget === entry.path
-            })}
-            tabIndex={-1}
-            draggable={!readOnly && !!provider.move}
-            onClick={(event) => toggleEntry(entry, index, event)}
-            onDoubleClick={() => openEntry(entry)}
-            onContextMenu={(event) => openMenu(entry, event)}
-            onDragStart={(event) => startEntryDrag(entry, event)}
-            onDragOver={(event) => handleFolderDragOver(entry, event)}
-            onDragLeave={() => {
-              if (dropTarget === entry.path) {
-                setDropTarget(null);
-              }
-            }}
-            onDrop={(event) => handleFolderDrop(entry, event)}
-          >
-            <span className={cx(classes.tileIcon)}>{getEntryIcon(entry)}</span>
-            {renderEntryName(entry)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        {sortedEntries.map((entry, index) => {
+          const disabled = !canReadEntry(entry);
 
-  const renderDetails = () => {
-    const columns = 'minmax(0, 1fr) 5rem 6rem 8rem';
-
-    return (
-      <div className={cx(classes.content)}>
-        <div
-          className={cx(classes.detailsHead)}
-          style={{ display: 'grid', gridTemplateColumns: columns }}
-        >
-          {(
-            [
-              ['name', labels.name],
-              ['type', labels.type],
-              ['size', labels.size],
-              ['modified', labels.modified]
-            ] as [FileExplorerSortBy, string][]
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={cx(classes.detailsHeader)}
-              onClick={() => {
-                if (sortBy === key) {
-                  setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
-                } else {
-                  setSortBy(key);
-                  setSortDirection('asc');
-                }
-              }}
-            >
-              {label}
-              {sortBy === key ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ''}
-            </button>
-          ))}
-        </div>
-        <div
-          ref={contentRef}
-          role="listbox"
-          aria-label={ariaLabel}
-          aria-multiselectable={selectionMode === 'multiple' || undefined}
-          tabIndex={0}
-          onKeyDown={handleContentKeyDown}
-          onContextMenu={(event) => openMenu(undefined, event)}
-        >
-          {sortedEntries.map((entry, index) => (
+          return (
             <div
               key={entry.path}
               role="option"
               aria-selected={selectedSet.has(entry.path)}
+              aria-disabled={disabled || undefined}
+              aria-posinset={index + 1}
+              aria-setsize={sortedEntries.length}
               data-file-path={entry.path}
-              className={cx(classes.row, {
-                [classes.rowSelected]: selectedSet.has(entry.path),
-                [classes.rowDropTarget]: dropTarget === entry.path
+              title={entryRestrictionTitle(entry)}
+              className={cx(classes.tile, {
+                [classes.tileSelected]: selectedSet.has(entry.path),
+                [classes.tileDropTarget]: dropTarget === entry.path,
+                [classes.tileDisabled]: disabled
               })}
-              style={{ gridTemplateColumns: columns }}
               tabIndex={-1}
-              draggable={!readOnly && !!provider.move}
+              draggable={!readOnly && !!provider.move && canWriteEntry(entry)}
               onClick={(event) => toggleEntry(entry, index, event)}
               onDoubleClick={() => openEntry(entry)}
               onContextMenu={(event) => openMenu(entry, event)}
@@ -1023,26 +1396,80 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               }}
               onDrop={(event) => handleFolderDrop(entry, event)}
             >
-              <span className={cx(classes.rowName)}>
-                <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
-                {renderEntryName(entry)}
-              </span>
-              <span className={cx(classes.entryMeta)}>
-                {entry.type === 'folder' ? labels.folder : labels.file}
-              </span>
-              <span className={cx(classes.entryMeta)}>{formatSize(entry.size)}</span>
-              <span className={cx(classes.entryMeta)}>{formatDate(entry.modifiedAt)}</span>
+              <span className={cx(classes.tileIcon)}>{getEntryIcon(entry)}</span>
+              {renderEntryName(entry)}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    );
-  };
+    </div>
+  );
+
+  const renderDetails = () => (
+    <div
+      ref={scrollRef}
+      className={cx(classes.content)}
+      onScroll={(event) => {
+        if (virtualEnabled) {
+          setScrollTop(event.currentTarget.scrollTop);
+        }
+      }}
+    >
+      <div
+        className={cx(classes.detailsHead)}
+        style={{ display: 'grid', gridTemplateColumns: DETAILS_COLUMNS }}
+      >
+        {(
+          [
+            ['name', labels.name],
+            ['type', labels.type],
+            ['size', labels.size],
+            ['modified', labels.modified]
+          ] as [FileExplorerSortBy, string][]
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={cx(classes.detailsHeader)}
+            onClick={() => {
+              if (sortBy === key) {
+                setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+              } else {
+                setSortBy(key);
+                setSortDirection('asc');
+              }
+            }}
+          >
+            {label}
+            {sortBy === key ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : ''}
+          </button>
+        ))}
+      </div>
+      <div
+        ref={contentRef}
+        role="listbox"
+        aria-label={ariaLabel}
+        aria-multiselectable={selectionMode === 'multiple' || undefined}
+        tabIndex={0}
+        onKeyDown={handleContentKeyDown}
+        onContextMenu={(event) => openMenu(undefined, event)}
+      >
+        {renderTopSpacer()}
+        {visibleEntries.map((entry, index) => renderRow(entry, visibleStart + index, true))}
+        {renderBottomSpacer()}
+      </div>
+    </div>
+  );
 
   const segments = pathSegments(path);
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
   const showPreviewPanel = showPreview && !!previewEntry;
+  const menuEntry = menu?.entry;
+  const menuEntryCanRead = menuEntry ? canReadEntry(menuEntry) : false;
+  const menuEntryCanWrite = menuEntry ? canWriteEntry(menuEntry) : false;
+  const menuEntryCanDelete = menuEntry ? canDeleteEntry(menuEntry) : false;
+  const menuEntryCanDownload = menuEntry ? canDownloadEntry(menuEntry) : false;
 
   const tabLabel = (tabPath: string) => pathSegments(tabPath).at(-1)?.name ?? labels.root;
 
@@ -1313,6 +1740,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               <button
                 type="button"
                 className={cx(classes.actionButton)}
+                disabled={!selectedCanWrite}
+                title={selectedCanWrite ? undefined : labels.permissionDenied(labels.rename)}
                 onClick={() => startRename(selectedEntries[0])}
               >
                 {labels.rename}
@@ -1322,6 +1751,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               <button
                 type="button"
                 className={cx(classes.actionButton, classes.danger)}
+                disabled={!selectedCanDelete}
+                title={selectedCanDelete ? undefined : labels.permissionDenied(labels.delete)}
                 onClick={() => setDeleting(selectedEntries)}
               >
                 {labels.delete}
@@ -1331,6 +1762,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               <button
                 type="button"
                 className={cx(classes.actionButton)}
+                disabled={!selectedCanWrite}
+                title={selectedCanWrite ? undefined : labels.permissionDenied(labels.cut)}
                 onClick={() => copySelection('cut')}
               >
                 {labels.cut}
@@ -1340,6 +1773,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
               <button
                 type="button"
                 className={cx(classes.actionButton)}
+                disabled={!selectedCanRead}
+                title={selectedCanRead ? undefined : labels.permissionDenied(labels.copy)}
                 onClick={() => copySelection('copy')}
               >
                 {labels.copy}
@@ -1467,20 +1902,113 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
           ) : (
             renderList()
           )}
-          {upload && (
-            <div className={cx(classes.uploadBar)} role="status">
-              <span>{labels.uploadProgress(upload.file.name, Math.round(upload.percent))}</span>
-              <div className={cx(classes.uploadTrack)}>
-                <div
-                  className={cx(classes.uploadFill)}
-                  style={{ width: `${Math.max(0, Math.min(100, upload.percent))}%` }}
-                />
-              </div>
+          {hasMore && (
+            <div className={cx(classes.paginationBar)}>
+              <button
+                type="button"
+                className={cx(classes.actionButton)}
+                disabled={loadingMore}
+                onClick={() => {
+                  loadMore().catch(() => undefined);
+                }}
+              >
+                {loadingMore ? labels.loadingMore : labels.loadMore}
+              </button>
             </div>
           )}
-          {uploadError && (
-            <div className={cx(classes.uploadBar)} role="alert">
-              {uploadError}
+          {uploads.length > 0 && (
+            <div className={cx(classes.uploadPanel)} role="region" aria-label={labels.uploadQueue}>
+              {uploads.map((item) => {
+                const percent = Math.round(Math.max(0, Math.min(100, item.percent)));
+                const terminalLabel =
+                  item.status === 'success'
+                    ? labels.uploadSuccess(item.name)
+                    : item.status === 'error'
+                      ? labels.uploadError(item.name)
+                      : item.status === 'canceled'
+                        ? labels.uploadCanceled(item.name)
+                        : '';
+
+                return (
+                  <div
+                    key={item.id}
+                    className={cx(classes.uploadItem)}
+                    data-upload-status={item.status}
+                  >
+                    <span className={cx(classes.uploadName)} title={item.error ?? item.name}>
+                      {item.name}
+                    </span>
+                    {item.status === 'uploading' && (
+                      <>
+                        <div
+                          className={cx(classes.uploadTrack)}
+                          role="progressbar"
+                          aria-label={labels.uploadProgress(item.name, percent)}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={percent}
+                        >
+                          <div
+                            className={cx(classes.uploadFill)}
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <span className={cx(classes.uploadPercent)}>{percent}%</span>
+                      </>
+                    )}
+                    <span
+                      className={cx(classes.uploadState, {
+                        [classes.uploadStateSuccess]: item.status === 'success',
+                        [classes.uploadStateError]: item.status === 'error',
+                        [classes.uploadStateCanceled]: item.status === 'canceled'
+                      })}
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      {terminalLabel}
+                    </span>
+                    <span className={cx(classes.uploadActions)}>
+                      {item.status === 'uploading' && (
+                        <button
+                          type="button"
+                          className={cx(classes.iconButton)}
+                          aria-label={labels.uploadCancel(item.name)}
+                          title={labels.uploadCancel(item.name)}
+                          onClick={() => cancelUpload(item.id)}
+                        >
+                          <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />
+                        </button>
+                      )}
+                      {(item.status === 'error' || item.status === 'canceled') && (
+                        <button
+                          type="button"
+                          className={cx(classes.iconButton)}
+                          aria-label={labels.uploadRetry(item.name)}
+                          title={labels.uploadRetry(item.name)}
+                          onClick={() => retryUpload(item.id)}
+                        >
+                          <Icon
+                            icon="refresh-outline"
+                            pack="nebular-essentials"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      )}
+                      {item.status !== 'uploading' && (
+                        <button
+                          type="button"
+                          className={cx(classes.iconButton)}
+                          aria-label={labels.uploadDismiss(item.name)}
+                          title={labels.uploadDismiss(item.name)}
+                          onClick={() => dismissUpload(item.id)}
+                        >
+                          <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />
+                        </button>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -1534,6 +2062,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                 type="button"
                 role="menuitem"
                 className={cx(classes.menuItem)}
+                disabled={!menuEntryCanRead}
+                title={menuEntryCanRead ? undefined : labels.permissionDenied(labels.open)}
                 onClick={() => {
                   openEntry(menu.entry as FileEntry);
                   setMenu(null);
@@ -1546,6 +2076,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   type="button"
                   role="menuitem"
                   className={cx(classes.menuItem)}
+                  disabled={!menuEntryCanWrite}
+                  title={menuEntryCanWrite ? undefined : labels.permissionDenied(labels.rename)}
                   onClick={() => startRename(menu.entry as FileEntry)}
                 >
                   {labels.rename}
@@ -1556,7 +2088,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   type="button"
                   role="menuitem"
                   className={cx(classes.menuItem)}
+                  disabled={!menuEntryCanRead}
+                  title={menuEntryCanRead ? undefined : labels.permissionDenied(labels.copy)}
                   onClick={() => {
+                    if (!menuEntryCanRead) {
+                      return;
+                    }
+
                     applySelection([(menu.entry as FileEntry).path], sortedEntries);
                     setClipboard({ mode: 'copy', entries: [menu.entry as FileEntry] });
                     setMenu(null);
@@ -1570,7 +2108,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   type="button"
                   role="menuitem"
                   className={cx(classes.menuItem)}
+                  disabled={!menuEntryCanWrite}
+                  title={menuEntryCanWrite ? undefined : labels.permissionDenied(labels.cut)}
                   onClick={() => {
+                    if (!menuEntryCanWrite) {
+                      return;
+                    }
+
                     applySelection([(menu.entry as FileEntry).path], sortedEntries);
                     setClipboard({ mode: 'cut', entries: [menu.entry as FileEntry] });
                     setMenu(null);
@@ -1584,6 +2128,10 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   type="button"
                   role="menuitem"
                   className={cx(classes.menuItem)}
+                  disabled={!menuEntryCanDownload}
+                  title={
+                    menuEntryCanDownload ? undefined : labels.permissionDenied(labels.download)
+                  }
                   onClick={() => {
                     downloadEntry(menu.entry as FileEntry).catch(() => undefined);
                   }}
@@ -1598,6 +2146,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                     type="button"
                     role="menuitem"
                     className={cx(classes.menuItem, classes.danger)}
+                    disabled={!menuEntryCanDelete}
+                    title={menuEntryCanDelete ? undefined : labels.permissionDenied(labels.delete)}
                     onClick={() => {
                       setDeleting([menu.entry as FileEntry]);
                       setMenu(null);

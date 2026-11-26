@@ -38,6 +38,13 @@ por input/drag-and-drop, preview e sidebar.
 Também adiciona abas por janela com tear-off, slots `toolbar`/`footer` e os componentes
 `WindowBreadcrumb`/`WindowStatusBar` para compor a chrome interna das janelas.
 
+Adiciona utilitários de layout (`sanitizeDesktopLayout`, `exportDesktopLayout`,
+`importDesktopLayout`, `createDesktopLayoutTemplate`) e o contrato de colaboração
+`DesktopCollaborationAdapter` com implementação `BroadcastChannel` para presença/layout
+same-origin. O Desktop ganha Alt+Tab visual, flyout de snap layouts e transições de
+maximizar/restaurar/snap. O FileExplorer ganha fila de upload com cancelar/retry, permissões
+por entrada, paginação server-side e virtualização de listas grandes.
+
 O catálogo i18n ganhou as chaves `desktop.*`, `fileExplorer.*`, `windowBreadcrumb.*` e
 `windowStatusBar.*`; o pacote de ícones essenciais ganhou `menu-outline`,
 `more-horizontal-outline`, `folder-outline`, `refresh-outline`, `monitor-outline` e

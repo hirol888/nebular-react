@@ -15,6 +15,11 @@ const menuIn = keyframes({
   to: { opacity: 1, transform: 'translateY(0)' }
 });
 
+const switcherIn = keyframes({
+  from: { opacity: 0, transform: 'translateY(8px) scale(0.985)' },
+  to: { opacity: 1, transform: 'translateY(0) scale(1)' }
+});
+
 export const useStyles = createStyles((_theme) => ({
   root: {
     position: 'relative',
@@ -359,10 +364,17 @@ export const useStyles = createStyles((_theme) => ({
     boxShadow: 'var(--desktop-window-shadow, 0 10px 30px rgba(0, 0, 0, 0.22))',
     outline: 'none',
     animation: `${windowIn} var(--desktop-animation-duration, 140ms) ease-out`,
+    transition:
+      'left var(--desktop-animation-duration, 140ms) ease-out, top var(--desktop-animation-duration, 140ms) ease-out, width var(--desktop-animation-duration, 140ms) ease-out, height var(--desktop-animation-duration, 140ms) ease-out, border-radius var(--desktop-animation-duration, 140ms) ease-out',
 
     '@media (prefers-reduced-motion: reduce)': {
-      animation: 'none'
+      animation: 'none',
+      transition: 'none'
     }
+  },
+
+  windowInteracting: {
+    transition: 'none'
   },
 
   windowMaximized: {
@@ -585,6 +597,143 @@ export const useStyles = createStyles((_theme) => ({
     }
   },
 
+  snapLayoutHost: {
+    position: 'relative',
+    display: 'inline-flex'
+  },
+
+  snapMenu: {
+    position: 'fixed',
+    zIndex: 2100000000,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '0.3rem',
+    width: '15rem',
+    padding: '0.4rem',
+    border: '1px solid var(--desktop-snap-menu-border-color, var(--border-basic-color-3, #e4e9f2))',
+    borderRadius: 'var(--desktop-snap-menu-radius, 0.5rem)',
+    backgroundColor:
+      'var(--desktop-snap-menu-background-color, var(--background-basic-color-1, #ffffff))',
+    boxShadow: 'var(--desktop-snap-menu-shadow, 0 12px 28px rgba(0, 0, 0, 0.18))',
+    animation: `${menuIn} var(--desktop-animation-duration, 120ms) ease-out`,
+
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
+  },
+
+  snapMenuItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: '0.2rem',
+    minWidth: 0,
+    padding: '0.3rem',
+    border: '1px solid transparent',
+    borderRadius: '0.3rem',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    textAlign: 'start',
+    cursor: 'pointer',
+
+    '&:hover': {
+      borderColor: 'var(--desktop-snap-menu-hover-border-color, var(--color-primary-500, #3366ff))',
+      backgroundColor:
+        'var(--desktop-snap-menu-hover-background-color, var(--background-basic-color-2, #f7f9fc))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '-1px'
+    }
+  },
+
+  snapMenuItemWide: {
+    gridColumn: '1 / -1',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '0.5rem'
+  },
+
+  snapMini: {
+    position: 'relative',
+    display: 'block',
+    width: '100%',
+    aspectRatio: '16 / 9',
+    overflow: 'hidden',
+    border: '1px solid var(--desktop-snap-mini-border-color, var(--border-basic-color-3, #e4e9f2))',
+    borderRadius: '0.18rem',
+    backgroundColor:
+      'var(--desktop-snap-mini-background-color, var(--background-basic-color-2, #f7f9fc))'
+  },
+
+  snapMiniWide: {
+    flex: '0 0 4.75rem',
+    width: '4.75rem'
+  },
+
+  snapMiniFill: {
+    position: 'absolute',
+    borderRadius: '0.12rem',
+    backgroundColor: 'var(--desktop-snap-mini-fill-color, var(--color-primary-500, #3366ff))',
+    opacity: 0.72
+  },
+
+  snapMiniLeft: {
+    left: 0,
+    top: 0,
+    width: '50%',
+    height: '100%'
+  },
+
+  snapMiniRight: {
+    left: '50%',
+    top: 0,
+    width: '50%',
+    height: '100%'
+  },
+
+  snapMiniTopLeft: {
+    left: 0,
+    top: 0,
+    width: '50%',
+    height: '50%'
+  },
+
+  snapMiniTopRight: {
+    left: '50%',
+    top: 0,
+    width: '50%',
+    height: '50%'
+  },
+
+  snapMiniBottomLeft: {
+    left: 0,
+    top: '50%',
+    width: '50%',
+    height: '50%'
+  },
+
+  snapMiniBottomRight: {
+    left: '50%',
+    top: '50%',
+    width: '50%',
+    height: '50%'
+  },
+
+  snapMiniMaximize: {
+    inset: 0
+  },
+
+  snapMenuLabel: {
+    minWidth: 0,
+    color: 'var(--desktop-snap-menu-label-color, var(--text-hint-color, #8f9bb3))',
+    fontSize: '0.68rem',
+    lineHeight: 1.2,
+    textAlign: 'start'
+  },
+
   windowBody: {
     flex: '1 1 auto',
     minHeight: 0,
@@ -797,6 +946,126 @@ export const useStyles = createStyles((_theme) => ({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
+  },
+
+  switcher: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 1200000000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+    backgroundColor: 'var(--desktop-switcher-backdrop-color, rgba(13, 18, 30, 0.55))',
+    backdropFilter: 'blur(4px)',
+    animation: `${fadeIn} var(--desktop-animation-duration, 120ms) ease-out`,
+
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
+  },
+
+  switcherPanel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.45rem',
+    maxWidth: 'min(52rem, 100%)',
+    maxHeight: '100%',
+    padding: '0.85rem',
+    border: '1px solid var(--desktop-switcher-border-color, var(--border-basic-color-3, #e4e9f2))',
+    borderRadius: 'var(--desktop-switcher-radius, 0.6rem)',
+    backgroundColor:
+      'var(--desktop-switcher-background-color, var(--background-basic-color-1, #ffffff))',
+    boxShadow: 'var(--desktop-switcher-shadow, 0 18px 48px rgba(0, 0, 0, 0.28))',
+    animation: `${switcherIn} var(--desktop-animation-duration, 140ms) ease-out`,
+
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
+  },
+
+  switcherList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    minWidth: 0,
+    minHeight: 0,
+    overflow: 'auto',
+    outline: 'none',
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '3px',
+      borderRadius: '0.4rem'
+    }
+  },
+
+  switcherOption: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    width: '13rem',
+    minHeight: '4.25rem',
+    padding: '0.6rem',
+    border: '1px solid transparent',
+    borderRadius: '0.45rem',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    cursor: 'pointer',
+    transition:
+      'background-color var(--desktop-animation-duration, 100ms) ease-out, border-color var(--desktop-animation-duration, 100ms) ease-out, transform var(--desktop-animation-duration, 100ms) ease-out',
+
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none'
+    }
+  },
+
+  switcherOptionSelected: {
+    borderColor: 'var(--color-primary-500, #3366ff)',
+    backgroundColor:
+      'var(--desktop-switcher-option-selected-background-color, rgba(51, 102, 255, 0.12))',
+    transform: 'scale(1.02)'
+  },
+
+  switcherOptionIcon: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: '0 0 auto',
+    width: '2.25rem',
+    height: '2.25rem',
+    color: 'var(--desktop-switcher-option-icon-color, var(--color-primary-500, #3366ff))'
+  },
+
+  switcherOptionBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    minWidth: 0
+  },
+
+  switcherOptionTitle: {
+    overflow: 'hidden',
+    color: 'var(--desktop-switcher-option-title-color, var(--text-basic-color, #222b45))',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  switcherOptionMeta: {
+    overflow: 'hidden',
+    color: 'var(--desktop-switcher-option-meta-color, var(--text-hint-color, #8f9bb3))',
+    fontSize: '0.7rem',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  switcherHint: {
+    color: 'var(--desktop-switcher-hint-color, var(--text-hint-color, #8f9bb3))',
+    fontSize: '0.7rem',
+    textAlign: 'center'
   },
 
   overview: {

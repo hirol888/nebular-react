@@ -2,6 +2,17 @@ import React from 'react';
 import { DefaultProps } from '@nebular-react/styles';
 import type { FileExplorerStylesNames } from './FileExplorer.styles';
 
+export interface FileEntryPermissions {
+  /** Allows opening/previewing the entry and copying it. */
+  read?: boolean;
+  /** Allows renaming, cutting/moving and dropping into a folder. */
+  write?: boolean;
+  /** Allows deleting the entry. */
+  delete?: boolean;
+  /** Allows downloading the entry (also requires `read`). */
+  download?: boolean;
+}
+
 export interface FileEntry {
   id: string;
   name: string;
@@ -13,6 +24,7 @@ export interface FileEntry {
   url?: string;
   icon?: React.ReactNode;
   metadata?: Record<string, unknown>;
+  permissions?: FileEntryPermissions;
 }
 
 export type FileExplorerView = 'list' | 'grid' | 'details';
@@ -22,20 +34,38 @@ export type FileExplorerSelectionMode = 'single' | 'multiple';
 
 export interface FileListOptions {
   signal?: AbortSignal;
+  /** Zero-based page index requested by the explorer. */
+  page?: number;
+  /** Number of entries per page. Providers may fall back to their own default. */
+  pageSize?: number;
 }
 
 export interface FileSearchOptions extends FileListOptions {
   limit?: number;
 }
 
+/**
+ * Paginated list payload. Providers may keep returning a plain `FileEntry[]`;
+ * the explorer normalizes both shapes.
+ */
+export interface FileListResult {
+  entries: FileEntry[];
+  total?: number;
+  hasMore?: boolean;
+}
+
+export type FileListResponse = FileEntry[] | FileListResult;
+
 export interface FileUploadProgress {
   file: File;
   percent: number;
 }
 
+export type FileUploadStatus = 'uploading' | 'success' | 'error' | 'canceled';
+
 export interface FileSystemProvider {
-  list(path: string, options?: FileListOptions): Promise<FileEntry[]>;
-  search?(query: string, options?: FileSearchOptions): Promise<FileEntry[]>;
+  list(path: string, options?: FileListOptions): Promise<FileListResponse>;
+  search?(query: string, options?: FileSearchOptions): Promise<FileListResponse>;
   createFolder?(parentPath: string, name: string): Promise<FileEntry>;
   rename?(path: string, name: string): Promise<FileEntry>;
   remove?(paths: string[]): Promise<void>;
@@ -95,6 +125,15 @@ export interface FileExplorerLabels {
   closePreview: string;
   uploadProgress(name: string, percent: number): string;
   uploadError(name: string): string;
+  uploadQueue: string;
+  uploadCancel(name: string): string;
+  uploadRetry(name: string): string;
+  uploadDismiss(name: string): string;
+  uploadSuccess(name: string): string;
+  uploadCanceled(name: string): string;
+  loadMore: string;
+  loadingMore: string;
+  permissionDenied(action: string): string;
   dropToUpload: string;
   tabs: string;
   newTab: string;
@@ -133,6 +172,10 @@ export interface FileExplorerProps
   readOnly?: boolean;
   accept?: string;
   multiple?: boolean;
+  /** Page size forwarded to `provider.list`/`provider.search`. Enables "Load more" when supported. */
+  pageSize?: number;
+  /** Entries above this count are windowed in list/details views. Set 0 to disable. */
+  virtualizeThreshold?: number;
   labels?: Partial<FileExplorerLabels>;
   ariaLabel?: string;
   sidebar?: React.ReactNode;

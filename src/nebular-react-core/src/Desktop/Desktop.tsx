@@ -152,6 +152,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     unstyled,
     style,
     onKeyDown: onKeyDownProp,
+    onKeyUp: onKeyUpProp,
     ...others
   } = useComponentDefaultProps(defaultProps, props);
   const { classes, cx } = useStyles(undefined, {
@@ -222,6 +223,11 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       reopenClosedWindow: t('desktop.reopenClosedWindow', 'Reopen closed window'),
       overview: t('desktop.overview', 'Overview'),
       closeOverview: t('desktop.closeOverview', 'Close overview'),
+      windowSwitcher: t('desktop.windowSwitcher', 'Switch windows'),
+      windowSwitcherHint: t(
+        'desktop.windowSwitcherHint',
+        'Hold Alt and press Tab to cycle, release Alt to switch.'
+      ),
       ...labelsProp
     }),
     [t, labelsProp]
@@ -264,6 +270,12 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [switcher, setSwitcher] = useState<{ index: number } | null>(null);
+  const switcherOpen = switcher !== null;
+  const switcherListRef = useRef<HTMLDivElement>(null);
+  const switcherReturnFocusRef = useRef<HTMLElement | null>(null);
+  const switcherIndexRef = useRef(-1);
+  switcherIndexRef.current = switcher?.index ?? -1;
   const [recentAppIds, setRecentAppIds] = useState<string[]>([]);
   const [now, setNow] = useState<Date | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -1386,7 +1398,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
+      if (event.defaultPrevented || event.key !== 'Escape') {
         return;
       }
 
@@ -1513,6 +1525,82 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     (active, window) => (!active || window.zIndex > active.zIndex ? window : active),
     null
   );
+  const closeSwitcher = useCallback((restoreFocus: boolean) => {
+    const previous = switcherReturnFocusRef.current;
+    switcherReturnFocusRef.current = null;
+    switcherIndexRef.current = -1;
+    setSwitcher(null);
+
+    if (!restoreFocus) {
+      return;
+    }
+
+    if (previous?.isConnected) {
+      previous.focus();
+    } else {
+      desktopAreaRef.current?.focus();
+    }
+  }, []);
+  const moveSwitcher = useCallback(
+    (offset: number) => {
+      setSwitcher((current) =>
+        current && visibleWindows.length > 0
+          ? { index: (current.index + offset + visibleWindows.length) % visibleWindows.length }
+          : current
+      );
+    },
+    [visibleWindows.length]
+  );
+  const commitSwitcher = useCallback(() => {
+    const index = switcherIndexRef.current;
+    const target = index >= 0 ? visibleWindows[index] : undefined;
+    closeSwitcher(false);
+
+    if (target) {
+      focusWindow(target.id);
+    }
+  }, [visibleWindows, closeSwitcher, focusWindow]);
+  const cancelSwitcher = useCallback(() => closeSwitcher(true), [closeSwitcher]);
+
+  useEffect(() => {
+    if (!switcher) {
+      return;
+    }
+
+    if (visibleWindows.length < 2) {
+      closeSwitcher(false);
+    } else if (switcher.index >= visibleWindows.length) {
+      setSwitcher({ index: visibleWindows.length - 1 });
+    }
+  }, [switcher, visibleWindows.length, closeSwitcher]);
+
+  useEffect(() => {
+    if (switcherOpen) {
+      switcherListRef.current?.focus();
+    }
+  }, [switcherOpen]);
+
+  useEffect(() => {
+    if (!switcherOpen) {
+      return undefined;
+    }
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!event.defaultPrevented && event.key === 'Alt') {
+        commitSwitcher();
+      }
+    };
+    const handleBlur = () => closeSwitcher(false);
+
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [switcherOpen, commitSwitcher, closeSwitcher]);
+
   const activeWorkspaceTheme = workspaces.find((workspace) => workspace.id === activeWorkspace);
   const commandActions = useMemo<CommandPaletteAction[]>(() => {
     const appActions = apps.map((app) => ({
@@ -1902,6 +1990,32 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       return;
     }
 
+    if (switcher) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelSwitcher();
+        return;
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        commitSwitcher();
+        return;
+      }
+
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        moveSwitcher(1);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveSwitcher(-1);
+        return;
+      }
+    }
+
     if (event.key === 'Escape' && overviewOpen) {
       event.preventDefault();
       setOverviewOpen(false);
@@ -1929,11 +2043,24 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     if (overviewOpen) {
       setOverviewOpen(false);
     }
-    const currentIndex = visibleWindows.findIndex((window) => window.id === activeWindow?.id);
+
     const offset = event.shiftKey ? -1 : 1;
-    const next =
-      visibleWindows[(currentIndex + offset + visibleWindows.length) % visibleWindows.length];
-    focusWindow(next.id);
+
+    if (switcher) {
+      moveSwitcher(offset);
+      return;
+    }
+
+    const currentIndex = visibleWindows.findIndex((window) => window.id === activeWindow?.id);
+    const baseIndex = currentIndex === -1 ? (offset > 0 ? -1 : 0) : currentIndex;
+    const nextIndex = (baseIndex + offset + visibleWindows.length) % visibleWindows.length;
+    const { activeElement } = document;
+
+    switcherReturnFocusRef.current =
+      activeElement instanceof HTMLElement && activeElement !== document.body
+        ? activeElement
+        : null;
+    setSwitcher({ index: nextIndex });
   };
 
   const toggleLauncher = () => setLauncherOpen((open) => !open);
@@ -1996,6 +2123,13 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
           onKeyDownProp?.(event);
           if (!event.defaultPrevented) {
             handleRootKeyDown(event);
+          }
+        }}
+        onKeyUp={(event) => {
+          onKeyUpProp?.(event);
+          if (!event.defaultPrevented && switcher && event.key === 'Alt') {
+            event.preventDefault();
+            commitSwitcher();
           }
         }}
       >
@@ -2172,6 +2306,76 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+          )}
+          {switcher && visibleWindows.length > 1 && (
+            <div className={cx(classes.switcher)} role="dialog" aria-label={labels.windowSwitcher}>
+              <div className={cx(classes.switcherPanel)}>
+                <div
+                  ref={switcherListRef}
+                  className={cx(classes.switcherList)}
+                  role="listbox"
+                  aria-label={labels.windowSwitcher}
+                  aria-describedby={`${idBase}-switcher-hint`}
+                  aria-activedescendant={`${idBase}-switcher-option-${switcher.index}`}
+                  tabIndex={-1}
+                >
+                  {visibleWindows.map((windowState, index) => {
+                    const app = getApp(windowState);
+                    const title = windowTitleText(windowState, app, labels.window);
+                    const selected = index === switcher.index;
+                    const workspace =
+                      workspaces.length > 1
+                        ? workspaces.find(
+                            (candidate) =>
+                              candidate.id === (windowState.workspaceId ?? activeWorkspace)
+                          )
+                        : undefined;
+                    const display =
+                      displayZones.length > 1
+                        ? (displayZones.find((zone) => zone.id === windowState.displayId) ??
+                          displayZones.find((zone) => zone.primary) ??
+                          displayZones[0])
+                        : undefined;
+                    const meta = [
+                      workspace?.title,
+                      display?.label ?? display?.id,
+                      windowState.maximized ? labels.snapMaximize : null
+                    ]
+                      .filter(Boolean)
+                      .join(' · ');
+
+                    return (
+                      <div
+                        key={windowState.id}
+                        id={`${idBase}-switcher-option-${index}`}
+                        role="option"
+                        aria-selected={selected}
+                        tabIndex={-1}
+                        className={cx(classes.switcherOption, {
+                          [classes.switcherOptionSelected]: selected
+                        })}
+                        onPointerEnter={() => setSwitcher({ index })}
+                        onClick={() => {
+                          closeSwitcher(false);
+                          focusWindow(windowState.id);
+                        }}
+                      >
+                        <span className={cx(classes.switcherOptionIcon)} aria-hidden="true">
+                          {app?.icon ?? windowState.icon}
+                        </span>
+                        <span className={cx(classes.switcherOptionBody)}>
+                          <span className={cx(classes.switcherOptionTitle)}>{title}</span>
+                          {meta && <span className={cx(classes.switcherOptionMeta)}>{meta}</span>}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <span id={`${idBase}-switcher-hint`} className={cx(classes.switcherHint)}>
+                  {labels.windowSwitcherHint}
+                </span>
               </div>
             </div>
           )}

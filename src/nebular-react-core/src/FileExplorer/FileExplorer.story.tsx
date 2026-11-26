@@ -133,6 +133,54 @@ export const DetailsView = () => <Demo initialView="details" />;
 export const ReadOnly = () => <Demo readOnly />;
 export const Tabs = () => <Demo tabs />;
 
+const permissionSeed: FileEntry[] = [
+  ...seed,
+  {
+    id: 'contract',
+    name: 'contract.pdf',
+    path: '/contract.pdf',
+    type: 'file',
+    mimeType: 'application/pdf',
+    size: 540_000,
+    modifiedAt: '2026-02-07',
+    permissions: { write: false, delete: false }
+  },
+  {
+    id: 'audit',
+    name: 'audit.log',
+    path: '/audit.log',
+    type: 'file',
+    mimeType: 'text/plain',
+    size: 12_400,
+    modifiedAt: '2026-02-08',
+    permissions: { read: false, write: false, delete: false, download: false }
+  },
+  {
+    id: 'shared',
+    name: 'Shared',
+    path: '/Shared',
+    type: 'folder',
+    modifiedAt: '2026-02-09',
+    permissions: { write: false }
+  }
+];
+
+export function UploadsAndPermissions() {
+  const provider = useMemo(() => createMemoryFileSystemProvider(permissionSeed), []);
+
+  return (
+    <div style={{ height: '36rem' }}>
+      <FileExplorer
+        provider={provider}
+        defaultPath="/"
+        view="list"
+        multiple
+        ariaLabel="File explorer with uploads and permissions"
+      />
+    </div>
+  );
+}
+
 export function DualPane() {
   const provider = useMemo(() => createMemoryFileSystemProvider(seed), []);
 

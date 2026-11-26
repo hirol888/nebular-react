@@ -30,3 +30,39 @@ it('keeps nested menu links mounted and makes them inert when collapsed', async 
   expect(child.closest('[inert]')).toBeNull();
   expect(child.closest('ul')).toBe(originalSubmenu);
 });
+
+it('renders a custom component action without a link and calls both handlers', async () => {
+  const user = userEvent.setup();
+  const onSelect = jest.fn();
+  const onClick = jest.fn();
+  render(
+    <Menu multiple={false} onSelect={onSelect}>
+      <MenuItem component="button" id="logout" title="Logout" onClick={onClick} />
+    </Menu>
+  );
+
+  const button = screen.getByRole('button', { name: 'Logout' });
+  expect(button.tagName).toBe('BUTTON');
+  expect(button).not.toHaveAttribute('component');
+
+  await user.click(button);
+
+  expect(onSelect).toHaveBeenCalledWith('logout');
+  expect(onClick).toHaveBeenCalledTimes(1);
+});
+
+it('calls menu selection and the consumer onClick for linked items', async () => {
+  const user = userEvent.setup();
+  const onSelect = jest.fn();
+  const onClick = jest.fn((event: React.MouseEvent<HTMLElement>) => event.preventDefault());
+  render(
+    <Menu multiple={false} onSelect={onSelect}>
+      <MenuItem id="docs" title="Docs" href="/docs" onClick={onClick} />
+    </Menu>
+  );
+
+  await user.click(screen.getByRole('link', { name: 'Docs' }));
+
+  expect(onSelect).toHaveBeenCalledWith('docs');
+  expect(onClick).toHaveBeenCalledTimes(1);
+});

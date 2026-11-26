@@ -1,6 +1,8 @@
 import type {
   FileEntry,
   FileListOptions,
+  FileListResponse,
+  FileListResult,
   FileSearchOptions,
   FileSystemProvider,
   FileUploadProgress
@@ -285,16 +287,70 @@ export interface RestFileSystemProviderOptions {
 
 interface ListResponse {
   entries?: FileEntry[];
+  total?: number;
+  hasMore?: boolean;
+  has_more?: boolean;
 }
 
-function resolveEntries(payload: FileEntry[] | ListResponse): FileEntry[] {
-  return Array.isArray(payload) ? payload : (payload.entries ?? []);
+/**
+ * Keeps backward compatibility: payloads without pagination metadata still
+ * resolve to a plain array, while paginated payloads expose total/hasMore.
+ */
+function resolveEntries(payload: FileEntry[] | ListResponse): FileListResponse {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  const entries = payload.entries ?? [];
+  const hasMore = payload.hasMore ?? payload.has_more;
+
+  if (payload.total === undefined && hasMore === undefined) {
+    return entries;
+  }
+
+  const result: FileListResult = { entries };
+
+  if (payload.total !== undefined) {
+    result.total = payload.total;
+  }
+
+  if (hasMore !== undefined) {
+    result.hasMore = hasMore;
+  }
+
+  return result;
+}
+
+function getPaginationParams(options?: FileListOptions): [string, string][] {
+  const params: [string, string][] = [];
+
+  if (options?.page !== undefined) {
+    params.push(['page', String(options.page)]);
+  }
+
+  if (options?.pageSize !== undefined) {
+    params.push(['pageSize', String(options.pageSize)]);
+  }
+
+  return params;
+}
+
+function mapListResponse(
+  payload: FileEntry[] | ListResponse,
+  map: (entry: FileEntry) => FileEntry
+): FileListResponse {
+  const response = resolveEntries(payload);
+  return Array.isArray(response)
+    ? response.map(map)
+    : { ...response, entries: response.entries.map(map) };
 }
 
 /**
  * REST contract:
- * GET    {endpoint}/entries?path=/Documents       -> FileEntry[] | { entries }
- * GET    {endpoint}/search?q=foo&limit=50         -> FileEntry[] | { entries }
+ * GET    {endpoint}/entries?path=/Documents[&page=0&pageSize=50]
+ *        -> FileEntry[] | { entries, total?, hasMore? }
+ * GET    {endpoint}/search?q=foo&limit=50[&page&pageSize]
+ *        -> FileEntry[] | { entries, total?, hasMore? }
  * POST   {endpoint}/folders   { parent, name }    -> FileEntry
  * PATCH  {endpoint}/entries   { path, name }      -> FileEntry
  * DELETE {endpoint}/entries   { paths }           -> 204
@@ -333,27 +389,29 @@ export function createRestFileSystemProvider({
 
   return {
     async list(path, options) {
-      const response = await request(
-        `${base}/entries?path=${encodeURIComponent(normalizePath(path))}`,
-        {
-          headers: resolveHeaders(),
-          credentials,
-          signal: options?.signal
-        }
-      );
-      return resolveEntries(await json<ListResponse | FileEntry[]>(response)).map(map);
+      const query = [
+        `path=${encodeURIComponent(normalizePath(path))}`,
+        ...getPaginationParams(options).map(([key, value]) => `${key}=${value}`)
+      ].join('&');
+      const response = await request(`${base}/entries?${query}`, {
+        headers: resolveHeaders(),
+        credentials,
+        signal: options?.signal
+      });
+      return mapListResponse(await json<ListResponse | FileEntry[]>(response), map);
     },
     async search(query, options) {
       const params = new URLSearchParams({ q: query });
       if (options?.limit) {
         params.set('limit', String(options.limit));
       }
+      getPaginationParams(options).forEach(([key, value]) => params.set(key, value));
       const response = await request(`${base}/search?${params.toString()}`, {
         headers: resolveHeaders(),
         credentials,
         signal: options?.signal
       });
-      return resolveEntries(await json<ListResponse | FileEntry[]>(response)).map(map);
+      return mapListResponse(await json<ListResponse | FileEntry[]>(response), map);
     },
     async createFolder(parent, name) {
       const response = await request(`${base}/folders`, {
