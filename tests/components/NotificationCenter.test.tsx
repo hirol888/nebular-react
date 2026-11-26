@@ -33,7 +33,7 @@ describe('NotificationCenter', () => {
   it('renders only the trigger while closed', () => {
     render(<NotificationCenter notifications={notifications} />);
 
-    const trigger = screen.getByRole('button', { name: 'Notifications' });
+    const trigger = screen.getByRole('button', { name: /Notifications/ });
     expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -44,13 +44,13 @@ describe('NotificationCenter', () => {
 
     render(<NotificationCenter notifications={notifications} />);
 
-    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+    await user.click(screen.getByRole('button', { name: /Notifications/ }));
 
-    const trigger = screen.getByRole('button', { name: 'Notifications' });
+    const trigger = screen.getByRole('button', { name: /Notifications/ });
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
 
-    const dialog = screen.getByRole('dialog', { name: 'Notifications' });
-    expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: /Notifications/ });
+    expect(screen.getByRole('heading', { name: /Notifications/ })).toBeInTheDocument();
     expect(dialog).toHaveTextContent('Deployment finished');
     expect(dialog).toHaveTextContent('New comment');
     expect(dialog).toHaveTextContent('Storage almost full');
@@ -60,13 +60,13 @@ describe('NotificationCenter', () => {
   it('shows the unread count badge', () => {
     const { rerender } = render(<NotificationCenter notifications={notifications} />);
 
-    expect(screen.getByRole('button', { name: 'Notifications' })).toHaveTextContent('2');
+    expect(screen.getByRole('button', { name: /Notifications/ })).toHaveTextContent('2');
 
     rerender(
       <NotificationCenter notifications={notifications.map((item) => ({ ...item, read: true }))} />
     );
 
-    expect(screen.getByRole('button', { name: 'Notifications' })).not.toHaveTextContent('2');
+    expect(screen.getByRole('button', { name: /Notifications/ })).not.toHaveTextContent('2');
   });
 
   it('calls onMarkAllRead when marking all notifications as read', async () => {
@@ -123,7 +123,7 @@ describe('NotificationCenter', () => {
 
     render(<NotificationCenter notifications={notifications} defaultOpened />);
 
-    expect(screen.getByRole('dialog', { name: 'Notifications' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /Notifications/ })).toBeInTheDocument();
 
     await user.click(document.body);
 
@@ -152,11 +152,11 @@ describe('NotificationCenter', () => {
       />
     );
 
-    const dialog = screen.getByRole('dialog', { name: 'Notifications' });
+    const dialog = screen.getByRole('dialog', { name: /Notifications/ });
     expect(dialog).toHaveTextContent('All caught up. You have no notifications.');
     expect(screen.queryByRole('button', { name: 'Mark all as read' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Notifications' })).not.toHaveTextContent('0');
+    expect(screen.getByRole('button', { name: /Notifications/ })).not.toHaveTextContent('0');
   });
 
   it('supports a controlled open state', async () => {
@@ -165,10 +165,10 @@ describe('NotificationCenter', () => {
 
     render(<NotificationCenter notifications={notifications} opened onOpenChange={onOpenChange} />);
 
-    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+    await user.click(screen.getByRole('button', { name: /Notifications/ }));
 
     expect(onOpenChange).toHaveBeenLastCalledWith(false);
-    expect(screen.getByRole('dialog', { name: 'Notifications' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /Notifications/ })).toBeInTheDocument();
   });
 
   it('has no accessibility violations', async () => {

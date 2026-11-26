@@ -359,6 +359,10 @@ const _NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterProps>(
   const resolvedLabel =
     ariaLabel ||
     (typeof resolvedTitle === 'string' && resolvedTitle ? resolvedTitle : fallbackLabel);
+  const unreadCountLabel = t('notificationCenter.unreadCount', '{count} unread', {
+    count: unreadCount
+  });
+  const triggerLabel = unreadCount > 0 ? `${resolvedLabel}, ${unreadCountLabel}` : resolvedLabel;
 
   const statusClasses: Record<NotificationStatus, string> = {
     info: classes.statusInfo,
@@ -406,7 +410,7 @@ const _NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterProps>(
       <button
         type="button"
         className={cx(classes.trigger)}
-        aria-label={resolvedLabel}
+        aria-label={triggerLabel}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls={isOpen ? panelId : undefined}
