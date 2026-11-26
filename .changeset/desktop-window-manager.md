@@ -26,12 +26,19 @@ command palette (`Ctrl/Cmd+K`), visão geral, `NotificationCenter` na taskbar, e
 por janela, associação de arquivos (`fileExtensions`/`openFile`) e reabertura de janelas
 fechadas.
 
-Adiciona `FileExplorer`, uma evolução do `FileManager` orientada a um `FileSystemProvider`
+Adiciona `DesktopLayoutSettings` e `useDesktopLayoutScope` para escolher entre layout por
+dispositivo e compartilhado; adiciona `DesktopSurface` para renderizar um display no modo
+surfaces, com merge de janelas de volta ao host. Adiciona `FileExplorerDualPane` com dois
+panes independentes e divisor acessível. Também adiciona `FileExplorer`, uma evolução do `FileManager` orientada a um `FileSystemProvider`
 assíncrono, com providers em memória e REST, navegação back/forward/up, breadcrumb, busca,
 views list/grid/details, seleção múltipla, teclado, copiar/cortar/colar, arrastar para pasta,
 abas, renomear, excluir, criar pasta, upload
 por input/drag-and-drop, preview e sidebar.
 
-O catálogo i18n ganhou as chaves `desktop.*` e `fileExplorer.*`; o pacote de ícones
-essenciais ganhou `menu-outline`, `more-horizontal-outline`, `folder-outline` e
-`refresh-outline`.
+Também adiciona abas por janela com tear-off, slots `toolbar`/`footer` e os componentes
+`WindowBreadcrumb`/`WindowStatusBar` para compor a chrome interna das janelas.
+
+O catálogo i18n ganhou as chaves `desktop.*`, `fileExplorer.*`, `windowBreadcrumb.*` e
+`windowStatusBar.*`; o pacote de ícones essenciais ganhou `menu-outline`,
+`more-horizontal-outline`, `folder-outline`, `refresh-outline`, `monitor-outline` e
+`cloud-upload-outline`.

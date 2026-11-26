@@ -4,8 +4,8 @@
 
 | Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
-| Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `FileExplorer`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
+| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `FileExplorer`, `FileExplorerDualPane`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
 | Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                           |
 | Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Feedback    | `Alert`, `Toastr`, `Loader`, `LoadingBar`, `ProgressBar`, `RingProgress`, `Skeleton`, `EmptyState`, `LoadingOverlay`, `Result`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -1857,6 +1857,24 @@ const apps = [
   `inert`/`aria-hidden` até fecharem; o escopo do modal é a janela-mãe (a taskbar e outras
   janelas continuam utilizáveis, como em um desktop nativo). `Escape` fecha o modal ativo e
   o foco volta ao elemento que abriu a janela.
+- `tabs`/`activeTabId` renderizam abas por janela; fechar a última aba fecha a janela e
+  arrastar uma aba para fora faz tear-off para uma nova janela.
+- `toolbar`/`footer` (no app, na janela ou em `openWindow`) renderizam slots fora do body,
+  abaixo das abas e acima do rodapé. Use `WindowBreadcrumb` na toolbar e `WindowStatusBar`
+  no footer:
+  ```tsx
+  <Desktop
+    apps={[
+      {
+        id: 'files',
+        title: 'Files',
+        content: <Explorer />,
+        toolbar: <WindowBreadcrumb items={crumbs} />,
+        footer: <WindowStatusBar items={statusItems} />
+      }
+    ]}
+  />;
+  ```
 - A janela é rolável no body e o desktop preenche o container; `fullscreen` fixa em
   `inset: 0` para uso como modo de exibição da aplicação.
 
@@ -1958,8 +1976,9 @@ const apps = [
   `keepInBounds` (padrão `true`) impede que drag/resize saiam da área do desktop.
 - `displayMode="span"` + `displays` habilita snap/maximize por monitor, divisórias visuais,
   `moveWindowToDisplay` e `useDesktopDisplays()` (Window Management API, com fallback).
-- `openDesktopSurfaces`, `createDesktopSurfaceBus` e `getDesktopSurfaceDisplayId` formam o
-  modo **surfaces** experimental: abrem janelas auxiliares por monitor e sincronizam
+- `openDesktopSurfaces`, `createDesktopSurfaceBus`, `getDesktopSurfaceDisplayId` e
+  `DesktopSurface` formam o modo **surfaces** experimental: abrem/roteiam uma janela
+  auxiliar por monitor, renderizam apenas as janelas daquele display e sincronizam
   snapshots via `BroadcastChannel` (o posicionamento físico do popup ainda depende do
   usuário/browser).
 - `icons` renderiza atalhos no wallpaper; `commandPalette` habilita `Ctrl/Cmd+K` com apps,
@@ -1975,6 +1994,85 @@ const apps = [
   `onWindowDisplayChange`, `onIconOpen`, `onDisplayChange` e `onWindowsChange`.
 - Todos os rótulos vêm do catálogo i18n (`useNebularLocale`) e podem ser sobrescritos por
   `labels`.
+
+## DesktopLayoutSettings
+
+Componente de UI para escolher onde o layout é salvo — **este dispositivo** ou
+**compartilhado com os dispositivos do perfil**. Ele é controlado/não controlado e não
+chama a API diretamente:
+
+```tsx
+const [scope, setScope] = useState<DesktopLayoutScope>('device');
+const scopeRef = useRef(scope);
+scopeRef.current = scope;
+
+const adapter = useMemo(
+  () => createVersionedLayoutAdapter(transport, { scope: () => scopeRef.current }),
+  [transport]
+);
+
+<Desktop layoutAdapter={adapter} />;
+
+<DesktopLayoutSettings
+  scope={scope}
+  onScopeChange={setScope}
+  deviceId={getDesktopDeviceId()}
+  onSave={() => saveNow()}
+  saving={saving}
+  saved={saved}
+/>
+```
+
+- `scope`/`defaultScope`: `device` ou `shared`.
+- `onScopeChange`: notifica a troca; o adapter usa um `scopeRef` para não recriar o
+  adapter a cada mudança.
+- `deviceId`: exibido na opção “Este dispositivo”.
+- `onSave`/`saving`/`saved`: botão e status opcionais de gravação imediata.
+- `labels` e `ariaLabel` permitem tradução/customização.
+- `useDesktopLayoutScope(storageKey?)` persiste a escolha `device`/`shared` no
+  `localStorage`; use o setter no `onScopeChange` ou direto no `DesktopLayoutSettings`.
+
+## WindowBreadcrumb
+
+Breadcrumb compacto para a toolbar de uma janela (`toolbar` no `DesktopApp`/janela):
+
+```tsx
+<WindowBreadcrumb
+  items={[
+    { label: 'Files', onClick: goRoot },
+    { label: 'Documents', onClick: goDocuments },
+    { label: 'Reports', current: true }
+  ]}
+  leading={<BackForwardButtons />}
+  trailing={<SearchInput />}
+  maxItems={5}
+/>
+```
+
+- `items`: `{ label, icon?, href?, onClick?, current? }`.
+- `maxItems` + `collapse` agrupam itens do meio em um menu acessível.
+- `leading`/`trailing` são slots para voltar/avançar, busca e ações.
+- `separator`, `ariaLabel` e `labels` customizam a navegação.
+
+## WindowStatusBar
+
+Barra inferior compacta para status/metadados de uma janela (`footer` no app/janela):
+
+```tsx
+<WindowStatusBar
+  start="Ready"
+  center="4 files selected"
+  end="UTF-8"
+  items={[
+    { label: 'Lines', value: 128 },
+    { label: 'Modified', value: 'just now', tone: 'info' }
+  ]}
+/>
+```
+
+- Itens com `icon`, `label`, `value`, `tone` (`info`/`success`/`warning`/`danger`) e `onClick`.
+- `start`/`center`/`end` e `children` permitem slots livres.
+- `size` (`sm`/`md`) e `bordered` controlam densidade e separador superior.
 
 ## FileExplorer
 
@@ -2005,6 +2103,9 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   confirmação (`Del`), nova pasta, upload por input/drag-and-drop e preview de imagem/texto.
 - `sidebar`, `renderIcon`, `renderPreview`, `labels`, `readOnly`, `accept`, `multiple` e
   `emptyState` permitem customização.
+- `FileExplorerDualPane` renderiza dois explorers independentes com divisor ajustável por
+  pointer ou teclado (`ArrowLeft/Right`, `Home/End`), colapso vertical em containers
+  estreitos e `split`/`onSplitChange` controlados.
 - Para integração com o Desktop, use `useDesktop().openFile(entry)` e declare
   `fileExtensions` nos apps.
 

@@ -1,6 +1,8 @@
 export { Desktop } from './Desktop';
 export { useDesktop, useDesktopWindow, useDesktopWindowState } from './Desktop.context';
 export { useDesktopDisplays } from './Desktop.displays';
+export { DesktopSurface } from './DesktopSurface';
+export type { DesktopSurfaceProps } from './DesktopSurface';
 export {
   createDesktopSurfaceBus,
   getDesktopSurfaceDisplayId,
@@ -47,6 +49,7 @@ export type {
   DesktopWindowContextValue,
   DesktopWindowSnapshot,
   DesktopWindowState,
+  DesktopWindowTab,
   DesktopWorkspace,
   DesktopWorkspaceSnapshot
 } from './Desktop.types';

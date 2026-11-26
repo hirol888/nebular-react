@@ -1,4 +1,5 @@
 export { FileExplorer } from './FileExplorer';
+export { FileExplorerDualPane } from './FileExplorerDualPane';
 export {
   FileSystemError,
   createMemoryFileSystemProvider,
@@ -13,6 +14,10 @@ export type {
   RestFileSystemProviderOptions
 } from './FileExplorer.providers';
 export type {
+  FileExplorerDualPaneLabels,
+  FileExplorerDualPaneProps
+} from './FileExplorerDualPane.types';
+export type {
   FileEntry,
   FileExplorerLabels,
   FileExplorerProps,
@@ -26,3 +31,4 @@ export type {
   FileUploadProgress
 } from './FileExplorer.types';
 export type { FileExplorerStylesNames } from './FileExplorer.styles';
+export type { FileExplorerDualPaneStylesNames } from './FileExplorerDualPane.styles';

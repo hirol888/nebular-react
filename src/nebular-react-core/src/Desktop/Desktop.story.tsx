@@ -1,8 +1,11 @@
 import React from 'react';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
+import { WindowBreadcrumb } from '../WindowBreadcrumb';
+import { WindowStatusBar } from '../WindowStatusBar';
 import {
   Desktop,
+  DesktopSurface,
   useDesktopWindow,
   type DesktopApp,
   type DesktopTaskbarPosition,
@@ -145,6 +148,51 @@ function windowState(
   };
 }
 
+export function WindowChrome() {
+  const chromeApp: DesktopApp = {
+    ...apps[0],
+    toolbar: (
+      <WindowBreadcrumb
+        leading={
+          <>
+            <Button size="small" appearance="outline">
+              ←
+            </Button>
+            <Button size="small" appearance="outline">
+              →
+            </Button>
+          </>
+        }
+        items={[
+          { label: 'Files', onClick: () => undefined },
+          { label: 'Documents', onClick: () => undefined },
+          { label: 'Reports', current: true }
+        ]}
+        trailing={<span style={{ fontSize: '0.72rem' }}>4 files</span>}
+      />
+    ),
+    footer: (
+      <WindowStatusBar
+        items={[
+          { label: 'Ready', tone: 'success' },
+          { label: 'TypeScript', value: '1 file' },
+          { label: 'Modified', value: 'just now', tone: 'info' }
+        ]}
+        end="UTF-8"
+      />
+    )
+  };
+
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={[chromeApp, ...apps.slice(1)]}
+        defaultWindows={[windowState('chrome-notes', 'notes', 48, 48, 1)]}
+      />
+    </div>
+  );
+}
+
 export function Showcase() {
   return (
     <Desktop
@@ -196,6 +244,53 @@ export function GroupedWindows() {
           windowState('notes-2', 'notes', 120, 100, 2),
           windowState('mail-1', 'mail', 260, 160, 3),
           windowState('settings-1', 'settings', 320, 220, 4)
+        ]}
+      />
+    </div>
+  );
+}
+
+export function WindowTabs() {
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          windowState('tabs-window', 'notes', 80, 64, 1, {
+            appId: undefined,
+            title: 'Project',
+            activeTabId: 'readme',
+            tabs: [
+              {
+                id: 'readme',
+                title: 'README.md',
+                icon: (
+                  <Icon icon="file-text-outline" pack="nebular-essentials" aria-hidden="true" />
+                ),
+                content: (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <strong>README.md</strong>
+                    <span>Click a tab to switch documents.</span>
+                    <span>Drag a tab outside the tab bar to open it in a new window.</span>
+                  </div>
+                )
+              },
+              {
+                id: 'tasks',
+                title: 'tasks.md',
+                icon: (
+                  <Icon icon="file-text-outline" pack="nebular-essentials" aria-hidden="true" />
+                ),
+                content: <p style={{ margin: 0 }}>Task list for the current sprint.</p>
+              },
+              {
+                id: 'settings',
+                title: 'settings.json',
+                icon: <Icon icon="expand-outline" pack="nebular-essentials" aria-hidden="true" />,
+                content: <pre style={{ margin: 0 }}>{'{\n  "theme": "nebular"\n}'}</pre>
+              }
+            ]
+          })
         ]}
       />
     </div>
@@ -289,6 +384,33 @@ export function MultiDisplay() {
           { ...windowState('right-tasks', 'tasks', 620, 80, 2), displayId: 'right' }
         ]}
       />
+    </div>
+  );
+}
+
+export function Surfaces() {
+  const displays = [
+    { id: 'left', label: 'Left', primary: true, bounds: { x: 0, y: 0, width: 700, height: 480 } },
+    { id: 'right', label: 'Right', bounds: { x: 700, y: 0, width: 700, height: 480 } }
+  ];
+  const [windows, setWindows] = React.useState<DesktopWindowState[]>([
+    { ...windowState('surface-left', 'notes', 40, 40, 1), displayId: 'left' },
+    { ...windowState('surface-right', 'tasks', 40, 40, 2), displayId: 'right' }
+  ]);
+
+  return (
+    <div style={{ display: 'flex', gap: '0.5rem', height: '32rem' }}>
+      {displays.map((display) => (
+        <div key={display.id} style={{ flex: '1 1 50%', minWidth: 0 }}>
+          <DesktopSurface
+            surfaceId={display.id}
+            displays={displays}
+            windows={windows}
+            onWindowsChange={setWindows}
+            apps={apps}
+          />
+        </div>
+      ))}
     </div>
   );
 }

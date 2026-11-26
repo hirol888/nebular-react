@@ -52,6 +52,8 @@ const enUSMessages: NebularMessages = {
   'desktop.restore': 'Restore {name}',
   'desktop.close': 'Close {name}',
   'desktop.resize': 'Resize {name}',
+  'desktop.tabList': 'Window tabs',
+  'desktop.closeTab': 'Close {name}',
   'desktop.window': 'Window',
   'desktop.clock': 'Clock',
   'desktop.noApps': 'No apps available',
@@ -95,6 +97,19 @@ const enUSMessages: NebularMessages = {
   'desktop.reopenClosedWindow': 'Reopen closed window',
   'desktop.overview': 'Overview',
   'desktop.closeOverview': 'Close overview',
+  'desktopLayoutSettings.title': 'Desktop layout',
+  'desktopLayoutSettings.description':
+    'Choose where this layout is stored. Device layouts follow this browser; shared layouts are reused by other devices of the same profile and application.',
+  'desktopLayoutSettings.device': 'This device',
+  'desktopLayoutSettings.deviceDescription': 'Stored for device {device}',
+  'desktopLayoutSettings.shared': 'Share with my devices',
+  'desktopLayoutSettings.sharedDescription':
+    'Other devices use this layout when they do not have a device-specific one.',
+  'desktopLayoutSettings.save': 'Save layout now',
+  'desktopLayoutSettings.saving': 'Saving…',
+  'desktopLayoutSettings.saved': 'Layout saved',
+  'desktopLayoutSettings.deviceFallback': 'Use the latest shared layout as fallback.',
+  'desktopLayoutSettings.group': 'Layout storage scope',
   'calendar.ok': 'OK',
   'calendar.now': 'Now',
 
@@ -190,6 +205,10 @@ const enUSMessages: NebularMessages = {
   'fileExplorer.tabs': 'Open folders',
   'fileExplorer.newTab': 'New tab',
   'fileExplorer.closeTab': 'Close {name}',
+  'fileExplorerDualPane.primary': 'Primary pane',
+  'fileExplorerDualPane.secondary': 'Secondary pane',
+  'fileExplorerDualPane.resize': 'Resize panes',
+  'fileExplorerDualPane.breadcrumb': '{pane} breadcrumb',
   'fileManager.open': 'Open',
   'fileManager.rename': 'Rename',
   'fileManager.download': 'Download',
@@ -489,7 +508,11 @@ const enUSMessages: NebularMessages = {
   'cron.daily': 'Daily at 09:00',
   'cron.weekly': 'Weekly on Monday',
   'cron.monthly': 'Monthly on day 1',
-  'cron.invalid': 'Invalid cron expression'
+  'cron.invalid': 'Invalid cron expression',
+  'windowBreadcrumb.navigation': 'Breadcrumb',
+  'windowBreadcrumb.more': 'Show hidden breadcrumb items',
+  'windowBreadcrumb.hiddenItems': 'Hidden breadcrumb items',
+  'windowStatusBar.region': 'Status bar'
 };
 
 const ptBRMessages: NebularMessages = {
@@ -567,6 +590,19 @@ const ptBRMessages: NebularMessages = {
   'desktop.reopenClosedWindow': 'Reabrir janela fechada',
   'desktop.overview': 'Visão geral',
   'desktop.closeOverview': 'Fechar visão geral',
+  'desktopLayoutSettings.title': 'Layout do Desktop',
+  'desktopLayoutSettings.description':
+    'Escolha onde este layout é armazenado. O layout por dispositivo acompanha este navegador; o compartilhado é reutilizado por outros dispositivos do mesmo perfil e aplicativo.',
+  'desktopLayoutSettings.device': 'Este dispositivo',
+  'desktopLayoutSettings.deviceDescription': 'Armazenado para o dispositivo {device}',
+  'desktopLayoutSettings.shared': 'Compartilhar com meus dispositivos',
+  'desktopLayoutSettings.sharedDescription':
+    'Outros dispositivos usam este layout quando não têm um layout específico.',
+  'desktopLayoutSettings.save': 'Salvar layout agora',
+  'desktopLayoutSettings.saving': 'Salvando…',
+  'desktopLayoutSettings.saved': 'Layout salvo',
+  'desktopLayoutSettings.deviceFallback': 'Usa o último layout compartilhado como fallback.',
+  'desktopLayoutSettings.group': 'Escopo de armazenamento do layout',
   'calendar.ok': 'OK',
   'calendar.now': 'Agora',
 
@@ -662,6 +698,10 @@ const ptBRMessages: NebularMessages = {
   'fileExplorer.tabs': 'Pastas abertas',
   'fileExplorer.newTab': 'Nova aba',
   'fileExplorer.closeTab': 'Fechar {name}',
+  'fileExplorerDualPane.primary': 'Painel principal',
+  'fileExplorerDualPane.secondary': 'Painel secundário',
+  'fileExplorerDualPane.resize': 'Redimensionar painéis',
+  'fileExplorerDualPane.breadcrumb': 'Caminho de {pane}',
   'fileManager.open': 'Abrir',
   'fileManager.rename': 'Renomear',
   'fileManager.download': 'Baixar',
@@ -961,7 +1001,11 @@ const ptBRMessages: NebularMessages = {
   'cron.daily': 'Diariamente às 09:00',
   'cron.weekly': 'Semanalmente na segunda',
   'cron.monthly': 'Mensalmente no dia 1',
-  'cron.invalid': 'Expressão cron inválida'
+  'cron.invalid': 'Expressão cron inválida',
+  'windowBreadcrumb.navigation': 'Navegação estrutural',
+  'windowBreadcrumb.more': 'Mostrar itens ocultos da navegação estrutural',
+  'windowBreadcrumb.hiddenItems': 'Itens ocultos da navegação estrutural',
+  'windowStatusBar.region': 'Barra de status'
 };
 
 const catalogs: Record<string, NebularMessages> = {

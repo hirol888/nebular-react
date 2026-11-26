@@ -38,6 +38,7 @@ import {
   getAncestorIds,
   getDescendantIds,
   getEffectiveZIndex,
+  getNextActiveTabId,
   getNextZIndex,
   getTaskbarWindow,
   getVisibleModalDescendant,
@@ -45,6 +46,7 @@ import {
   isInWorkspace,
   focusWindowElement,
   resolveSnapBounds,
+  windowIconNode,
   windowTitleText,
   clampBounds
 } from './Desktop.utils';
@@ -176,6 +178,8 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       restore: (name) => t('desktop.restore', 'Restore {name}', { name }),
       close: (name) => t('desktop.close', 'Close {name}', { name }),
       resize: (name) => t('desktop.resize', 'Resize {name}', { name }),
+      tabList: t('desktop.tabList', 'Window tabs'),
+      closeTab: (name) => t('desktop.closeTab', 'Close {name}', { name }),
       window: t('desktop.window', 'Window'),
       clock: t('desktop.clock', 'Clock'),
       noApps: t('desktop.noApps', 'No apps available'),
@@ -826,7 +830,15 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         skipTaskbar: options.skipTaskbar ?? (options.modal ? true : app?.skipTaskbar),
         centerOnOpen: center,
         state: options.state ?? app?.defaultState,
-        content: options.content ?? app?.content
+        toolbar: options.toolbar ?? app?.toolbar,
+        footer: options.footer ?? app?.footer,
+        content: options.content ?? app?.content,
+        tabs: options.tabs,
+        activeTabId: options.tabs?.length
+          ? options.tabs.some((tab) => tab.id === options.activeTabId)
+            ? options.activeTabId
+            : options.tabs[0].id
+          : options.activeTabId
       };
 
       previousFocusRef.current.set(id, document.activeElement as HTMLElement | null);
@@ -854,6 +866,131 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       minWindowWidth,
       minWindowHeight,
       getDisplayZone
+    ]
+  );
+
+  const setActiveTab = useCallback(
+    (id: string, tabId: string) => {
+      const target = windowsRef.current.find((window) => window.id === id);
+
+      if (
+        !target ||
+        target.activeTabId === tabId ||
+        !target.tabs?.some((tab) => tab.id === tabId)
+      ) {
+        return;
+      }
+
+      updateWindows((windows) =>
+        windows.map((window) => (window.id === id ? { ...window, activeTabId: tabId } : window))
+      );
+    },
+    [updateWindows]
+  );
+
+  const closeTab = useCallback(
+    (id: string, tabId: string) => {
+      const target = windowsRef.current.find((window) => window.id === id);
+      const tabs = target?.tabs;
+
+      if (!target || !tabs) {
+        return;
+      }
+
+      const index = tabs.findIndex((tab) => tab.id === tabId);
+
+      if (index < 0) {
+        return;
+      }
+
+      const remaining = tabs.filter((tab) => tab.id !== tabId);
+
+      // Closing the last tab closes the window: an empty tab bar has no useful
+      // content and would leave a window that cannot be distinguished from a
+      // plain content window.
+      if (remaining.length === 0) {
+        closeWindow(id);
+        return;
+      }
+
+      const activeTabId = getNextActiveTabId(tabs, tabId, target.activeTabId);
+
+      patchWindow(id, { tabs: remaining, activeTabId });
+    },
+    [closeWindow, patchWindow]
+  );
+
+  const tearOffTab = useCallback(
+    (id: string, tabId: string, position?: { x: number; y: number }) => {
+      const windows = windowsRef.current;
+      const target = windows.find((window) => window.id === id);
+      const tab = target?.tabs?.find((candidate) => candidate.id === tabId);
+
+      if (!target || !target.tabs || !tab) {
+        return undefined;
+      }
+
+      const app = getApp(target);
+      const area = getAreaRect(desktopAreaRef.current);
+      const displayZone = getDisplayZone(target.displayId);
+      const availableWidth = displayZone?.bounds.width ?? area.width;
+      const availableHeight = displayZone?.bounds.height ?? area.height;
+      const width =
+        availableWidth > 0
+          ? Math.min(Math.max(target.width, minWindowWidth), availableWidth)
+          : Math.max(target.width, minWindowWidth);
+      const height =
+        availableHeight > 0
+          ? Math.min(Math.max(target.height, minWindowHeight), availableHeight)
+          : Math.max(target.height, minWindowHeight);
+      let x = position?.x ?? target.x + CASCADE_OFFSET;
+      let y = position?.y ?? target.y + CASCADE_OFFSET;
+
+      if (position && keepInBounds && area.width > 0 && area.height > 0) {
+        x = clamp(x, 0, Math.max(0, area.width - width));
+        y = clamp(y, 0, Math.max(0, area.height - height));
+      }
+
+      const newId = openWindow({
+        workspaceId: target.workspaceId,
+        displayId: target.displayId,
+        title: tab.title,
+        icon: tab.icon ?? windowIconNode(target, app),
+        content: tab.content ?? target.content ?? app?.content,
+        x,
+        y,
+        width,
+        height,
+        maximized: false,
+        draggable: target.draggable,
+        resizable: target.resizable,
+        minimizable: target.minimizable,
+        maximizable: target.maximizable,
+        closable: target.closable,
+        alwaysOnTop: target.alwaysOnTop,
+        skipTaskbar: target.skipTaskbar
+      });
+
+      if (target.tabs.length === 1) {
+        closeWindow(id);
+      } else {
+        const remaining = target.tabs.filter((candidate) => candidate.id !== tabId);
+        const activeTabId = getNextActiveTabId(target.tabs, tabId, target.activeTabId);
+
+        patchWindow(id, { tabs: remaining, activeTabId });
+      }
+
+      return newId;
+    },
+    [
+      getApp,
+      getDisplayZone,
+      minWindowWidth,
+      minWindowHeight,
+      keepInBounds,
+      openWindow,
+      closeWindow,
+      patchWindow
     ]
   );
 
@@ -1979,6 +2116,9 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                 onSnapPreview={setSnapPreview}
                 onContextMenu={openWindowContextMenu}
                 onSetWindowState={setWindowState}
+                onSetActiveTab={setActiveTab}
+                onCloseTab={closeTab}
+                onTearOffTab={tearOffTab}
                 openWindow={openWindow}
                 classNames={classNames}
                 styles={styles}

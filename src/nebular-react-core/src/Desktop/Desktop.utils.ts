@@ -3,7 +3,8 @@ import type {
   DesktopApp,
   DesktopSnapPosition,
   DesktopWindowBounds,
-  DesktopWindowState
+  DesktopWindowState,
+  DesktopWindowTab
 } from './Desktop.types';
 
 export const DEFAULT_WINDOW_WIDTH = 520;
@@ -52,6 +53,51 @@ export function windowTitleNode(
 
 export function windowIconNode(window: DesktopWindowState, app: DesktopApp | undefined): ReactNode {
   return app?.icon ?? window.icon;
+}
+
+export function getActiveWindowTab(window: DesktopWindowState): DesktopWindowTab | undefined {
+  if (!window.tabs || window.tabs.length === 0) {
+    return undefined;
+  }
+
+  return window.tabs.find((tab) => tab.id === window.activeTabId) ?? window.tabs[0];
+}
+
+export function windowTabTitleText(tab: DesktopWindowTab, fallback: string = 'Tab'): string {
+  if (typeof tab.title === 'string' && tab.title.trim()) {
+    return tab.title;
+  }
+
+  return fallback;
+}
+
+/** Picks the tab that should become active after `removedTabId` is removed. */
+export function getNextActiveTabId(
+  tabs: DesktopWindowTab[],
+  removedTabId: string,
+  activeTabId?: string
+): string | undefined {
+  const removedIndex = tabs.findIndex((tab) => tab.id === removedTabId);
+  const remaining = tabs.filter((tab) => tab.id !== removedTabId);
+
+  if (remaining.length === 0) {
+    return undefined;
+  }
+
+  if (
+    activeTabId &&
+    activeTabId !== removedTabId &&
+    remaining.some((tab) => tab.id === activeTabId)
+  ) {
+    return activeTabId;
+  }
+
+  const fallbackIndex =
+    activeTabId === removedTabId && removedIndex >= 0
+      ? Math.min(removedIndex, remaining.length - 1)
+      : 0;
+
+  return remaining[fallbackIndex].id;
 }
 
 export function getEffectiveZIndex(window: DesktopWindowState): number {

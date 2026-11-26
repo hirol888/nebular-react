@@ -193,6 +193,192 @@ describe('Desktop', () => {
     expect(dialog).toHaveStyle({ width: '500px', height: '400px' });
   });
 
+  it('switches between window tabs, navigates with the keyboard and closes tabs', async () => {
+    const user = userEvent.setup();
+    const onWindowsChange = jest.fn();
+
+    render(
+      <Desktop
+        apps={apps}
+        onWindowsChange={onWindowsChange}
+        defaultWindows={[
+          createWindow({
+            tabs: [
+              { id: 'notes-tab', title: 'Notes tab', content: <p>Notes tab content</p> },
+              {
+                id: 'settings-tab',
+                title: 'Settings tab',
+                icon: <span data-testid="settings-tab-icon" />,
+                content: <p>Settings tab content</p>
+              }
+            ],
+            activeTabId: 'notes-tab'
+          })
+        ]}
+      />
+    );
+
+    const tabList = screen.getByRole('tablist', { name: 'Window tabs' });
+    const notesTab = within(tabList).getByRole('tab', { name: 'Notes tab' });
+    const settingsTab = within(tabList).getByRole('tab', { name: 'Settings tab' });
+
+    expect(notesTab).toHaveAttribute('aria-selected', 'true');
+    expect(settingsTab).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Notes tab content');
+    expect(within(tabList).getByTestId('settings-tab-icon')).toBeInTheDocument();
+
+    await user.click(settingsTab);
+
+    expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+    expect(notesTab).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Settings tab content');
+    expect(onWindowsChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ activeTabId: 'settings-tab' })
+    ]);
+
+    settingsTab.focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(notesTab).toHaveAttribute('aria-selected', 'true');
+    expect(notesTab).toHaveFocus();
+
+    await user.keyboard('{End}');
+    expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+    expect(settingsTab).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: 'Close Settings tab' }));
+
+    expect(within(tabList).queryByRole('tab', { name: 'Settings tab' })).not.toBeInTheDocument();
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Notes tab content');
+
+    await user.click(screen.getByRole('button', { name: 'Close Notes tab' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Notes' })).not.toBeInTheDocument();
+  });
+
+  it('opens a window with tabs and selects the requested tab', async () => {
+    const user = userEvent.setup();
+
+    function TabbedOpener() {
+      const { openWindow } = useDesktop();
+
+      return (
+        <button
+          type="button"
+          onClick={() =>
+            openWindow({
+              title: 'Tabbed',
+              tabs: [
+                { id: 'first', title: 'First', content: <p>First content</p> },
+                { id: 'second', title: 'Second', content: <p>Second content</p> }
+              ],
+              activeTabId: 'second'
+            })
+          }
+        >
+          Open tabbed
+        </button>
+      );
+    }
+
+    render(<Desktop apps={apps} systemTray={<TabbedOpener />} />);
+
+    await user.click(screen.getByRole('button', { name: 'Open tabbed' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Tabbed' });
+    const tabList = within(dialog).getByRole('tablist', { name: 'Window tabs' });
+
+    expect(within(tabList).getByRole('tab', { name: 'Second' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(within(dialog).getByRole('tabpanel')).toHaveTextContent('Second content');
+  });
+
+  it('tears a tab off into a new window when dragged outside the tab bar', () => {
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow({
+            tabs: [
+              { id: 'notes-tab', title: 'Notes tab', content: <p>Notes tab content</p> },
+              { id: 'settings-tab', title: 'Settings tab', content: <p>Settings tab content</p> }
+            ],
+            activeTabId: 'notes-tab'
+          })
+        ]}
+      />
+    );
+    mockDesktopArea(container);
+
+    const tabList = screen.getByRole('tablist', { name: 'Window tabs' });
+    const notesTab = within(tabList).getByRole('tab', { name: 'Notes tab' });
+
+    fireEvent(notesTab, pointerEvent('pointerdown', 120, 80));
+    fireEvent(tabList, pointerEvent('pointermove', 320, 240));
+    fireEvent(tabList, pointerEvent('pointerup', 320, 240));
+
+    const tornWindow = screen.getByRole('dialog', { name: 'Notes tab' });
+
+    expect(tornWindow).toHaveStyle({ left: '320px', top: '240px' });
+    expect(within(tornWindow).getByText('Notes tab content')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('tablist', { name: 'Window tabs' })).queryByRole('tab', {
+        name: 'Notes tab'
+      })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Settings tab' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+  });
+
+  it('closes the source window when its only tab is torn off', () => {
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow({
+            tabs: [{ id: 'solo-tab', title: 'Solo tab', content: <p>Solo tab content</p> }],
+            activeTabId: 'solo-tab'
+          })
+        ]}
+      />
+    );
+    mockDesktopArea(container);
+
+    const tab = screen.getByRole('tab', { name: 'Solo tab' });
+    const tabList = screen.getByRole('tablist', { name: 'Window tabs' });
+
+    fireEvent(tab, pointerEvent('pointerdown', 120, 80));
+    fireEvent(tabList, pointerEvent('pointermove', 420, 260));
+    fireEvent(tabList, pointerEvent('pointerup', 420, 260));
+
+    expect(screen.queryByRole('dialog', { name: 'Notes' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Solo tab' })).toBeInTheDocument();
+    expect(screen.getByText('Solo tab content')).toBeInTheDocument();
+  });
+
+  it('has no accessibility violations in a window with tabs', async () => {
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow({
+            tabs: [
+              { id: 'notes-tab', title: 'Notes tab', content: <p>Notes tab content</p> },
+              { id: 'settings-tab', title: 'Settings tab', content: <p>Settings tab content</p> }
+            ],
+            activeTabId: 'notes-tab'
+          })
+        ]}
+      />
+    );
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it('blocks the parent while a modal child is open and closes it with Escape', async () => {
     const user = userEvent.setup();
 

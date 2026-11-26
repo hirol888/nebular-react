@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
   FileExplorer,
+  FileExplorerDualPane,
   createMemoryFileSystemProvider,
   createRestFileSystemProvider,
   type FileEntry
@@ -306,5 +307,73 @@ describe('FileExplorer', () => {
       'https://api.example.test/files/entries?path=%2F',
       expect.objectContaining({ credentials: 'same-origin' })
     );
+  });
+});
+
+describe('FileExplorerDualPane', () => {
+  it('renders two panes and navigates them independently', async () => {
+    const user = userEvent.setup();
+
+    render(<FileExplorerDualPane provider={createProvider()} ariaLabel="Dual files" />);
+
+    const primary = screen.getByRole('group', { name: 'Primary pane' });
+    const secondary = screen.getByRole('group', { name: 'Secondary pane' });
+
+    expect(await within(primary).findByText('README.md')).toBeInTheDocument();
+    expect(await within(secondary).findByText('README.md')).toBeInTheDocument();
+
+    await user.dblClick(within(primary).getByText('Documents'));
+
+    expect(await within(primary).findByText('notes.md')).toBeInTheDocument();
+    expect(within(primary).queryByText('README.md')).not.toBeInTheDocument();
+    expect(within(secondary).getByText('README.md')).toBeInTheDocument();
+  });
+
+  it('resizes the split with the keyboard', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<FileExplorerDualPane provider={createProvider()} />);
+
+    await screen.findAllByText('README.md');
+
+    const separator = screen.getByRole('separator', { name: 'Resize panes' });
+    const primaryPane = container.querySelector('[data-pane="primary"]') as HTMLElement;
+
+    expect(separator).toHaveAttribute('aria-orientation', 'vertical');
+    expect(separator).toHaveAttribute('aria-valuenow', '50');
+    expect(separator).toHaveAttribute('aria-valuemin', '10');
+    expect(separator).toHaveAttribute('aria-valuemax', '90');
+    expect(primaryPane).toHaveStyle({ flexBasis: '50%' });
+
+    separator.focus();
+    await user.keyboard('{ArrowRight}');
+
+    expect(separator).toHaveAttribute('aria-valuenow', '55');
+    expect(primaryPane).toHaveStyle({ flexBasis: '55%' });
+
+    await user.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
+
+    expect(separator).toHaveAttribute('aria-valuenow', '40');
+    expect(primaryPane).toHaveStyle({ flexBasis: '40%' });
+
+    await user.keyboard('{Home}');
+    expect(separator).toHaveAttribute('aria-valuenow', '10');
+
+    await user.keyboard('{End}');
+    expect(separator).toHaveAttribute('aria-valuenow', '90');
+  });
+
+  it('has no accessibility violations in dual-pane mode', async () => {
+    const { container } = render(
+      <FileExplorerDualPane
+        provider={createProvider()}
+        defaultPrimaryPath="/"
+        defaultSecondaryPath="/Documents"
+      />
+    );
+
+    await screen.findByText('README.md');
+    await screen.findByText('notes.md');
+
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

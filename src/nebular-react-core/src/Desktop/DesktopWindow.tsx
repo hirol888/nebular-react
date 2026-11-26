@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useStyles } from './Desktop.styles';
 import type {
   DesktopApp,
@@ -8,18 +8,21 @@ import type {
   DesktopStyleProps,
   DesktopWindowBounds,
   DesktopWindowContextValue,
-  DesktopWindowState
+  DesktopWindowState,
+  DesktopWindowTab
 } from './Desktop.types';
 import { DesktopWindowContext } from './Desktop.context';
 import { DesktopWindowErrorBoundary } from './DesktopWindowErrorBoundary';
 import {
   clamp,
   focusWindowElement,
+  getActiveWindowTab,
   getAreaRect,
   getFocusableElements,
   getSnapPosition,
   resolveSnapBounds,
   windowIconNode,
+  windowTabTitleText,
   windowTitleNode,
   windowTitleText
 } from './Desktop.utils';
@@ -50,6 +53,9 @@ export interface DesktopWindowFrameProps extends DesktopStyleProps {
   onSnapPreview(bounds: DesktopWindowBounds | null): void;
   onContextMenu(id: string, event: React.MouseEvent | React.KeyboardEvent): void;
   onSetWindowState(id: string, state: unknown): void;
+  onSetActiveTab(id: string, tabId: string): void;
+  onCloseTab(id: string, tabId: string): void;
+  onTearOffTab(id: string, tabId: string, position?: { x: number; y: number }): string | undefined;
   openWindow(options: DesktopOpenWindowOptions): string;
 }
 
@@ -62,7 +68,16 @@ interface InteractionState {
   area: ReturnType<typeof getAreaRect>;
 }
 
+interface TabInteractionState {
+  tabId: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  dragging: boolean;
+}
+
 const RESIZE_DIRECTIONS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;
+const TAB_DRAG_THRESHOLD = 6;
 
 function DesktopWindowFrameComponent({
   windowState,
@@ -89,6 +104,9 @@ function DesktopWindowFrameComponent({
   onSnapPreview,
   onContextMenu,
   onSetWindowState,
+  onSetActiveTab,
+  onCloseTab,
+  onTearOffTab,
   openWindow,
   classNames,
   styles,
@@ -101,8 +119,17 @@ function DesktopWindowFrameComponent({
     unstyled
   });
   const frameRef = useRef<HTMLDivElement>(null);
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const tabButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const interactionRef = useRef<InteractionState | null>(null);
+  const tabInteractionRef = useRef<TabInteractionState | null>(null);
   const snapRef = useRef<DesktopSnapPosition | null>(null);
+  const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
+  const tabIdBase = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const tabs = windowState.tabs ?? [];
+  const activeTab = getActiveWindowTab(windowState);
+  const activeTabIndex = activeTab ? tabs.findIndex((tab) => tab.id === activeTab.id) : -1;
+  const tabPanelId = `${tabIdBase}-tabpanel`;
   const title = windowTitleText(windowState, app, labels.window);
   const titleContent = windowTitleNode(windowState, app, labels.window);
   const icon = windowIconNode(windowState, app);
@@ -134,9 +161,23 @@ function DesktopWindowFrameComponent({
       minimizeWindow: () => onMinimize(windowState.id),
       maximizeWindow: () => onMaximize(windowState.id),
       restoreWindow: () => onRestore(windowState.id),
-      setWindowState: (state) => onSetWindowState(windowState.id, state)
+      setWindowState: (state) => onSetWindowState(windowState.id, state),
+      setActiveTab: (tabId) => onSetActiveTab(windowState.id, tabId),
+      closeTab: (tabId) => onCloseTab(windowState.id, tabId),
+      tearOffTab: (tabId, position) => onTearOffTab(windowState.id, tabId, position)
     }),
-    [windowState, openWindow, onClose, onMinimize, onMaximize, onRestore, onSetWindowState]
+    [
+      windowState,
+      openWindow,
+      onClose,
+      onMinimize,
+      onMaximize,
+      onRestore,
+      onSetWindowState,
+      onSetActiveTab,
+      onCloseTab,
+      onTearOffTab
+    ]
   );
 
   useLayoutEffect(() => {
@@ -353,6 +394,161 @@ function DesktopWindowFrameComponent({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
+  const focusTabAt = (index: number) => {
+    if (tabs.length === 0) {
+      return;
+    }
+
+    const nextTab = tabs[(index + tabs.length) % tabs.length];
+    onSetActiveTab(windowState.id, nextTab.id);
+    tabButtonRefs.current.get(nextTab.id)?.focus();
+  };
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault();
+        focusTabAt(index + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault();
+        focusTabAt(index - 1);
+        break;
+      case 'Home':
+        event.preventDefault();
+        focusTabAt(0);
+        break;
+      case 'End':
+        event.preventDefault();
+        focusTabAt(tabs.length - 1);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const beginTabInteraction = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    tab: DesktopWindowTab
+  ) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    if ((event.target as Element).closest('[data-desktop-tab-close]')) {
+      return;
+    }
+
+    tabInteractionRef.current = {
+      tabId: tab.id,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragging: false
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+
+    if (windowState.activeTabId !== tab.id) {
+      onSetActiveTab(windowState.id, tab.id);
+    }
+    onPromote(windowState.id);
+  };
+
+  const handleTabPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const interaction = tabInteractionRef.current;
+
+    if (!interaction) {
+      return;
+    }
+
+    if (!interaction.dragging) {
+      const dx = event.clientX - interaction.startX;
+      const dy = event.clientY - interaction.startY;
+
+      if (Math.hypot(dx, dy) < TAB_DRAG_THRESHOLD) {
+        return;
+      }
+
+      interaction.dragging = true;
+      setDraggingTabId(interaction.tabId);
+    }
+
+    event.preventDefault();
+  };
+
+  const handleTabPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const interaction = tabInteractionRef.current;
+
+    if (!interaction) {
+      return;
+    }
+
+    tabInteractionRef.current = null;
+    setDraggingTabId(null);
+
+    try {
+      event.currentTarget.releasePointerCapture?.(interaction.pointerId);
+    } catch {
+      // Capture may already have been released by the browser.
+    }
+
+    if (!interaction.dragging) {
+      return;
+    }
+
+    const barBounds = tabBarRef.current?.getBoundingClientRect();
+    const insideBar =
+      !!barBounds &&
+      barBounds.width > 0 &&
+      barBounds.height > 0 &&
+      event.clientX >= barBounds.left &&
+      event.clientX <= barBounds.right &&
+      event.clientY >= barBounds.top &&
+      event.clientY <= barBounds.bottom;
+
+    if (insideBar) {
+      return;
+    }
+
+    const area = getAreaRect(areaRef.current);
+    onTearOffTab(windowState.id, interaction.tabId, {
+      x: event.clientX - area.left,
+      y: event.clientY - area.top
+    });
+  };
+
+  const handleTabPointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    const pointerId = tabInteractionRef.current?.pointerId;
+    tabInteractionRef.current = null;
+    setDraggingTabId(null);
+
+    if (pointerId !== undefined) {
+      try {
+        event.currentTarget.releasePointerCapture?.(pointerId);
+      } catch {
+        // Capture may already have been released by the browser.
+      }
+    }
+  };
+
+  const handleTabClose = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    tab: DesktopWindowTab,
+    index: number
+  ) => {
+    event.stopPropagation();
+    const fallback =
+      activeTab && activeTab.id !== tab.id ? activeTab : (tabs[index + 1] ?? tabs[index - 1]);
+
+    onCloseTab(windowState.id, tab.id);
+
+    if (tabs.length > 1 && fallback) {
+      tabButtonRefs.current.get(fallback.id)?.focus();
+    }
+  };
+
   const toggleMaximize = () => {
     if (!canMaximize) {
       return;
@@ -507,9 +703,17 @@ function DesktopWindowFrameComponent({
     onContextMenu(windowState.id, event);
   };
 
-  const resolvedContent = windowState.content ?? app?.content;
+  const resolvedContent = activeTab
+    ? (activeTab.content ?? windowState.content ?? app?.content)
+    : (windowState.content ?? app?.content);
   const content =
     typeof resolvedContent === 'function' ? resolvedContent(windowContext) : resolvedContent;
+  const resolvedToolbar = windowState.toolbar ?? app?.toolbar;
+  const toolbar =
+    typeof resolvedToolbar === 'function' ? resolvedToolbar(windowContext) : resolvedToolbar;
+  const resolvedFooter = windowState.footer ?? app?.footer;
+  const footer =
+    typeof resolvedFooter === 'function' ? resolvedFooter(windowContext) : resolvedFooter;
   const style: React.CSSProperties = isMaximized
     ? maximizedBounds
       ? {
@@ -612,9 +816,94 @@ function DesktopWindowFrameComponent({
             )}
           </div>
         </div>
-        <div className={cx(classes.windowBody)} data-desktop-window-body="true">
+        {tabs.length > 0 && (
+          <div
+            ref={tabBarRef}
+            className={cx(classes.tabBar)}
+            onPointerMove={handleTabPointerMove}
+            onPointerUp={handleTabPointerEnd}
+            onPointerCancel={handleTabPointerCancel}
+          >
+            <div role="tablist" aria-label={labels.tabList} className={cx(classes.tabList)}>
+              {tabs.map((tab, index) => {
+                const selected = tab.id === activeTab?.id;
+
+                return (
+                  <button
+                    key={tab.id}
+                    ref={(element) => {
+                      if (element) {
+                        tabButtonRefs.current.set(tab.id, element);
+                      } else {
+                        tabButtonRefs.current.delete(tab.id);
+                      }
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`${tabIdBase}-tab-${index}`}
+                    className={cx(classes.tabButton, {
+                      [classes.tabActive]: selected,
+                      [classes.tabDragging]: draggingTabId === tab.id
+                    })}
+                    style={{ gridColumn: index + 1, gridRow: 1 }}
+                    aria-selected={selected}
+                    aria-controls={tabPanelId}
+                    tabIndex={selected ? 0 : -1}
+                    title={typeof tab.title === 'string' ? tab.title : undefined}
+                    data-desktop-window-tab={tab.id}
+                    onClick={() => onSetActiveTab(windowState.id, tab.id)}
+                    onKeyDown={(event) => handleTabKeyDown(event, index)}
+                    onPointerDown={(event) => beginTabInteraction(event, tab)}
+                  >
+                    {tab.icon && (
+                      <span className={cx(classes.windowIcon)} aria-hidden="true">
+                        {tab.icon}
+                      </span>
+                    )}
+                    <span className={cx(classes.tabTitle)}>{tab.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {tabs.map((tab, index) =>
+              tab.closable === false ? null : (
+                <button
+                  key={`close-${tab.id}`}
+                  type="button"
+                  className={cx(classes.tabClose, {
+                    [classes.tabCloseActive]: tab.id === activeTab?.id
+                  })}
+                  style={{ gridColumn: index + 1, gridRow: 1 }}
+                  data-desktop-tab-close="true"
+                  tabIndex={tab.id === activeTab?.id ? 0 : -1}
+                  aria-label={labels.closeTab(windowTabTitleText(tab, labels.window))}
+                  onClick={(event) => handleTabClose(event, tab, index)}
+                >
+                  <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />
+                </button>
+              )
+            )}
+          </div>
+        )}
+        {toolbar != null && (
+          <div className={cx(classes.windowToolbar)} data-desktop-window-toolbar="true">
+            {toolbar}
+          </div>
+        )}
+        <div
+          className={cx(classes.windowBody)}
+          data-desktop-window-body="true"
+          role={tabs.length > 0 ? 'tabpanel' : undefined}
+          id={tabs.length > 0 ? tabPanelId : undefined}
+          aria-labelledby={
+            tabs.length > 0 && activeTabIndex >= 0
+              ? `${tabIdBase}-tab-${activeTabIndex}`
+              : undefined
+          }
+          tabIndex={tabs.length > 0 ? 0 : undefined}
+        >
           <DesktopWindowErrorBoundary
-            resetKey={windowState.id}
+            resetKey={activeTab ? `${windowState.id}:${activeTab.id}` : windowState.id}
             message={labels.windowError}
             reloadLabel={labels.reloadWindow}
             className={cx(classes.windowError)}
@@ -623,6 +912,11 @@ function DesktopWindowFrameComponent({
             {content}
           </DesktopWindowErrorBoundary>
         </div>
+        {footer != null && (
+          <div className={cx(classes.windowFooter)} data-desktop-window-footer="true">
+            {footer}
+          </div>
+        )}
         {isResizable && !isMaximized && (
           <>
             {RESIZE_DIRECTIONS.map((direction) => (

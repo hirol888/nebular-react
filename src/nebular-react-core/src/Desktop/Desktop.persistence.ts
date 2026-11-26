@@ -1,5 +1,6 @@
 import type {
   DesktopApp,
+  DesktopLayoutScope,
   DesktopLayoutSnapshot,
   DesktopPersistenceAdapter,
   DesktopWindowSnapshot,
@@ -44,7 +45,19 @@ export function serializeDesktopLayout(
     activeWorkspace: options.activeWorkspace,
     workspaces,
     windows: windows.map((window) => {
-      const { content: _content, icon: _icon, title, state, ...rest } = window;
+      // Tabs carry React nodes (titles/icons/content) that cannot be revived from
+      // JSON, so layouts persist the window shell and let the app recreate tabs.
+      const {
+        content: _content,
+        icon: _icon,
+        title,
+        state,
+        toolbar: _toolbar,
+        footer: _footer,
+        tabs: _tabs,
+        activeTabId: _activeTabId,
+        ...rest
+      } = window;
 
       return {
         ...rest,
@@ -234,7 +247,7 @@ export interface VersionedLayoutTransport {
   save(
     snapshot: DesktopLayoutSnapshot,
     revision?: string | number,
-    options?: { keepalive?: boolean }
+    options?: { keepalive?: boolean; scope?: DesktopLayoutScope }
   ): Promise<{ revision?: string | number } | void>;
 }
 
@@ -243,9 +256,12 @@ export interface VersionedLayoutTransport {
  * the adapter tracks the latest revision returned by load/save and sends it on writes.
  */
 export function createVersionedLayoutAdapter(
-  transport: VersionedLayoutTransport
+  transport: VersionedLayoutTransport,
+  options: { scope?: DesktopLayoutScope | (() => DesktopLayoutScope) } = {}
 ): DesktopPersistenceAdapter {
   let revision: string | number | undefined;
+  const resolveScope = () =>
+    typeof options.scope === 'function' ? options.scope() : options.scope;
 
   return {
     async load(signal) {
@@ -259,14 +275,21 @@ export function createVersionedLayoutAdapter(
       return result.snapshot;
     },
     async save(snapshot) {
-      const result = await transport.save(snapshot, revision);
+      const scopeValue = resolveScope();
+      const result = scopeValue
+        ? await transport.save(snapshot, revision, { scope: scopeValue })
+        : await transport.save(snapshot, revision);
 
       if (result && typeof result.revision !== 'undefined') {
         revision = result.revision;
       }
     },
     async flush(snapshot) {
-      const result = await transport.save(snapshot, revision, { keepalive: true });
+      const scopeValue = resolveScope();
+      const result = await transport.save(snapshot, revision, {
+        keepalive: true,
+        ...(scopeValue ? { scope: scopeValue } : {})
+      });
 
       if (result && typeof result.revision !== 'undefined') {
         revision = result.revision;
@@ -286,7 +309,7 @@ export interface RestLayoutAdapterOptions {
   credentials?: RequestCredentials;
   fetch?: typeof fetch;
   deviceId?: string;
-  scope?: 'device' | 'shared';
+  scope?: DesktopLayoutScope | (() => DesktopLayoutScope);
   /** Unwraps the API response into a desktop snapshot (defaults to the raw JSON). */
   transformLoad?(payload: unknown): DesktopLayoutSnapshot | null;
   /** Wraps a desktop snapshot into the API request body. */
@@ -318,7 +341,8 @@ export function createRestLayoutAdapter({
       params.push(`deviceId=${encodeURIComponent(deviceId)}`);
     }
     if (scope) {
-      params.push(`scope=${encodeURIComponent(scope)}`);
+      const resolvedScope = typeof scope === 'function' ? scope() : scope;
+      params.push(`scope=${encodeURIComponent(resolvedScope)}`);
     }
     if (params.length === 0) {
       return url;
@@ -326,8 +350,6 @@ export function createRestLayoutAdapter({
 
     return `${url}${url.includes('?') ? '&' : '?'}${params.join('&')}`;
   };
-  const readUrl = withQuery(loadEndpoint ?? endpoint);
-  const writeUrl = withQuery(saveEndpoint ?? endpoint);
 
   if (!request) {
     throw new Error('createRestLayoutAdapter requires a fetch implementation');
@@ -335,7 +357,7 @@ export function createRestLayoutAdapter({
 
   return {
     async load(signal) {
-      const response = await request(readUrl, {
+      const response = await request(withQuery(loadEndpoint ?? endpoint), {
         method: 'GET',
         headers: resolveHeaders(),
         credentials,
@@ -354,7 +376,7 @@ export function createRestLayoutAdapter({
       return transformLoad ? transformLoad(payload) : (payload as DesktopLayoutSnapshot);
     },
     async save(snapshot) {
-      const response = await request(writeUrl, {
+      const response = await request(withQuery(saveEndpoint ?? endpoint), {
         method,
         headers: resolveHeaders(),
         credentials,
@@ -366,7 +388,7 @@ export function createRestLayoutAdapter({
       }
     },
     async flush(snapshot) {
-      const response = await request(writeUrl, {
+      const response = await request(withQuery(saveEndpoint ?? endpoint), {
         method,
         headers: resolveHeaders(),
         credentials,

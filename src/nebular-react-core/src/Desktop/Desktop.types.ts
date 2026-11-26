@@ -16,6 +16,14 @@ export interface DesktopWindowBounds {
   height: number;
 }
 
+export interface DesktopWindowTab {
+  id: string;
+  title: React.ReactNode;
+  icon?: React.ReactNode;
+  content?: DesktopWindowContent;
+  closable?: boolean;
+}
+
 export interface DesktopWindowState extends DesktopWindowBounds {
   id: string;
   appId?: string;
@@ -41,6 +49,14 @@ export interface DesktopWindowState extends DesktopWindowBounds {
   /** Serializable application state (path, tabs, filters, document id, etc.). */
   state?: unknown;
   content?: DesktopWindowContent;
+  /** Optional toolbar rendered below the title/tabs (e.g. WindowBreadcrumb). */
+  toolbar?: DesktopWindowContent;
+  /** Optional footer rendered below the body (e.g. WindowStatusBar). */
+  footer?: DesktopWindowContent;
+  /** Renders a tab bar below the title bar when non-empty. */
+  tabs?: DesktopWindowTab[];
+  /** Id of the selected tab; falls back to the first tab when missing or stale. */
+  activeTabId?: string;
 }
 
 export type DesktopWindowContent =
@@ -67,6 +83,9 @@ export interface DesktopApp {
   defaultState?: unknown;
   /** File extensions (`.md`, `.txt`) that can open this app. */
   fileExtensions?: string[];
+  /** Optional toolbar/footer slots shared by windows of this app. */
+  toolbar?: DesktopWindowContent;
+  footer?: DesktopWindowContent;
   /** Optional taskbar hover preview (thumbnail, mini app, etc.). */
   preview?: React.ReactNode;
   /** Shows the app first in the start menu. */
@@ -85,6 +104,8 @@ export interface DesktopOpenWindowOptions {
   /** Used by standalone windows; app windows inherit the app icon. */
   icon?: React.ReactNode;
   content?: DesktopWindowContent;
+  tabs?: DesktopWindowTab[];
+  activeTabId?: string;
   parentId?: string;
   modal?: boolean;
   x?: number;
@@ -101,6 +122,8 @@ export interface DesktopOpenWindowOptions {
   skipTaskbar?: boolean;
   centerOnOpen?: boolean;
   state?: unknown;
+  toolbar?: DesktopWindowContent;
+  footer?: DesktopWindowContent;
 }
 
 export interface DesktopWorkspace {
@@ -130,6 +153,7 @@ export interface DesktopFileReference {
 }
 
 export type DesktopDisplayMode = 'single' | 'span';
+export type DesktopLayoutScope = 'device' | 'shared';
 
 export interface DesktopDisplay {
   id: string;
@@ -210,6 +234,8 @@ export interface DesktopLabels {
   restore(name: string): string;
   close(name: string): string;
   resize(name: string): string;
+  tabList: string;
+  closeTab(name: string): string;
   window: string;
   clock: string;
   noApps: string;
@@ -258,6 +284,18 @@ export interface DesktopWindowContextValue {
   maximizeWindow(): void;
   restoreWindow(): void;
   setWindowState(state: unknown): void;
+  /** Selects a tab and persists it in `window.activeTabId`. */
+  setActiveTab(tabId: string): void;
+  /**
+   * Removes a tab. Closing the last tab closes the window.
+   */
+  closeTab(tabId: string): void;
+  /**
+   * Moves a tab into a new independent window, positioned at desktop coordinates
+   * (`position` is relative to the desktop area). When the tab is the last one,
+   * the original window closes after the new one is created.
+   */
+  tearOffTab(tabId: string, position?: { x: number; y: number }): string | undefined;
 }
 
 export interface DesktopContextValue {

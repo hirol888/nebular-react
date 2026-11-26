@@ -439,6 +439,114 @@ export const useStyles = createStyles((_theme) => ({
     whiteSpace: 'nowrap'
   },
 
+  tabBar: {
+    display: 'grid',
+    gridAutoFlow: 'column',
+    justifyContent: 'start',
+    alignItems: 'stretch',
+    flex: '0 0 auto',
+    columnGap: '0.15rem',
+    minHeight: '1.9rem',
+    padding: '0.15rem 0.3rem 0',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    borderBottom:
+      '1px solid var(--desktop-window-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--desktop-window-tabbar-background-color, var(--background-basic-color-2, #f7f9fc))',
+    userSelect: 'none',
+    touchAction: 'none',
+
+    '&:focus-within': {
+      outline: 'none'
+    }
+  },
+
+  tabList: {
+    display: 'contents'
+  },
+
+  tabButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.3rem',
+    minWidth: 0,
+    maxWidth: '12rem',
+    paddingBlock: '0.3rem',
+    paddingInlineStart: '0.5rem',
+    paddingInlineEnd: '1.75rem',
+    border: '1px solid transparent',
+    borderBottom: 0,
+    borderRadius: '0.25rem 0.25rem 0 0',
+    backgroundColor: 'transparent',
+    color: 'var(--desktop-window-tab-color, var(--text-hint-color, #8f9bb3))',
+    fontFamily: 'inherit',
+    fontSize: '0.8125rem',
+    lineHeight: 1.2,
+    textAlign: 'start',
+    cursor: 'pointer',
+
+    '&:hover': {
+      backgroundColor:
+        'var(--desktop-window-tab-hover-background-color, var(--background-basic-color-3, #edf1f7))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '-2px'
+    }
+  },
+
+  tabActive: {
+    borderColor: 'var(--desktop-window-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--desktop-window-tab-active-background-color, var(--background-basic-color-1, #ffffff))',
+    color: 'var(--desktop-window-tab-active-color, var(--text-basic-color, #222b45))'
+  },
+
+  tabDragging: {
+    opacity: 0.55
+  },
+
+  tabTitle: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  tabClose: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    justifySelf: 'end',
+    width: '1.25rem',
+    height: '1.25rem',
+    marginInlineEnd: '0.3rem',
+    padding: 0,
+    border: 0,
+    borderRadius: '0.2rem',
+    backgroundColor: 'transparent',
+    color: 'var(--desktop-window-tab-color, var(--text-hint-color, #8f9bb3))',
+    cursor: 'pointer',
+    zIndex: 1,
+
+    '&:hover': {
+      backgroundColor:
+        'var(--desktop-window-control-hover-background-color, var(--background-basic-color-3, #edf1f7))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '-1px'
+    }
+  },
+
+  tabCloseActive: {
+    color: 'var(--desktop-window-tab-active-color, var(--text-basic-color, #222b45))'
+  },
+
   windowControls: {
     display: 'flex',
     alignItems: 'center',
@@ -482,6 +590,26 @@ export const useStyles = createStyles((_theme) => ({
     minHeight: 0,
     overflow: 'auto',
     padding: 'var(--desktop-window-body-padding, 0.75rem)'
+  },
+
+  windowToolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    flex: '0 0 auto',
+    minWidth: 0,
+    minHeight: 0,
+    borderBottom:
+      '1px solid var(--desktop-window-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--desktop-window-toolbar-background-color, var(--background-basic-color-1, #ffffff))'
+  },
+
+  windowFooter: {
+    display: 'flex',
+    alignItems: 'stretch',
+    flex: '0 0 auto',
+    minWidth: 0,
+    minHeight: 0
   },
 
   windowError: {

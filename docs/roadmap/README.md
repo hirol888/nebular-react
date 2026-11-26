@@ -155,13 +155,15 @@
   com busca/fixados/recentes, drag/resize, snap e snap layouts, minimizar/maximizar,
   agrupamento e overflow, menu de contexto, foco/A11y, persistência local ou via adapter
   assíncrono, estado por janela, áreas de trabalho virtuais com tema, multi-display span,
-  ícones, command palette, overview, notificações, error boundary por janela, associação de
-  arquivos, modo compacto e janelas filhas modais. Inclui `FileExplorer` com providers de
-  memória/REST, navegação, views, upload e preview.
-- **Testes**: 3.143 testes em 253 suítes, incluindo interação, teclado,
+  surfaces, abas por janela com tear-off, toolbar/footer (`WindowBreadcrumb`/
+  `WindowStatusBar`), ícones, command palette, overview, notificações, error boundary por
+  janela, associação de arquivos, modo compacto e janelas filhas modais. Inclui
+  `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST, navegação, views,
+  copiar/cortar/colar, abas, drag para pasta, upload e preview.
+- **Testes**: 3.172 testes em 258 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,84% de instruções,
-  80,55% de branches, 90,84% de funções e 90,84% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,73% de instruções,
+  80,35% de branches, 90,84% de funções e 90,73% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

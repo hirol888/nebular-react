@@ -3,6 +3,7 @@ import { Button } from '../Button';
 import { Desktop } from '../Desktop';
 import { Tree, type TreeNode } from '../Tree';
 import { FileExplorer } from './FileExplorer';
+import { FileExplorerDualPane } from './FileExplorerDualPane';
 import { createMemoryFileSystemProvider } from './FileExplorer.providers';
 import type { FileEntry, FileExplorerView } from './FileExplorer.types';
 
@@ -131,6 +132,22 @@ export const GridView = () => <Demo initialView="grid" />;
 export const DetailsView = () => <Demo initialView="details" />;
 export const ReadOnly = () => <Demo readOnly />;
 export const Tabs = () => <Demo tabs />;
+
+export function DualPane() {
+  const provider = useMemo(() => createMemoryFileSystemProvider(seed), []);
+
+  return (
+    <div style={{ height: '36rem' }}>
+      <FileExplorerDualPane
+        provider={provider}
+        defaultPrimaryPath="/"
+        defaultSecondaryPath="/Documents"
+        tabs
+        ariaLabel="Dual-pane file explorer"
+      />
+    </div>
+  );
+}
 
 export function WithToolbar() {
   const [path, setPath] = useState('/');
