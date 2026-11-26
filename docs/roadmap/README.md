@@ -151,12 +151,14 @@
 - **Localização/i18n**: `NebularProvider` aceita `locale` BCP 47 e `messages`; catálogos
   embutidos `en-US`/`pt-BR`, `useNebularLocale`/`t`, locale global em datas/números e
   `labels` tipados nos componentes com mais strings.
-- **Desktop**: gerenciador de janelas em tela cheia com taskbar configurável, menu Iniciar,
-  drag/resize, minimizar/maximizar, relógio, system tray e janelas filhas modais.
-- **Testes**: 3.087 testes em 252 suítes, incluindo interação, teclado,
+- **Desktop**: gerenciador de janelas em tela cheia com taskbar configurável, menu Iniciar
+  com busca/fixados/recentes, drag/resize, snap, minimizar/maximizar, agrupamento e overflow,
+  menu de contexto, foco/A11y, persistência de layout, áreas de trabalho virtuais, modo
+  compacto, relógio, system tray e janelas filhas modais.
+- **Testes**: 3.116 testes em 252 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 92,35% de instruções,
-  82,02% de branches, 92,86% de funções e 92,35% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes e `jest-axe`. A cobertura é de 92,06% de instruções,
+  81,65% de branches, 92,75% de funções e 92,06% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

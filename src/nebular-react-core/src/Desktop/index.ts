@@ -1,14 +1,18 @@
-export { Desktop, useDesktop, useDesktopWindow } from './Desktop';
+export { Desktop } from './Desktop';
+export { useDesktop, useDesktopWindow } from './Desktop.context';
 export type {
   DesktopApp,
   DesktopContextValue,
   DesktopLabels,
   DesktopOpenWindowOptions,
   DesktopProps,
-  DesktopStylesNames,
+  DesktopSnapPosition,
+  DesktopStyleProps,
   DesktopTaskbarPosition,
   DesktopWindowBounds,
   DesktopWindowContent,
   DesktopWindowContextValue,
-  DesktopWindowState
-} from './Desktop';
+  DesktopWindowState,
+  DesktopWorkspace
+} from './Desktop.types';
+export type { DesktopStylesNames } from './Desktop.styles';

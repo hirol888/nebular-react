@@ -1842,7 +1842,9 @@ const apps = [
 - `draggable`/`resizable`/`minimizable`/`maximizable`/`closable` podem ser definidos por app ou
   por janela; arraste pela title bar e redimensione pelas bordas.
 - Minimizar envia para a barra; maximizar ocupa a área do desktop; restaurar volta ao tamanho
-  anterior.
+  anterior. Minimizar uma janela maximizada preserva o estado maximizado. Janelas minimizadas
+  e de outras áreas de trabalho continuam montadas (estado de formulários, scroll e mídia é
+  preservado) e ficam `hidden`/`inert`.
 - `taskbarPosition`: `bottom`, `top`, `left` ou `right`; `showClock`, `clock`, `clockFormat`,
   `systemTray` e `taskbarActions` controlam o canto de status.
 - Use `useDesktop()` para abrir/fechar/focar janelas e `useDesktopWindow()` dentro de uma
@@ -1851,10 +1853,63 @@ const apps = [
   const { openWindow } = useDesktopWindow();
   openWindow({ title: 'Confirmar', modal: true, content: <Confirm /> });
   ```
-- Filhos `modal` recebem backdrop, `aria-modal` e deixam a janela-mãe `inert`/`aria-hidden`
-  até fecharem; `Escape` fecha o modal ativo.
+- Filhos `modal` recebem backdrop, `aria-modal`, focus trap e deixam a janela-mãe
+  `inert`/`aria-hidden` até fecharem; o escopo do modal é a janela-mãe (a taskbar e outras
+  janelas continuam utilizáveis, como em um desktop nativo). `Escape` fecha o modal ativo e
+  o foco volta ao elemento que abriu a janela.
 - A janela é rolável no body e o desktop preenche o container; `fullscreen` fixa em
   `inset: 0` para uso como modo de exibição da aplicação.
+
+### Snap, teclado e foco
+
+- Arraste uma janela até a borda esquerda/direita para ocupar metade da área; cantos
+  formam quartos e a borda superior maximiza. Um preview mostra o destino antes de soltar.
+- `snapThreshold` controla a distância da borda (padrão `24`).
+- Com a title bar focada: setas movem a janela (`Shift` move 1px), `Alt+seta` faz snap,
+  `Alt+Shift+seta` redimensiona, `Alt+seta para baixo` restaura e duplo clique
+  maximiza/restaura.
+- `Alt+Tab` / `Alt+Shift+Tab` alternam entre janelas visíveis quando
+  `keyboardShortcuts` está ativo.
+- A taskbar navega com setas, `Home` e `End`; o menu Iniciar aceita setas, `Home`, `End`,
+  `Escape` e busca por digitação.
+- Ações de abrir/minimizar/maximizar/restaurar/fechar são anunciadas em uma região
+  `aria-live` localizada.
+
+### Taskbar, menu Iniciar e contexto
+
+- `groupTaskbar` (padrão `true`) agrupa janelas do mesmo app em um único botão com contador.
+  O botão alterna entre as janelas do grupo e o chevron ao lado abre a lista de janelas.
+- `maxTaskbarItems` limita os botões visíveis e move o restante para um menu de overflow.
+- Apps com `pinned: true` aparecem na seção **Fixados**, os últimos apps abertos aparecem em
+  **Recentes** e `startMenuSearch` (padrão `true`) habilita a busca no menu Iniciar.
+- `enableContextMenu` (padrão `true`) habilita o menu de contexto por clique direito ou
+  `Shift+F10` em janelas e botões da taskbar, com minimizar, maximizar/restaurar, fechar e
+  mover para outra área de trabalho.
+
+### Áreas de trabalho e layout compacto
+
+- `workspaces` define áreas de trabalho virtuais; `defaultWorkspace`/`workspace` +
+  `onWorkspaceChange` controlam a área ativa. Cada janela pode declarar `workspaceId`, e
+  `moveWindowToWorkspace` a move entre áreas.
+- `compact` força o modo compacto (taskbar só com ícones e novas janelas maximizadas).
+  `autoCompact` (padrão `true`) ativa esse modo abaixo de `compactBreakpoint` (padrão `640px`).
+- `animation` (padrão `true`) controla animações de entrada; `prefers-reduced-motion` é
+  respeitado.
+
+### Estado, persistência e callbacks
+
+- `storageKey` persiste janelas abertas, posições, tamanhos, estado minimizado/maximizado,
+  área de trabalho ativa e flags em `localStorage`. Conteúdo de janelas de app é restaurado a
+  partir de `apps`; janelas avulsas voltam sem conteúdo. A gravação é debounced durante
+  drag/resize e sofre flush ao desmontar.
+- `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
+  pode ser definido por app/janela.
+- `alwaysOnTop` mantém a janela acima das demais; `skipTaskbar` oculta o botão da taskbar;
+  `keepInBounds` (padrão `true`) impede que drag/resize saiam da área do desktop.
+- Callbacks: `onWindowOpen`, `onWindowFocus`, `onWindowMinimize`, `onWindowMaximize`,
+  `onWindowRestore`, `onWindowClose`, `onWindowSnap` e `onWindowsChange`.
+- Todos os rótulos vêm do catálogo i18n (`useNebularLocale`) e podem ser sobrescritos por
+  `labels`.
 
 ## Overlays
 
