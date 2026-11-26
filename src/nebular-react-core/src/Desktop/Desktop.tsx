@@ -21,6 +21,7 @@ export interface DesktopWindowState extends DesktopWindowBounds {
   id: string;
   appId?: string;
   title?: React.ReactNode;
+  icon?: React.ReactNode;
   parentId?: string;
   modal?: boolean;
   minimized: boolean;
@@ -58,7 +59,10 @@ export interface DesktopApp {
 export interface DesktopOpenWindowOptions {
   id?: string;
   appId?: string;
+  /** Used by standalone windows; app windows inherit the app title. */
   title?: React.ReactNode;
+  /** Used by standalone windows; app windows inherit the app icon. */
+  icon?: React.ReactNode;
   content?: DesktopWindowContent;
   parentId?: string;
   modal?: boolean;
@@ -406,7 +410,7 @@ const useStyles = createStyles((_theme) => ({
     backgroundColor: 'transparent',
     color: 'inherit',
     font: 'inherit',
-    fontSize: '0.8375rem',
+    fontSize: '0.8125rem',
     textAlign: 'left',
     cursor: 'pointer',
 
@@ -419,6 +423,13 @@ const useStyles = createStyles((_theme) => ({
       outline: '2px solid var(--color-primary-500, #3366ff)',
       outlineOffset: '-1px'
     }
+  },
+
+  startMenuLabel: {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
 
   startMenuEmpty: {
@@ -491,7 +502,7 @@ const useStyles = createStyles((_theme) => ({
     flex: '0 0 auto',
     width: '1.1rem',
     height: '1.1rem',
-    color: 'var(--desktop-window-icon-color, var(--text-hint-color, #8f9bb3))'
+    color: 'var(--desktop-window-icon-color, currentColor)'
   },
 
   windowTitle: {
@@ -686,16 +697,33 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+/**
+ * App windows always use the app title/icon so the title bar, the start menu and
+ * the taskbar show the exact same label and icon. Standalone windows fall back to
+ * their own title/icon.
+ */
 function windowTitleText(window: DesktopWindowState, app: DesktopApp | undefined): string {
+  if (app?.title) {
+    return app.title;
+  }
+
   if (typeof window.title === 'string' && window.title) {
     return window.title;
   }
 
-  if (typeof app?.title === 'string' && app.title) {
-    return app.title;
-  }
-
   return window.id;
+}
+
+function windowTitleNode(
+  window: DesktopWindowState,
+  app: DesktopApp | undefined,
+  fallback: string
+): React.ReactNode {
+  return app?.title ?? window.title ?? fallback;
+}
+
+function windowIconNode(window: DesktopWindowState, app: DesktopApp | undefined): React.ReactNode {
+  return app?.icon ?? window.icon;
 }
 
 function getDescendantIds(windows: DesktopWindowState[], id: string): Set<string> {
@@ -760,6 +788,8 @@ function DesktopWindowFrame({
   const frameRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<InteractionState | null>(null);
   const title = windowTitleText(windowState, app);
+  const titleContent = windowTitleNode(windowState, app, labels.window);
+  const icon = windowIconNode(windowState, app);
   const isMaximized = windowState.maximized;
   const isDraggable = windowState.draggable !== false && app?.draggable !== false;
   const isResizable = windowState.resizable !== false && app?.resizable !== false;
@@ -1006,10 +1036,12 @@ function DesktopWindowFrame({
           onDoubleClick={toggleMaximize}
           onKeyDown={handleTitleKeyDown}
         >
-          {app?.icon && <span className={cx(classes.windowIcon)}>{app.icon}</span>}
-          <span className={cx(classes.windowTitle)}>
-            {windowState.title ?? app?.title ?? labels.window}
-          </span>
+          {icon && (
+            <span className={cx(classes.windowIcon)} aria-hidden="true">
+              {icon}
+            </span>
+          )}
+          <span className={cx(classes.windowTitle)}>{titleContent}</span>
           <div
             className={cx(classes.windowControls)}
             onPointerDown={(event) => event.stopPropagation()}
@@ -1311,6 +1343,7 @@ const _Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         id,
         appId: options.appId,
         title: options.title ?? app?.title,
+        icon: options.icon,
         parentId: options.parentId,
         modal: options.modal ?? false,
         x: options.x ?? (parent ? parent.x + 32 : 48 + cascade * CASCADE_OFFSET),
@@ -1559,13 +1592,19 @@ const _Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                       type="button"
                       role="menuitem"
                       className={cx(classes.startMenuItem)}
+                      aria-label={labels.openApp(app.title)}
+                      title={labels.openApp(app.title)}
                       onClick={() => {
                         openWindow({ appId: app.id });
                         setLauncherOpen(false);
                       }}
                     >
-                      {app.icon && <span className={cx(classes.taskbarIcon)}>{app.icon}</span>}
-                      <span>{app.title}</span>
+                      {app.icon && (
+                        <span className={cx(classes.taskbarIcon)} aria-hidden="true">
+                          {app.icon}
+                        </span>
+                      )}
+                      <span className={cx(classes.startMenuLabel)}>{app.title}</span>
                     </button>
                   ))
                 )}
@@ -1580,6 +1619,7 @@ const _Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
             {currentWindows.map((windowState) => {
               const app = windowState.appId ? appsById.get(windowState.appId) : undefined;
               const title = windowTitleText(windowState, app);
+              const icon = windowIconNode(windowState, app);
               const isActive = activeWindow?.id === windowState.id;
 
               return (
@@ -1604,7 +1644,11 @@ const _Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                     }
                   }}
                 >
-                  {app?.icon && <span className={cx(classes.taskbarIcon)}>{app.icon}</span>}
+                  {icon && (
+                    <span className={cx(classes.taskbarIcon)} aria-hidden="true">
+                      {icon}
+                    </span>
+                  )}
                   <span className={cx(classes.taskbarLabel)}>{title}</span>
                 </button>
               );

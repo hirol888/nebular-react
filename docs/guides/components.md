@@ -1835,6 +1835,9 @@ const apps = [
 ```
 
 - `apps` alimenta o menu **Iniciar** e o taskbar; cada app abre uma ou mais janelas.
+- Janelas de app usam sempre o `title` e o `icon` do app na title bar, no menu Iniciar e no
+  botão do taskbar, mantendo o mesmo rótulo e ícone nos três lugares. Janelas avulsas
+  (sem `appId`) usam `title`/`icon` da própria janela ou de `openWindow`.
 - Janelas são posicionadas por `x`/`y`/`width`/`height`, com `zIndex` para sobreposição.
 - `draggable`/`resizable`/`minimizable`/`maximizable`/`closable` podem ser definidos por app ou
   por janela; arraste pela title bar e redimensione pelas bordas.

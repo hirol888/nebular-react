@@ -112,11 +112,58 @@ describe('Desktop', () => {
     await user.click(screen.getByRole('button', { name: 'Start' }));
     const menu = screen.getByRole('menu', { name: 'Apps' });
 
-    await user.click(within(menu).getByRole('menuitem', { name: 'Settings' }));
+    await user.click(within(menu).getByRole('menuitem', { name: 'Open Settings' }));
 
     expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
     expect(screen.queryByRole('menu', { name: 'Apps' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('shows the same app icon and title in title bar, taskbar and start menu', async () => {
+    const user = userEvent.setup();
+    const appsWithIcon: DesktopApp[] = [
+      { ...apps[0], icon: <span data-testid="notes-icon" /> },
+      apps[1]
+    ];
+
+    render(
+      <Desktop apps={appsWithIcon} defaultWindows={[createWindow({ title: 'Notes draft' })]} />
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Notes' });
+    expect(within(dialog).getByTestId('notes-icon')).toBeInTheDocument();
+    expect(within(dialog).getByText('Notes')).toBeInTheDocument();
+
+    const taskbarButton = screen.getByRole('button', { name: 'Notes' });
+    expect(within(taskbarButton).getByTestId('notes-icon')).toBeInTheDocument();
+    expect(within(taskbarButton).getByText('Notes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+
+    const menuItem = screen.getByRole('menuitem', { name: 'Open Notes' });
+    expect(within(menuItem).getByTestId('notes-icon')).toBeInTheDocument();
+    expect(within(menuItem).getByText('Notes')).toBeInTheDocument();
+  });
+
+  it('uses the window icon and title for standalone windows', () => {
+    render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[
+          createWindow({
+            appId: undefined,
+            title: 'Preview',
+            icon: <span data-testid="preview-icon" />
+          })
+        ]}
+      />
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Preview' });
+    expect(within(dialog).getByTestId('preview-icon')).toBeInTheDocument();
+
+    const taskbarButton = screen.getByRole('button', { name: 'Preview' });
+    expect(within(taskbarButton).getByTestId('preview-icon')).toBeInTheDocument();
   });
 
   it('drags and resizes a window', () => {

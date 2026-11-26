@@ -153,10 +153,10 @@
   `labels` tipados nos componentes com mais strings.
 - **Desktop**: gerenciador de janelas em tela cheia com taskbar configurável, menu Iniciar,
   drag/resize, minimizar/maximizar, relógio, system tray e janelas filhas modais.
-- **Testes**: 3.085 testes em 252 suítes, incluindo interação, teclado,
+- **Testes**: 3.087 testes em 252 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
   DataGrid, novos componentes e `jest-axe`. A cobertura é de 92,35% de instruções,
-  82,00% de branches, 92,84% de funções e 92,35% de linhas, com limites mínimos no CI.
+  82,02% de branches, 92,86% de funções e 92,35% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora
