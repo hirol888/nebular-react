@@ -35,6 +35,7 @@ export * from './Datepicker';
 export * from './DataGrid';
 export * from './Desktop';
 export * from './DesktopLayoutSettings';
+export * from './DesktopLayoutTemplates';
 export * from './DashboardGrid';
 export * from './DatetimePicker';
 export * from './DateTimeRangePicker';

@@ -3,10 +3,20 @@ export { useDesktop, useDesktopWindow, useDesktopWindowState } from './Desktop.c
 export { useDesktopDisplays } from './Desktop.displays';
 export { DesktopSurface } from './DesktopSurface';
 export type { DesktopSurfaceProps } from './DesktopSurface';
+export { DesktopAppFrame } from './DesktopAppFrame';
+export type {
+  DesktopAppFrameHandle,
+  DesktopAppFrameProps,
+  DesktopAppFrameSandboxToken,
+  DesktopAppFrameStylesNames
+} from './DesktopAppFrame';
 export {
   createDesktopSurfaceBus,
   getDesktopSurfaceDisplayId,
-  openDesktopSurfaces
+  openDesktopSurfaces,
+  reconcileDesktopWindowDisplays,
+  requestDesktopSurfaceFullscreen,
+  syncDesktopSurfaces
 } from './Desktop.surfaces';
 export {
   createBroadcastLayoutAdapter,
@@ -20,7 +30,12 @@ export {
   serializeDesktopLayout
 } from './Desktop.persistence';
 export type { UseDesktopDisplaysResult } from './Desktop.displays';
-export type { DesktopSurfaceBus, DesktopSurfaceSession } from './Desktop.surfaces';
+export type {
+  DesktopSurfaceBus,
+  DesktopSurfaceOpenOptions,
+  DesktopSurfaceSession,
+  DesktopSurfaceSyncResult
+} from './Desktop.surfaces';
 export type {
   RestLayoutAdapterOptions,
   SerializeDesktopLayoutOptions
@@ -29,6 +44,39 @@ export type { BroadcastLayoutAdapter } from './Desktop.persistence';
 export type { VersionedLayoutTransport } from './Desktop.persistence';
 export { createBroadcastCollaboration } from './Desktop.collaboration';
 export type { DesktopCollaborationAdapter, DesktopCollaborator } from './Desktop.collaboration';
+export { createWebSocketCollaboration } from './Desktop.collaboration.websocket';
+export type {
+  DesktopWebSocketCollaborationOptions,
+  DesktopWebSocketLike,
+  DesktopWebSocketReconnectOptions
+} from './Desktop.collaboration.websocket';
+export {
+  createCollaborationRoom,
+  isCollaboratorStale,
+  mergeCollaborativeLayouts
+} from './Desktop.collaboration.layouts';
+export { useCollaborativeLayout, useDesktopCollaborators } from './Desktop.collaboration.react';
+export type {
+  UseCollaborativeLayoutOptions,
+  UseCollaborativeLayoutResult,
+  UseDesktopCollaboratorsOptions,
+  UseDesktopCollaboratorsResult
+} from './Desktop.collaboration.react';
+export {
+  createDesktopAppRegistry,
+  DESKTOP_APP_DEFAULT_SCHEME,
+  DESKTOP_APP_ID_PATTERN,
+  DESKTOP_APP_MAX_COUNT,
+  DESKTOP_APP_PERMISSIONS
+} from './Desktop.apps';
+export type {
+  DesktopAppLoader,
+  DesktopAppManifest,
+  DesktopAppPermission,
+  DesktopAppRegistry,
+  DesktopAppsContext,
+  DesktopDeepLink
+} from './Desktop.apps';
 export {
   createDesktopLayoutTemplate,
   createTemplateWindows,

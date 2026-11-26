@@ -28,8 +28,11 @@ fechadas.
 
 Adiciona `DesktopLayoutSettings` e `useDesktopLayoutScope` para escolher entre layout por
 dispositivo e compartilhado; adiciona `DesktopSurface` para renderizar um display no modo
-surfaces, com merge de janelas de volta ao host. Adiciona `FileExplorerDualPane` com dois
-panes independentes e divisor acessível. Também adiciona `FileExplorer`, uma evolução do `FileManager` orientada a um `FileSystemProvider`
+surfaces, com fullscreen por display, hot-plug (`syncDesktopSurfaces`), reconciliação de
+janelas órfãs, `emptyState` e merge de janelas de volta ao host. O `createDesktopAppRegistry`
+centraliza manifestos, permissões, deep links e lazy loading. Adiciona `FileExplorerDualPane`
+com dois panes independentes e divisor acessível. Também adiciona `FileExplorer`, uma evolução
+do `FileManager` orientada a um `FileSystemProvider`
 assíncrono, com providers em memória e REST, navegação back/forward/up, breadcrumb, busca,
 views list/grid/details, seleção múltipla, teclado, copiar/cortar/colar, arrastar para pasta,
 abas, renomear, excluir, criar pasta, upload
@@ -39,13 +42,17 @@ Também adiciona abas por janela com tear-off, slots `toolbar`/`footer` e os com
 `WindowBreadcrumb`/`WindowStatusBar` para compor a chrome interna das janelas.
 
 Adiciona utilitários de layout (`sanitizeDesktopLayout`, `exportDesktopLayout`,
-`importDesktopLayout`, `createDesktopLayoutTemplate`) e o contrato de colaboração
-`DesktopCollaborationAdapter` com implementação `BroadcastChannel` para presença/layout
-same-origin. O Desktop ganha Alt+Tab visual, flyout de snap layouts e transições de
-maximizar/restaurar/snap. O FileExplorer ganha fila de upload com cancelar/retry, permissões
-por entrada, paginação server-side e virtualização de listas grandes.
+`importDesktopLayout`, `createDesktopLayoutTemplate`), `DesktopLayoutTemplates` para aplicar
+templates salvos e resolução de conflito de revision em `DesktopLayoutSettings`. O contrato de
+colaboração `DesktopCollaborationAdapter` com implementação `BroadcastChannel` para
+presença/layout same-origin é acompanhado de transporte WebSocket, merge de layouts e hooks de
+presença. O Desktop ganha Alt+Tab visual, flyout de snap layouts e transições de
+maximizar/restaurar/snap; `DesktopAppFrame` hospeda apps de terceiros em iframe sandbox. O
+FileExplorer ganha fila de upload com cancelar/retry, permissões por entrada, paginação
+server-side e virtualização de listas grandes.
 
-O catálogo i18n ganhou as chaves `desktop.*`, `fileExplorer.*`, `windowBreadcrumb.*` e
-`windowStatusBar.*`; o pacote de ícones essenciais ganhou `menu-outline`,
+O catálogo i18n ganhou as chaves `desktop.*`, `desktopLayoutSettings.*`,
+`desktopLayoutTemplates.*`, `fileExplorer.*`, `windowBreadcrumb.*` e `windowStatusBar.*`; o
+pacote de ícones essenciais ganhou `menu-outline`,
 `more-horizontal-outline`, `folder-outline`, `refresh-outline`, `monitor-outline` e
 `cloud-upload-outline`.

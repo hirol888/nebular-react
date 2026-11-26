@@ -4,7 +4,7 @@
 
 | Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
+| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `DesktopLayoutTemplates`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
 | Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `FileExplorer`, `FileExplorerDualPane`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
 | Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                           |
 | Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -1982,20 +1982,41 @@ const apps = [
 - `layoutAdapter` também pode usar templates: `createDesktopLayoutTemplate`,
   `sanitizeDesktopLayout`, `exportDesktopLayout` e `importDesktopLayout` validam/limitam
   snapshots antes de gravar ou restaurar.
-- Colaboração same-origin: `createBroadcastCollaboration` propaga presença e layout via
-  `BroadcastChannel`; para multi-usuário, implemente `DesktopCollaborationAdapter` sobre
-  WebSocket/SignalR mantendo o mesmo contrato.
+- Colaboração: `createBroadcastCollaboration` propaga presença/layout same-origin via
+  `BroadcastChannel`; `createWebSocketCollaboration(url, { selfId, reconnect, heartbeatMs })`
+  implementa o mesmo contrato sobre WebSocket com reconexão exponencial, reenvio de presença,
+  fila do último layout e heartbeat. `mergeCollaborativeLayouts` faz merge LWW, e os hooks
+  `useDesktopCollaborators`/`useCollaborativeLayout` cuidam de presença, TTL e broadcast com
+  debounce.
+- `createCollaborationRoom(tenantId, appId)` gera um nome estável de sala para o servidor
+  (SignalR/WebSocket) e `isCollaboratorStale` apoia a poda de presenças.
 - `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
   pode ser definido por app/janela.
 - `alwaysOnTop` mantém a janela acima das demais; `skipTaskbar` oculta o botão da taskbar;
   `keepInBounds` (padrão `true`) impede que drag/resize saiam da área do desktop.
 - `displayMode="span"` + `displays` habilita snap/maximize por monitor, divisórias visuais,
   `moveWindowToDisplay` e `useDesktopDisplays()` (Window Management API, com fallback).
-- `openDesktopSurfaces`, `createDesktopSurfaceBus`, `getDesktopSurfaceDisplayId` e
-  `DesktopSurface` formam o modo **surfaces** experimental: abrem/roteiam uma janela
-  auxiliar por monitor, renderizam apenas as janelas daquele display e sincronizam
-  snapshots via `BroadcastChannel` (o posicionamento físico do popup ainda depende do
-  usuário/browser).
+- `openDesktopSurfaces(displays, url, options)` abre uma janela auxiliar por monitor e
+  retorna sessões com `ready` (resolve `false` em bloqueio/timeout/fechamento) e
+  `requestFullscreen()`. Opções: `requestFullscreen`, `onBlocked`, `onSession`,
+  `readyTimeoutMs`, `namePrefix` e `features` (string ou objeto).
+- `syncDesktopSurfaces(sessions, displays, open)` faz hot-plug: fecha displays removidos,
+  preserva sessões existentes e abre apenas os novos. `reconcileDesktopWindowDisplays`
+  move janelas órfãs para o display de fallback/primário sem mutar o estado.
+- `DesktopSurface` renderiza apenas as janelas do display, aceita `surfaceLabel`,
+  `emptyState`, `autoFocus`, `onReady` e `onFullscreenChange`, e faz merge de volta ao host
+  sem duplicar ids nem sequestrar janelas de outros displays. `createDesktopSurfaceBus`
+  sincroniza snapshots via `BroadcastChannel`. O posicionamento físico do popup ainda
+  depende do usuário/browser; fullscreen automático é solicitado quando permitido.
+- `createDesktopAppRegistry(manifests)` centraliza o catálogo de apps: valida/normaliza
+  manifestos, resolve `fileExtensions`, permissões (`files`, `clipboard`, `notifications`,
+  `fullscreen`, `window-management`, `network`), deep links (`app://notes/path?x=1`,
+  `nebular://` ou scheme próprio), carregamento lazy com cache/retry e conversão para
+  `DesktopApp` via `toDesktopApps()`.
+- `DesktopAppFrame` hospeda apps de terceiros em iframe com sandbox mínimo
+  (`allow-scripts`), `referrerPolicy="no-referrer"`, allowlist de origens para
+  `postMessage` e handle imperativo (`postMessage`/`getFrame`). Só use
+  `allow-same-origin` para apps confiáveis.
 - `icons` renderiza atalhos no wallpaper; `commandPalette` habilita `Ctrl/Cmd+K` com apps,
   janelas, workspaces e `commands` extras; `showOverview` abre a visão geral; `notifications`
   integra o `NotificationCenter` à taskbar.
@@ -2043,9 +2064,34 @@ const adapter = useMemo(
   adapter a cada mudança.
 - `deviceId`: exibido na opção “Este dispositivo”.
 - `onSave`/`saving`/`saved`: botão e status opcionais de gravação imediata.
+- `conflict`/`onResolveConflict`: quando a revision do servidor mudou, mostre o alerta com
+  as datas local/servidor e resolva com `local` (manter este dispositivo) ou `remote`
+  (usar o layout do servidor).
 - `labels` e `ariaLabel` permitem tradução/customização.
 - `useDesktopLayoutScope(storageKey?)` persiste a escolha `device`/`shared` no
   `localStorage`; use o setter no `onScopeChange` ou direto no `DesktopLayoutSettings`.
+
+## DesktopLayoutTemplates
+
+Seletor de templates de layout prontos (`DesktopLayoutTemplate`), útil para perfis como
+“Atendimento”, “Programação” ou layouts salvos pelo usuário:
+
+```tsx
+<DesktopLayoutTemplates
+  templates={templates}
+  activeTemplateId={activeId}
+  onApply={(template) => setWindows(createTemplateWindows(template, apps))}
+  onDelete={removeTemplate}
+  onCreate={saveCurrentAsTemplate}
+/>
+```
+
+- `templates`: snapshots versionados criados com `createDesktopLayoutTemplate`.
+- `onApply`/`onDelete`/`onCreate`: ações opcionais; sem handler o botão correspondente
+  fica oculto/desabilitado.
+- O template aplicado não persiste conteúdo React; recrie as janelas pelo registry de
+  apps (`createTemplateWindows`) ou por `window.state`.
+- `labels` permitem tradução; o componente é acessível por teclado e tem `axe` no CI.
 
 ## WindowBreadcrumb
 

@@ -11,6 +11,15 @@ import type { DesktopLayoutScope } from '../Desktop/Desktop.types';
 
 export type { DesktopLayoutScope } from '../Desktop/Desktop.types';
 
+export type DesktopLayoutConflictChoice = 'local' | 'remote';
+
+export interface DesktopLayoutConflict {
+  /** ISO timestamp of the layout saved by this device. */
+  localSavedAt?: string;
+  /** ISO timestamp of the layout stored on the server. */
+  remoteSavedAt?: string;
+}
+
 export interface DesktopLayoutSettingsLabels {
   title: string;
   description: string;
@@ -23,6 +32,12 @@ export interface DesktopLayoutSettingsLabels {
   saved: string;
   deviceFallback: string;
   group: string;
+  conflictTitle: string;
+  conflictDescription: string;
+  conflictRemoteSavedAt(date: string): string;
+  conflictLocalSavedAt(date: string): string;
+  keepLocal: string;
+  useRemote: string;
 }
 
 export interface DesktopLayoutSettingsProps extends DefaultProps<DesktopLayoutSettingsStylesNames> {
@@ -33,6 +48,8 @@ export interface DesktopLayoutSettingsProps extends DefaultProps<DesktopLayoutSe
   onSave?(): void;
   saving?: boolean;
   saved?: boolean;
+  conflict?: DesktopLayoutConflict;
+  onResolveConflict?(choice: DesktopLayoutConflictChoice): void;
   disabled?: boolean;
   labels?: Partial<DesktopLayoutSettingsLabels>;
   ariaLabel?: string;
@@ -149,6 +166,63 @@ const useStyles = createStyles((_theme) => ({
     lineHeight: 1.35
   },
 
+  conflict: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.35rem',
+    padding: '0.6rem',
+    border:
+      '1px solid var(--desktop-layout-settings-conflict-border-color, var(--color-warning-500, #ffaa00))',
+    borderRadius: 'var(--desktop-layout-settings-radius, 0.45rem)',
+    backgroundColor:
+      'var(--desktop-layout-settings-conflict-background-color, rgba(255, 170, 0, 0.08))',
+    fontSize: '0.78rem',
+    lineHeight: 1.4
+  },
+
+  conflictTitle: {
+    fontWeight: 600
+  },
+
+  conflictDates: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.1rem',
+    color: 'var(--desktop-layout-settings-hint-color, var(--text-hint-color, #8f9bb3))',
+    fontSize: '0.72rem'
+  },
+
+  conflictActions: {
+    display: 'flex',
+    gap: '0.4rem',
+    flexWrap: 'wrap',
+    marginTop: '0.15rem'
+  },
+
+  conflictAction: {
+    minHeight: '1.8rem',
+    padding: '0.2rem 0.6rem',
+    border: '1px solid var(--border-basic-color-3, #e4e9f2)',
+    borderRadius: 'var(--desktop-layout-settings-radius, 0.35rem)',
+    backgroundColor:
+      'var(--desktop-layout-settings-background-color, var(--background-basic-color-1, #ffffff))',
+    color: 'inherit',
+    font: 'inherit',
+    fontSize: '0.76rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+
+    '&:disabled': {
+      opacity: 0.55,
+      cursor: 'default'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '2px'
+    }
+  },
+
   footer: {
     display: 'flex',
     alignItems: 'center',
@@ -205,6 +279,8 @@ export const DesktopLayoutSettings = React.forwardRef<HTMLDivElement, DesktopLay
       onSave,
       saving,
       saved,
+      conflict,
+      onResolveConflict,
       disabled,
       labels: labelsProp,
       ariaLabel,
@@ -248,6 +324,24 @@ export const DesktopLayoutSettings = React.forwardRef<HTMLDivElement, DesktopLay
           'Use the latest shared layout as fallback.'
         ),
         group: t('desktopLayoutSettings.group', 'Layout storage scope'),
+        conflictTitle: t(
+          'desktopLayoutSettings.conflictTitle',
+          'This layout changed on another device'
+        ),
+        conflictDescription: t(
+          'desktopLayoutSettings.conflictDescription',
+          'The shared layout was updated after this device loaded it. Choose which version to keep.'
+        ),
+        conflictRemoteSavedAt: (date) =>
+          t('desktopLayoutSettings.conflictRemoteSavedAt', 'Server layout saved at {date}', {
+            date
+          }),
+        conflictLocalSavedAt: (date) =>
+          t('desktopLayoutSettings.conflictLocalSavedAt', 'This device saved at {date}', {
+            date
+          }),
+        keepLocal: t('desktopLayoutSettings.keepLocal', 'Keep this device layout'),
+        useRemote: t('desktopLayoutSettings.useRemote', 'Use server layout'),
         ...labelsProp
       }),
       [t, labelsProp]
@@ -314,6 +408,40 @@ export const DesktopLayoutSettings = React.forwardRef<HTMLDivElement, DesktopLay
             );
           })}
         </div>
+        {conflict && (
+          <div className={cx(classes.conflict)} role="alert">
+            <span className={cx(classes.conflictTitle)}>{labels.conflictTitle}</span>
+            <span>{labels.conflictDescription}</span>
+            {(conflict.localSavedAt || conflict.remoteSavedAt) && (
+              <span className={cx(classes.conflictDates)}>
+                {conflict.localSavedAt && (
+                  <span>{labels.conflictLocalSavedAt(conflict.localSavedAt)}</span>
+                )}
+                {conflict.remoteSavedAt && (
+                  <span>{labels.conflictRemoteSavedAt(conflict.remoteSavedAt)}</span>
+                )}
+              </span>
+            )}
+            <div className={cx(classes.conflictActions)}>
+              <button
+                type="button"
+                className={cx(classes.conflictAction)}
+                disabled={disabled || !onResolveConflict}
+                onClick={() => onResolveConflict?.('local')}
+              >
+                {labels.keepLocal}
+              </button>
+              <button
+                type="button"
+                className={cx(classes.conflictAction)}
+                disabled={disabled || !onResolveConflict}
+                onClick={() => onResolveConflict?.('remote')}
+              >
+                {labels.useRemote}
+              </button>
+            </div>
+          </div>
+        )}
         {onSave && (
           <div className={cx(classes.footer)}>
             <button

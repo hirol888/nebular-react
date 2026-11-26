@@ -36,7 +36,11 @@ export const useStyles = createStyles((_theme) => ({
   fullscreen: {
     position: 'fixed',
     inset: 0,
-    zIndex: 'var(--desktop-z-index, 1000)' as unknown as number
+    zIndex: 'var(--desktop-z-index, 1000)' as unknown as number,
+    paddingTop: 'env(safe-area-inset-top, 0px)',
+    paddingRight: 'env(safe-area-inset-right, 0px)',
+    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+    paddingLeft: 'env(safe-area-inset-left, 0px)'
   },
 
   taskbarBottom: {

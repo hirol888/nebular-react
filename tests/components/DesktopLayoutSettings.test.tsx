@@ -54,6 +54,32 @@ describe('DesktopLayoutSettings', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Layout saved');
   });
 
+  it('resolves layout conflicts with explicit choices', async () => {
+    const user = userEvent.setup();
+    const onResolveConflict = jest.fn();
+
+    render(
+      <DesktopLayoutSettings
+        defaultScope="shared"
+        deviceId="browser-1"
+        conflict={{
+          localSavedAt: '2026-01-01T10:00:00.000Z',
+          remoteSavedAt: '2026-01-02T10:00:00.000Z'
+        }}
+        onResolveConflict={onResolveConflict}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('This layout changed on another device');
+    expect(screen.getByText(/Server layout saved at/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Keep this device layout' }));
+    await user.click(screen.getByRole('button', { name: 'Use server layout' }));
+
+    expect(onResolveConflict).toHaveBeenNthCalledWith(1, 'local');
+    expect(onResolveConflict).toHaveBeenNthCalledWith(2, 'remote');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = render(
       <DesktopLayoutSettings defaultScope="device" deviceId="browser-1" />

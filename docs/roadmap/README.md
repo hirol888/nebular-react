@@ -155,16 +155,19 @@
   com busca/fixados/recentes, drag/resize, snap e snap layouts, minimizar/maximizar,
   agrupamento e overflow, menu de contexto, foco/A11y, persistência local ou via adapter
   assíncrono, estado por janela, áreas de trabalho virtuais com tema, multi-display span,
-  surfaces, abas por janela com tear-off, toolbar/footer (`WindowBreadcrumb`/
-  `WindowStatusBar`), Alt+Tab visual, flyout de snap layouts, transições, ícones, command
-  palette, overview, notificações, error boundary por janela, associação de arquivos, modo
-  compacto e janelas filhas modais. Inclui `FileExplorer`/`FileExplorerDualPane` com
-  providers de memória/REST, navegação, views, copiar/cortar/colar, abas, drag para pasta,
-  fila de upload, permissões, paginação, virtualização e preview.
-- **Testes**: 3.188 testes em 260 suítes, incluindo interação, teclado,
+  surfaces de produção (fullscreen por display, hot-plug, reconciliação de órfãs), abas por
+  janela com tear-off, toolbar/footer (`WindowBreadcrumb`/`WindowStatusBar`), Alt+Tab visual,
+  flyout de snap layouts, transições, ícones, command palette, overview, notificações, error
+  boundary por janela, associação de arquivos, modo compacto e janelas filhas modais.
+  Colaboração via `BroadcastChannel` ou WebSocket, merge LWW, presença e templates/conflito
+  de layout. Inclui app registry com permissões/deep links/lazy loading, `DesktopAppFrame`
+  sandbox e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST, navegação,
+  views, copiar/cortar/colar, abas, drag para pasta, fila de upload, permissões, paginação,
+  virtualização e preview.
+- **Testes**: 3.240 testes em 266 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,67% de instruções,
-  80,27% de branches, 90,86% de funções e 90,67% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,70% de instruções,
+  80,28% de branches, 91,05% de funções e 90,70% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora
