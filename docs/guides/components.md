@@ -4,7 +4,7 @@
 
 | Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
+| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
 | Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
 | Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                           |
 | Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -1813,6 +1813,45 @@ Para nós remotos, marque `hasChildren` e forneça `loadData`; `onLoadError` rec
 Com `onSearch`, o filtro local é desligado e o consumidor controla os resultados; `loading`
 mostra `loadingMessage` com `role="status"`. `action.group` cria seções e `recentActions`
 aparece apenas com a busca vazia, sem duplicar itens presentes em `actions`.
+
+## Desktop (window manager)
+
+```tsx
+const apps = [
+  { id: 'notes', title: 'Notes', content: <NotesApp />, defaultWidth: 520 },
+  { id: 'settings', title: 'Settings', content: <SettingsApp /> }
+];
+
+<Desktop
+  fullscreen
+  apps={apps}
+  taskbarPosition="bottom"
+  systemTray={<NotificationButton />}
+  defaultWindows={[
+    { id: 'welcome', appId: 'notes', x: 80, y: 64, width: 520, height: 340,
+      minimized: false, maximized: false, zIndex: 1 }
+  ]}
+/>
+```
+
+- `apps` alimenta o menu **Iniciar** e o taskbar; cada app abre uma ou mais janelas.
+- Janelas são posicionadas por `x`/`y`/`width`/`height`, com `zIndex` para sobreposição.
+- `draggable`/`resizable`/`minimizable`/`maximizable`/`closable` podem ser definidos por app ou
+  por janela; arraste pela title bar e redimensione pelas bordas.
+- Minimizar envia para a barra; maximizar ocupa a área do desktop; restaurar volta ao tamanho
+  anterior.
+- `taskbarPosition`: `bottom`, `top`, `left` ou `right`; `showClock`, `clock`, `clockFormat`,
+  `systemTray` e `taskbarActions` controlam o canto de status.
+- Use `useDesktop()` para abrir/fechar/focar janelas e `useDesktopWindow()` dentro de uma
+  janela para abrir filhos:
+  ```tsx
+  const { openWindow } = useDesktopWindow();
+  openWindow({ title: 'Confirmar', modal: true, content: <Confirm /> });
+  ```
+- Filhos `modal` recebem backdrop, `aria-modal` e deixam a janela-mãe `inert`/`aria-hidden`
+  até fecharem; `Escape` fecha o modal ativo.
+- A janela é rolável no body e o desktop preenche o container; `fullscreen` fixa em
+  `inset: 0` para uso como modo de exibição da aplicação.
 
 ## Overlays
 

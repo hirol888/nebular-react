@@ -33,6 +33,7 @@ export * from './CronInput';
 export * from './CurrencyInput';
 export * from './Datepicker';
 export * from './DataGrid';
+export * from './Desktop';
 export * from './DashboardGrid';
 export * from './DatetimePicker';
 export * from './DateTimeRangePicker';
