@@ -36,6 +36,12 @@ export interface DesktopLayoutPreferencesProps extends DesktopLayoutPreferencesB
   onLoaded?(snapshot: DesktopLayoutSnapshot): void;
   onApplySnapshot?(snapshot: DesktopLayoutSnapshot): void;
   onError?(error: unknown): void;
+  /** Detects a typed optimistic-concurrency conflict on a save error. */
+  isConflict?(error: unknown): boolean;
+  /** Reads the current remote revision from a typed conflict error. */
+  getConflictRevision?(error: unknown): string | number | undefined;
+  /** Reads the remote snapshot from a typed conflict error when reloading fails. */
+  getConflictSnapshot?(error: unknown): DesktopLayoutSnapshot | null | undefined;
   title?: string;
   labels?: Partial<DesktopLayoutPreferencesLabels>;
   showSummary?: boolean;
@@ -143,6 +149,9 @@ export const DesktopLayoutPreferences = React.forwardRef<
     onLoaded,
     onApplySnapshot,
     onError,
+    isConflict,
+    getConflictRevision,
+    getConflictSnapshot,
     title,
     labels: labelsProp,
     showSummary = true,
@@ -202,7 +211,10 @@ export const DesktopLayoutPreferences = React.forwardRef<
     enabled,
     onLoaded,
     onApplySnapshot,
-    onError
+    onError,
+    isConflict,
+    getConflictRevision,
+    getConflictSnapshot
   });
 
   const handleScopeChange = (next: DesktopLayoutScope) => {

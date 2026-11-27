@@ -403,15 +403,40 @@ export function reconcileDesktopWindowDisplays(
   });
 }
 
+export type DesktopSurfaceCommand =
+  | { type: 'focus'; windowId: string }
+  | { type: 'close'; windowId: string }
+  | { type: 'minimize'; windowId: string }
+  | { type: 'restore'; windowId: string }
+  | { type: 'move-window'; windowId: string; displayId: string };
+
+interface DesktopSurfaceCommandMessage {
+  __nebularDesktopSurfaceCommand: true;
+  sender?: string;
+  command: DesktopSurfaceCommand;
+}
+
 export interface DesktopSurfaceBus {
   send(snapshot: DesktopLayoutSnapshot): void;
   subscribe(listener: (snapshot: DesktopLayoutSnapshot) => void): () => void;
+  /** Sends a structured command (focus, close, minimize, restore, move). */
+  sendCommand(command: DesktopSurfaceCommand): void;
+  subscribeCommand(listener: (command: DesktopSurfaceCommand) => void): () => void;
   close(): void;
 }
 
+function isSurfaceCommandMessage(value: unknown): value is DesktopSurfaceCommandMessage {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    (value as DesktopSurfaceCommandMessage).__nebularDesktopSurfaceCommand === true
+  );
+}
+
 /**
- * Experimental BroadcastChannel bus for multi-surface synchronization.
- * The coordinator sends layout snapshots; auxiliary windows subscribe and apply them.
+ * BroadcastChannel bus for multi-surface synchronization. Layout snapshots remain
+ * backwards compatible (`send`/`subscribe`); commands use a tagged envelope so old
+ * and new surfaces can coexist.
  */
 export function createDesktopSurfaceBus(name = 'nebular-desktop-surfaces'): DesktopSurfaceBus {
   if (typeof BroadcastChannel === 'undefined') {
@@ -420,14 +445,26 @@ export function createDesktopSurfaceBus(name = 'nebular-desktop-surfaces'): Desk
       subscribe() {
         return () => undefined;
       },
+      sendCommand() {},
+      subscribeCommand() {
+        return () => undefined;
+      },
       close() {}
     };
   }
 
   const channel = new BroadcastChannel(name);
   const listeners = new Set<(snapshot: DesktopLayoutSnapshot) => void>();
+  const commandListeners = new Set<(command: DesktopSurfaceCommand) => void>();
   channel.addEventListener('message', (event) => {
-    const snapshot = event.data as DesktopLayoutSnapshot;
+    const data = event.data as unknown;
+
+    if (isSurfaceCommandMessage(data)) {
+      commandListeners.forEach((listener) => listener(data.command));
+      return;
+    }
+
+    const snapshot = data as DesktopLayoutSnapshot;
     if (snapshot && Array.isArray(snapshot.windows)) {
       listeners.forEach((listener) => listener(snapshot));
     }
@@ -441,8 +478,19 @@ export function createDesktopSurfaceBus(name = 'nebular-desktop-surfaces'): Desk
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    sendCommand(command) {
+      channel.postMessage({
+        __nebularDesktopSurfaceCommand: true,
+        command
+      } satisfies DesktopSurfaceCommandMessage);
+    },
+    subscribeCommand(listener) {
+      commandListeners.add(listener);
+      return () => commandListeners.delete(listener);
+    },
     close() {
       listeners.clear();
+      commandListeners.clear();
       channel.close();
     }
   };

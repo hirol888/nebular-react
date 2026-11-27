@@ -159,6 +159,30 @@ export interface FileExplorerLabels {
   closeTab(name: string): string;
 }
 
+export type FileOperation =
+  | 'read'
+  | 'list'
+  | 'search'
+  | 'open'
+  | 'create-folder'
+  | 'rename'
+  | 'delete'
+  | 'trash'
+  | 'restore'
+  | 'empty-trash'
+  | 'move'
+  | 'copy'
+  | 'upload'
+  | 'download';
+
+export interface FileAuthorizationRequest {
+  operation: FileOperation;
+  path?: string;
+  paths?: string[];
+  entry?: FileEntry;
+  destination?: string;
+}
+
 export interface FileExplorerProps
   extends
     DefaultProps<FileExplorerStylesNames>,
@@ -201,6 +225,10 @@ export interface FileExplorerProps
   pageSize?: number;
   /** Entries above this count are windowed in list/details views. Set 0 to disable. */
   virtualizeThreshold?: number;
+  /** Row height used by virtualization. Defaults to 34. */
+  virtualRowHeight?: number;
+  /** Async authorization hook called before every mutating/read action. */
+  authorize?(request: FileAuthorizationRequest): boolean | Promise<boolean>;
   labels?: Partial<FileExplorerLabels>;
   ariaLabel?: string;
   sidebar?: React.ReactNode;

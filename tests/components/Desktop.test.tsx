@@ -1428,6 +1428,49 @@ describe('Desktop', () => {
     expect(within(dialogs[1]).getByRole('button', { name: 'Increment 0' })).toBeInTheDocument();
   });
 
+  it('opens a hidden app through its deep link', async () => {
+    const registry = createDesktopAppRegistry([
+      { id: 'hidden-app', title: 'Hidden app', hidden: true, content: <DeepLinkContent /> }
+    ]);
+
+    render(<Desktop appRegistry={registry} deepLink="app://hidden-app/secret" />);
+
+    expect(await screen.findByText('secret')).toBeInTheDocument();
+  });
+
+  it('reacts to app registry updates after mount', async () => {
+    const user = userEvent.setup();
+    const registry = createDesktopAppRegistry([]);
+
+    render(<Desktop appRegistry={registry} />);
+
+    act(() => {
+      registry.register({ id: 'mail', title: 'Mail', content: <p>Mail content</p> });
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(screen.getByRole('menuitem', { name: 'Open Mail' })).toBeInTheDocument();
+  });
+
+  it('guards user-initiated closes with onBeforeClose', async () => {
+    const user = userEvent.setup();
+    const onBeforeClose = jest.fn().mockReturnValue(false);
+
+    render(<Desktop apps={apps} defaultWindows={[createWindow()]} onBeforeClose={onBeforeClose} />);
+
+    await user.click(screen.getByRole('button', { name: 'Close Notes' }));
+
+    expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
+
+    onBeforeClose.mockReturnValue(Promise.resolve(true));
+    await user.click(screen.getByRole('button', { name: 'Close Notes' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Notes' })).not.toBeInTheDocument()
+    );
+  });
+
   it('opens a deep link registered in the app registry', async () => {
     const onDeepLink = jest.fn();
     const registry = createDesktopAppRegistry([
@@ -1576,7 +1619,7 @@ describe('Desktop', () => {
 
     expect(screen.getByText('World clock')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Calendar' }));
+    await user.click(screen.getByRole('button', { name: /^Calendar/ }));
 
     expect(screen.getByRole('dialog', { name: 'Calendar' })).toBeInTheDocument();
 

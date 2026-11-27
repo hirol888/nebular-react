@@ -536,6 +536,49 @@ describe('FileExplorer', () => {
     );
   });
 
+  it('blocks unauthorized actions before calling the provider', async () => {
+    const user = userEvent.setup();
+    const provider = createProvider();
+    const renameSpy = jest.spyOn(provider, 'rename');
+    const authorize = jest.fn().mockResolvedValue(false);
+
+    render(<FileExplorer provider={provider} authorize={authorize} />);
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    const input = screen.getByRole('textbox', { name: 'Rename README.md' });
+    await user.clear(input);
+    await user.type(input, 'GUIDE.md{Enter}');
+
+    await waitFor(() =>
+      expect(authorize).toHaveBeenCalledWith(
+        expect.objectContaining({ operation: 'rename', path: '/README.md' })
+      )
+    );
+    expect(renameSpy).not.toHaveBeenCalled();
+    expect(await screen.findByText('Not allowed: rename')).toBeInTheDocument();
+  });
+
+  it('uses a custom virtual row height', async () => {
+    const manyEntries: FileEntry[] = Array.from({ length: 300 }, (_, index) => ({
+      id: `row-${index}`,
+      name: `row-${index}.txt`,
+      path: `/row-${index}.txt`,
+      type: 'file'
+    }));
+    const { container } = render(
+      <FileExplorer provider={createMemoryFileSystemProvider(manyEntries)} virtualRowHeight={60} />
+    );
+
+    await screen.findByText('row-0.txt');
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--file-explorer-row-height')).toBe('60px');
+    expect(screen.getAllByRole('option').length).toBeLessThan(300);
+  });
+
   it('virtualizes long lists while keeping keyboard navigation', async () => {
     const user = userEvent.setup();
     const manyEntries: FileEntry[] = Array.from({ length: 300 }, (_, index) => ({

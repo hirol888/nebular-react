@@ -20,6 +20,8 @@ export type {
   FileExplorerDualPaneProps
 } from './FileExplorerDualPane.types';
 export type {
+  FileAuthorizationRequest,
+  FileOperation,
   FileEntry,
   FileEntryPermissions,
   FileExplorerLabels,

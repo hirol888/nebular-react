@@ -41,6 +41,14 @@ export type {
   DesktopConnectionStatusProps,
   DesktopConnectionStatusStylesNames
 } from './DesktopConnectionStatus';
+export {
+  getDesktopDeepLinkFromUrl,
+  setDesktopDeepLinkInUrl,
+  subscribeDesktopDeepLink
+} from './Desktop.deepLinkUrl';
+export type { DesktopDeepLinkUrlOptions, DesktopDeepLinkWriteOptions } from './Desktop.deepLinkUrl';
+export { createDesktopThemeStyle, DESKTOP_THEME_TOKEN_VARS } from './Desktop.theme';
+export type { DesktopThemeTokens } from './Desktop.theme';
 export { registerDesktopServiceWorker, useInstallPrompt } from './Desktop.pwa';
 export type {
   DesktopBeforeInstallPromptEvent,
@@ -71,6 +79,7 @@ export {
 export type { UseDesktopDisplaysResult } from './Desktop.displays';
 export type {
   DesktopSurfaceBus,
+  DesktopSurfaceCommand,
   DesktopSurfaceOpenOptions,
   DesktopSurfaceSession,
   DesktopSurfaceSyncResult
@@ -93,8 +102,21 @@ export type {
   DesktopCollaborationWireMessage,
   DesktopWebSocketCollaborationOptions,
   DesktopWebSocketLike,
-  DesktopWebSocketReconnectOptions
+  DesktopWebSocketReconnectOptions,
+  DesktopWebSocketUrl,
+  DesktopWebSocketUrlContext
 } from './Desktop.collaboration.websocket';
+export {
+  applyDesktopLayoutOperation,
+  mergeDesktopLayoutOperationLogs,
+  nextDesktopLayoutOperationCounter,
+  replayDesktopLayoutOperations,
+  sortDesktopLayoutOperations
+} from './Desktop.collaboration.operations';
+export type {
+  DesktopLayoutOperation,
+  DesktopLayoutOperationEnvelope
+} from './Desktop.collaboration.operations';
 export {
   createCollaborationRoom,
   isCollaboratorStale,
@@ -133,6 +155,7 @@ export {
 export type { DesktopLayoutTemplate, SanitizeDesktopLayoutOptions } from './Desktop.layouts';
 export type {
   DesktopApp,
+  DesktopAppGroup,
   DesktopContextValue,
   DesktopDisplay,
   DesktopDisplayMode,

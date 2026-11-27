@@ -5,6 +5,7 @@ import { Icon } from '../Icon';
 import { Modal } from '../Modal';
 import { useStyles } from './FileExplorer.styles';
 import type {
+  FileAuthorizationRequest,
   FileEntry,
   FileEntryPermissions,
   FileExplorerLabels,
@@ -16,7 +17,13 @@ import type {
   FileListResult,
   FileUploadStatus
 } from './FileExplorer.types';
-import { FileSystemError, normalizePath, parentPath, pathSegments } from './FileExplorer.providers';
+import {
+  FileSystemError,
+  joinPath,
+  normalizePath,
+  parentPath,
+  pathSegments
+} from './FileExplorer.providers';
 
 const VIRTUAL_ROW_HEIGHT = 34;
 const VIRTUAL_OVERSCAN = 6;
@@ -321,6 +328,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     multiple,
     pageSize,
     virtualizeThreshold,
+    virtualRowHeight,
+    authorize,
     labels: labelsProp,
     ariaLabel,
     sidebar,
@@ -421,6 +430,33 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }),
     [t, labelsProp]
   );
+  const rowHeight = Math.max(1, virtualRowHeight ?? VIRTUAL_ROW_HEIGHT);
+  const requireAuthorization = useCallback(
+    async (request: FileAuthorizationRequest): Promise<boolean> => {
+      if (!authorize) {
+        return true;
+      }
+
+      let allowed = false;
+
+      try {
+        allowed = await authorize(request);
+      } catch {
+        allowed = false;
+      }
+
+      if (!allowed) {
+        setError(
+          new FileSystemError(labels.permissionDenied(request.operation), {
+            code: 'EACCES'
+          })
+        );
+      }
+
+      return allowed;
+    },
+    [authorize, labels]
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -498,10 +534,19 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   );
 
   const navigate = useCallback(
-    (nextPath: string) => {
+    async (nextPath: string) => {
       const normalized = normalizePath(nextPath);
 
       if (normalized === path) {
+        return;
+      }
+
+      if (
+        !(await requireAuthorization({
+          operation: 'list',
+          path: normalized
+        }))
+      ) {
         return;
       }
 
@@ -522,7 +567,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       setSearching(false);
       applySelection([], []);
     },
-    [applySelection, controlledPath, historyIndex, onPathChange, path, activeTabId]
+    [
+      applySelection,
+      controlledPath,
+      historyIndex,
+      onPathChange,
+      path,
+      activeTabId,
+      requireAuthorization
+    ]
   );
 
   useEffect(() => {
@@ -680,14 +733,14 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     (view === 'list' || view === 'details') &&
     virtualizeThreshold > 0 &&
     sortedEntries.length > virtualizeThreshold;
-  const virtualViewport = viewportHeight > 0 ? viewportHeight : VIRTUAL_ROW_HEIGHT * 10;
+  const virtualViewport = viewportHeight > 0 ? viewportHeight : rowHeight * 10;
   const visibleStart = virtualEnabled
-    ? Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_OVERSCAN)
+    ? Math.max(0, Math.floor(scrollTop / rowHeight) - VIRTUAL_OVERSCAN)
     : 0;
   const visibleEnd = virtualEnabled
     ? Math.min(
         sortedEntries.length,
-        visibleStart + Math.ceil(virtualViewport / VIRTUAL_ROW_HEIGHT) + VIRTUAL_OVERSCAN * 2
+        visibleStart + Math.ceil(virtualViewport / rowHeight) + VIRTUAL_OVERSCAN * 2
       )
     : sortedEntries.length;
   const visibleEntries = sortedEntries.slice(visibleStart, visibleEnd);
@@ -766,8 +819,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
-    const itemTop = index * VIRTUAL_ROW_HEIGHT;
-    const itemBottom = itemTop + VIRTUAL_ROW_HEIGHT;
+    const itemTop = index * rowHeight;
+    const itemBottom = itemTop + rowHeight;
     const currentTop = element.scrollTop;
     const height = element.clientHeight || virtualViewport;
     let nextTop = currentTop;
@@ -865,8 +918,18 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     onViewChange?.(next);
   };
 
-  const openEntry = (entry: FileEntry) => {
+  const openEntry = async (entry: FileEntry) => {
     if (!canReadEntry(entry)) {
+      return;
+    }
+
+    if (
+      !(await requireAuthorization({
+        operation: 'open',
+        path: entry.path,
+        entry
+      }))
+    ) {
       return;
     }
 
@@ -874,7 +937,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
 
     if (entry.type === 'folder') {
       onOpenFolder?.(entry);
-      navigate(entry.path);
+      await navigate(entry.path);
     }
   };
 
@@ -1016,6 +1079,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: 'rename',
+        path: renaming.path,
+        entry: renaming,
+        destination: joinPath(parentPath(renaming.path), name)
+      }))
+    ) {
+      return;
+    }
+
     try {
       await provider.rename(renaming.path, name);
       onRename?.(renaming, name);
@@ -1038,6 +1112,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: 'create-folder',
+        path,
+        destination: joinPath(path, name)
+      }))
+    ) {
+      return;
+    }
+
     try {
       await provider.createFolder(path, name);
       onCreateFolder?.(path, name);
@@ -1053,6 +1137,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     const deletable = targets.filter(canDeleteEntry);
 
     if (!provider.trash || deletable.length === 0) {
+      return;
+    }
+
+    if (
+      !(await requireAuthorization({
+        operation: 'trash',
+        paths: deletable.map((entry) => entry.path),
+        entry: deletable[0]
+      }))
+    ) {
       return;
     }
 
@@ -1084,6 +1178,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: 'restore',
+        paths: pending.map((entry) => entry.path),
+        entry: pending[0]
+      }))
+    ) {
+      return;
+    }
+
     try {
       await provider.restore(pending.map((entry) => entry.path));
       onRestore?.(pending);
@@ -1096,6 +1200,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
 
   const loadTrashItems = async () => {
     if (!provider.listTrash) {
+      return;
+    }
+
+    if (
+      !(await requireAuthorization({
+        operation: 'read',
+        path: '/'
+      }))
+    ) {
       return;
     }
 
@@ -1127,6 +1240,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: 'restore',
+        path: entry.path,
+        entry
+      }))
+    ) {
+      return;
+    }
+
     try {
       await provider.restore([entry.path]);
       onRestore?.([entry]);
@@ -1150,6 +1273,15 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: 'empty-trash',
+        path: '/'
+      }))
+    ) {
+      return;
+    }
+
     try {
       await provider.emptyTrash();
       setTrashItems([]);
@@ -1164,6 +1296,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     const deletable = deleting?.filter(canDeleteEntry) ?? [];
 
     if (deletable.length === 0 || !provider.remove) {
+      setDeleting(null);
+      return;
+    }
+
+    if (
+      !(await requireAuthorization({
+        operation: 'delete',
+        paths: deletable.map((entry) => entry.path),
+        entry: deletable[0]
+      }))
+    ) {
       setDeleting(null);
       return;
     }
@@ -1183,6 +1326,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     setMenu(null);
 
     if (!provider.download || !canDownloadEntry(entry)) {
+      return;
+    }
+
+    if (
+      !(await requireAuthorization({
+        operation: 'download',
+        path: entry.path,
+        entry
+      }))
+    ) {
       return;
     }
 
@@ -1227,6 +1380,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
+    if (
+      !(await requireAuthorization({
+        operation: clipboard.mode === 'cut' ? 'move' : 'copy',
+        paths: entriesToPaste.map((entry) => entry.path),
+        entry: entriesToPaste[0],
+        destination: path
+      }))
+    ) {
+      return;
+    }
+
     const paths = entriesToPaste.map((entry) => entry.path);
 
     try {
@@ -1267,6 +1431,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
 
     setDragEntries(null);
     setDropTarget(null);
+
+    if (
+      !(await requireAuthorization({
+        operation: 'move',
+        paths,
+        entry: movable[0],
+        destination
+      }))
+    ) {
+      return;
+    }
 
     try {
       await provider.move(paths, destination);
@@ -1411,7 +1586,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     }
 
-    runUpload(item).catch(() => undefined);
+    requireAuthorization({
+      operation: 'upload',
+      path: item.destination,
+      paths: [`${item.destination}/${item.file.name}`]
+    })
+      .then((allowed) => {
+        if (allowed) {
+          runUpload(item).catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
   };
 
   const dismissUpload = (id: string) => {
@@ -1432,6 +1617,17 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     }
 
     const destination = path;
+
+    if (
+      !(await requireAuthorization({
+        operation: 'upload',
+        path: destination,
+        paths: list.map((file) => `${destination}/${file.name}`)
+      }))
+    ) {
+      return;
+    }
+
     const items: UploadQueueItem[] = list.map((file) => ({
       id: `upload-${++uploadIdRef.current}`,
       file,
@@ -1508,15 +1704,12 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
 
   const renderTopSpacer = () =>
     virtualEnabled && visibleStart > 0 ? (
-      <div aria-hidden="true" style={{ height: visibleStart * VIRTUAL_ROW_HEIGHT }} />
+      <div aria-hidden="true" style={{ height: visibleStart * rowHeight }} />
     ) : null;
 
   const renderBottomSpacer = () =>
     virtualEnabled && visibleEnd < sortedEntries.length ? (
-      <div
-        aria-hidden="true"
-        style={{ height: (sortedEntries.length - visibleEnd) * VIRTUAL_ROW_HEIGHT }}
-      />
+      <div aria-hidden="true" style={{ height: (sortedEntries.length - visibleEnd) * rowHeight }} />
     ) : null;
 
   const renderRow = (entry: FileEntry, index: number, details = false) => {
@@ -1524,7 +1717,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     const rowStyle: React.CSSProperties = {};
 
     if (virtualEnabled) {
-      rowStyle.height = VIRTUAL_ROW_HEIGHT;
+      rowStyle.height = rowHeight;
     }
 
     if (details) {
@@ -1786,7 +1979,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         {
           ...style,
           '--file-explorer-sidebar-width':
-            typeof sidebarWidth === 'number' ? `${sidebarWidth}px` : sidebarWidth
+            typeof sidebarWidth === 'number' ? `${sidebarWidth}px` : sidebarWidth,
+          '--file-explorer-row-height': `${rowHeight}px`
         } as React.CSSProperties
       }
       onDragOver={(event) => {

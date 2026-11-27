@@ -1,4 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Selectors, createStyles, useNebularLocale } from '@nebular-react/styles';
 import { Icon } from '../Icon';
 import { Calendar } from '../Calendar';
@@ -27,6 +28,8 @@ export interface DesktopCalendarFlyoutProps {
   labels?: Partial<DesktopCalendarFlyoutLabels>;
   ariaLabel?: string;
   className?: string;
+  /** Renders the flyout through a portal into this element. */
+  container?: HTMLElement | null;
 }
 
 const ANCHOR_OFFSET = 8;
@@ -126,7 +129,8 @@ export const DesktopCalendarFlyout = React.forwardRef<HTMLDivElement, DesktopCal
       onDateChange,
       labels: labelsProp,
       ariaLabel,
-      className
+      className,
+      container
     } = props;
     const { classes, cx } = useStyles(undefined, { name: 'desktop-calendar-flyout' });
     const { t } = useNebularLocale();
@@ -250,7 +254,7 @@ export const DesktopCalendarFlyout = React.forwardRef<HTMLDivElement, DesktopCal
       return null;
     }
 
-    return (
+    const dialog = (
       <div
         ref={(node) => {
           rootRef.current = node;
@@ -285,6 +289,8 @@ export const DesktopCalendarFlyout = React.forwardRef<HTMLDivElement, DesktopCal
         </div>
       </div>
     );
+
+    return container ? createPortal(dialog, container) : dialog;
   }
 );
 

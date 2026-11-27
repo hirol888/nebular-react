@@ -75,3 +75,13 @@ WebSocket e provider REST do FileExplorer com rotas, query e parsers próprios.
 A taskbar agora mostra uma entrada por janela por padrão (`groupTaskbar` passou a ser opt-in),
 permitindo várias janelas do mesmo app com navegação independente; o agrupamento por app com
 contador e menu continua disponível via `groupTaskbar`.
+
+Nesta onda de customização entram: confirmação assíncrona de fechamento (`onBeforeClose`),
+apps ocultos acessíveis por deep link, registry reativo com `component`/`lazy` explícitos,
+helpers de deep link na URL, tokens de tema tipados, comandos estruturados no bus de
+surfaces, autorização assíncrona e altura de linha customizável no FileExplorer, portal/
+container e arraste/redimensionamento de widgets, update lifecycle do service worker e URL/
+protocolos dinâmicos no WebSocket. Também entra um log de operações com contador Lamport
+(`applyDesktopLayoutOperation`/`replayDesktopLayoutOperations`) como base para OT/CRDT.
+`createRestLayoutAdapter` foi marcado como deprecated em favor de
+`createRestLayoutTransport`.

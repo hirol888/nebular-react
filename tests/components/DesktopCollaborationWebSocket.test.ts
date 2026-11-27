@@ -399,4 +399,101 @@ describe('createWebSocketCollaboration', () => {
     expect(presence).toHaveBeenCalledWith(expect.objectContaining({ id: 'peer' }));
     adapter.disconnect();
   });
+
+  it('resolves the URL factory with the current attempt on every connection', () => {
+    const urlFactory = jest.fn(
+      ({ attempt, selfId }: { attempt: number; selfId: string }) =>
+        `wss://example.test/desktop?user=${selfId}&attempt=${attempt}`
+    );
+    const adapter = createWebSocketCollaboration(urlFactory, {
+      selfId: 'alice',
+      WebSocketImpl: FakeWebSocket,
+      reconnect: { initialDelayMs: 100 }
+    });
+
+    adapter.connect();
+
+    expect(urlFactory).toHaveBeenCalledTimes(1);
+    expect(urlFactory).toHaveBeenLastCalledWith({ attempt: 0, selfId: 'alice' });
+    expect(FakeWebSocket.instances[0].url).toBe('wss://example.test/desktop?user=alice&attempt=0');
+
+    FakeWebSocket.instances[0].serverClose();
+    jest.advanceTimersByTime(100);
+
+    expect(urlFactory).toHaveBeenCalledTimes(2);
+    expect(urlFactory).toHaveBeenLastCalledWith({ attempt: 1, selfId: 'alice' });
+    expect(FakeWebSocket.instances[1].url).toBe('wss://example.test/desktop?user=alice&attempt=1');
+  });
+
+  it('resolves getProtocols on every attempt and overrides static protocols', () => {
+    const getProtocols = jest
+      .fn<string | string[] | undefined, []>()
+      .mockReturnValueOnce('token-0')
+      .mockReturnValueOnce(['token-1', 'nebular']);
+    const adapter = createWebSocketCollaboration('wss://example.test/desktop', {
+      selfId: 'alice',
+      protocols: ['static'],
+      getProtocols,
+      WebSocketImpl: FakeWebSocket,
+      reconnect: { initialDelayMs: 50 }
+    });
+
+    adapter.connect();
+    expect(getProtocols).toHaveBeenCalledTimes(1);
+    expect(FakeWebSocket.instances[0].protocols).toBe('token-0');
+
+    FakeWebSocket.instances[0].serverClose();
+    jest.advanceTimersByTime(50);
+
+    expect(getProtocols).toHaveBeenCalledTimes(2);
+    expect(FakeWebSocket.instances[1].protocols).toEqual(['token-1', 'nebular']);
+  });
+
+  it('does not throw when no WebSocket implementation is available', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'WebSocket');
+    Object.defineProperty(globalThis, 'WebSocket', {
+      configurable: true,
+      writable: true,
+      value: undefined
+    });
+
+    try {
+      const adapter = createWebSocketCollaboration('wss://example.test/desktop', {
+        selfId: 'alice'
+      });
+
+      expect(() => adapter.connect()).not.toThrow();
+      expect(FakeWebSocket.instances).toHaveLength(0);
+      expect(() => adapter.disconnect()).not.toThrow();
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(globalThis, 'WebSocket', descriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, 'WebSocket');
+      }
+    }
+  });
+
+  it('schedules a reconnect without throwing when the URL factory fails', () => {
+    const urlFactory = jest.fn<string, [{ attempt: number }]>(() => {
+      throw new Error('token unavailable');
+    });
+    const adapter = createWebSocketCollaboration(urlFactory, {
+      selfId: 'alice',
+      WebSocketImpl: FakeWebSocket,
+      reconnect: { initialDelayMs: 25 }
+    });
+
+    expect(() => adapter.connect()).not.toThrow();
+    expect(FakeWebSocket.instances).toHaveLength(0);
+
+    urlFactory.mockReturnValue('wss://example.test/retry');
+    jest.advanceTimersByTime(25);
+
+    expect(FakeWebSocket.instances).toHaveLength(1);
+    expect(FakeWebSocket.instances[0].url).toBe('wss://example.test/retry');
+    expect(urlFactory).toHaveBeenLastCalledWith({ attempt: 1, selfId: 'alice' });
+
+    adapter.disconnect();
+  });
 });

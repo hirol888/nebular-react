@@ -3,6 +3,7 @@ import { useStyles } from './Desktop.styles';
 import { useLongPress } from './Desktop.gestures';
 import type {
   DesktopApp,
+  DesktopAppGroup,
   DesktopLabels,
   DesktopStyleProps,
   DesktopTaskbarPosition,
@@ -28,6 +29,7 @@ export interface DesktopTaskbarGroup {
 
 export interface DesktopTaskbarProps extends DesktopStyleProps {
   apps: DesktopApp[];
+  groups?: DesktopAppGroup[];
   windows: DesktopWindowState[];
   activeWorkspace?: string;
   workspaces: DesktopWorkspace[];
@@ -72,6 +74,7 @@ export interface DesktopTaskbarProps extends DesktopStyleProps {
 
 export function DesktopTaskbar({
   apps,
+  groups: appGroups,
   windows,
   activeWorkspace,
   workspaces,
@@ -124,6 +127,10 @@ export function DesktopTaskbar({
   const itemsRef = useRef<HTMLDivElement>(null);
   const taskbarVertical = taskbarPosition === 'left' || taskbarPosition === 'right';
   const appsById = useMemo(() => new Map(apps.map((app) => [app.id, app])), [apps]);
+  const clockAccessibleName =
+    typeof clockValue === 'string' || typeof clockValue === 'number'
+      ? `${labels.calendar} ${clockValue}`
+      : labels.calendar;
 
   const groups = useMemo(() => {
     const result: DesktopTaskbarGroup[] = [];
@@ -260,6 +267,7 @@ export function DesktopTaskbar({
         {launcherOpen && (
           <DesktopStartMenu
             apps={apps}
+            groups={appGroups}
             labels={labels}
             taskbarPosition={taskbarPosition}
             searchable={startMenuSearch}
@@ -393,7 +401,7 @@ export function DesktopTaskbar({
               <button
                 type="button"
                 className={cx(classes.clockButton)}
-                aria-label={labels.calendar}
+                aria-label={clockAccessibleName}
                 aria-haspopup="dialog"
                 aria-expanded={clockExpanded ?? false}
                 onClick={(event) => onClockClick(event.currentTarget.getBoundingClientRect())}

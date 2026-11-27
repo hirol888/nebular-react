@@ -6,6 +6,7 @@ import type {
 } from '../Desktop/Desktop.types';
 import {
   createVersionedLayoutAdapter,
+  DesktopLayoutRequestError,
   type VersionedLayoutTransport
 } from '../Desktop/Desktop.persistence';
 
@@ -35,6 +36,20 @@ export interface UseDesktopLayoutPreferencesOptions {
   /** Called when the user chooses to keep the remote layout after a conflict. */
   onApplySnapshot?(snapshot: DesktopLayoutSnapshot): void;
   onError?(error: unknown): void;
+  /**
+   * Detects a typed optimistic-concurrency conflict on a save error.
+   * Defaults to `DesktopLayoutRequestError`/objects with `conflict === true`.
+   */
+  isConflict?(error: unknown): boolean;
+  /**
+   * Reads the current remote revision from a typed conflict error so the local layout can be
+   * retried without reloading the server.
+   */
+  getConflictRevision?(error: unknown): string | number | undefined;
+  /**
+   * Reads the remote snapshot from a typed conflict error, used when reloading the server fails.
+   */
+  getConflictSnapshot?(error: unknown): DesktopLayoutSnapshot | null | undefined;
 }
 
 export interface UseDesktopLayoutPreferencesResult {
@@ -66,6 +81,54 @@ interface SaveResult {
 
 function readSavedAt(snapshot: DesktopLayoutSnapshot | null | undefined): string | undefined {
   return typeof snapshot?.savedAt === 'string' ? snapshot.savedAt : undefined;
+}
+
+interface ConflictErrorLike {
+  conflict?: unknown;
+  revision?: unknown;
+  payload?: unknown;
+}
+
+function isConflictErrorLike(error: unknown): error is ConflictErrorLike {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+
+  if (error instanceof DesktopLayoutRequestError) {
+    return error.conflict;
+  }
+
+  return (error as ConflictErrorLike).conflict === true;
+}
+
+function readRevision(value: unknown): string | number | undefined {
+  return typeof value === 'string' || typeof value === 'number' ? value : undefined;
+}
+
+function defaultIsConflict(error: unknown): boolean {
+  return isConflictErrorLike(error);
+}
+
+function defaultGetConflictRevision(error: unknown): string | number | undefined {
+  return isConflictErrorLike(error) ? readRevision(error.revision) : undefined;
+}
+
+function defaultGetConflictSnapshot(error: unknown): DesktopLayoutSnapshot | null | undefined {
+  if (!isConflictErrorLike(error)) {
+    return undefined;
+  }
+
+  const { payload } = error;
+
+  if (typeof payload !== 'object' || payload === null) {
+    return undefined;
+  }
+
+  const { snapshot } = payload as { snapshot?: unknown };
+
+  return typeof snapshot === 'object' && snapshot !== null
+    ? (snapshot as DesktopLayoutSnapshot)
+    : undefined;
 }
 
 /**
@@ -266,6 +329,34 @@ export function useDesktopLayoutPreferences(
         return;
       }
 
+      const currentOptions = optionsRef.current;
+
+      if ((currentOptions.isConflict ?? defaultIsConflict)(error)) {
+        const reportedRevision = (currentOptions.getConflictRevision ?? defaultGetConflictRevision)(
+          error
+        );
+        const reportedSnapshot =
+          (currentOptions.getConflictSnapshot ?? defaultGetConflictSnapshot)(error) ?? null;
+        const remoteRevision = reportedRevision ?? remote?.revision;
+        const remoteLayout = remote?.snapshot ?? reportedSnapshot;
+
+        if (typeof remoteRevision !== 'undefined') {
+          revisionRef.current = remoteRevision;
+          setRevision(remoteRevision);
+        }
+
+        remoteSnapshotRef.current = remoteLayout;
+        remoteSavedAtRef.current = readSavedAt(remoteLayout);
+        setRemoteSnapshot(remoteLayout);
+        setConflict({
+          localSavedAt: readSavedAt(snapshot),
+          remoteSavedAt: readSavedAt(remoteLayout)
+        });
+        setSaveError(undefined);
+        setStatus('conflict');
+        return;
+      }
+
       const revisionChanged =
         !!remote &&
         typeof remote.revision !== 'undefined' &&
@@ -283,7 +374,7 @@ export function useDesktopLayoutPreferences(
       } else {
         setSaveError(error);
         setStatus('error');
-        optionsRef.current.onError?.(error);
+        currentOptions.onError?.(error);
       }
     } finally {
       savingRef.current = false;

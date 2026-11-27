@@ -65,10 +65,20 @@ export interface DesktopWindowState extends DesktopWindowBounds {
 export type DesktopWindowContent =
   React.ReactNode | ((context: DesktopWindowContextValue) => React.ReactNode);
 
+export interface DesktopAppGroup {
+  id: string;
+  title: string;
+  icon?: React.ReactNode;
+  /** Nested groups, mirroring the application navigation tree. */
+  groups?: DesktopAppGroup[];
+}
+
 export interface DesktopApp {
   id: string;
   title: string;
   icon?: React.ReactNode;
+  /** Group/category used by the start menu. */
+  groupId?: string;
   content: DesktopWindowContent;
   defaultWidth?: number;
   defaultHeight?: number;
@@ -317,6 +327,8 @@ export interface DesktopContextValue {
   displayMode: DesktopDisplayMode;
   openWindow(options: DesktopOpenWindowOptions): string;
   closeWindow(id: string): void;
+  /** Runs `onBeforeClose` before closing; no-op when the host denies it. */
+  requestCloseWindow(id: string): void | Promise<void>;
   minimizeWindow(id: string): void;
   maximizeWindow(id: string): void;
   restoreWindow(id: string): void;
@@ -338,11 +350,15 @@ export interface DesktopProps
     DefaultProps<DesktopStylesNames>,
     Omit<React.ComponentPropsWithoutRef<'div'>, 'onChange'> {
   apps?: DesktopApp[];
+  /** Optional group tree used by the start menu (e.g. navigation categories). */
+  groups?: DesktopAppGroup[];
   /** Optional registry; its visible manifests are merged into `apps`. */
   appRegistry?: DesktopAppRegistry;
   /** Deep link opened once on mount/when it changes (e.g. `app://notes/reports/2026?id=1`). */
   deepLink?: string;
   onDeepLink?(link: DesktopDeepLink, windowId: string): void;
+  /** Guards user-initiated closes. Return false (or a rejected promise) to keep the window open. */
+  onBeforeClose?(window: DesktopWindowState): boolean | Promise<boolean>;
   windows?: DesktopWindowState[];
   defaultWindows?: DesktopWindowState[];
   onWindowsChange?(windows: DesktopWindowState[]): void;

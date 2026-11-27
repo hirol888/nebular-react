@@ -30,6 +30,13 @@ const MAX_URL_LENGTH = 4096;
 
 export type DesktopAppLoader = () => Promise<{ default: React.ComponentType<any> }>;
 
+/**
+ * Manifest used to register a desktop app.
+ *
+ * Content sources are resolved in this order: `content` > `component` > `lazy` > `load`.
+ * Declaring more than one source is allowed; the highest-precedence source wins and the
+ * remaining ones are ignored.
+ */
 export interface DesktopAppManifest {
   id: string;
   title: string;
@@ -42,7 +49,24 @@ export interface DesktopAppManifest {
   fileExtensions?: string[];
   permissions?: DesktopAppPermission[];
   deepLinkScheme?: string;
+  /**
+   * Static component rendered as the app content. Always treated as a component,
+   * never as a loader. Takes precedence over `lazy` and `load`.
+   */
+  component?: React.ComponentType<any>;
+  /**
+   * Lazy component loader. Always treated as a loader, never as a component.
+   * Takes precedence over `load`.
+   */
+  lazy?: DesktopAppLoader;
+  /**
+   * @deprecated Use `component` for static components and `lazy` for loaders.
+   * Kept for backwards compatibility: the registry still heuristically detects
+   * whether the value is a component or a loader. Used only when `content`,
+   * `component` and `lazy` are absent.
+   */
   load?: DesktopAppLoader | React.ComponentType<any>;
+  /** Ready-to-render content. Takes precedence over every component source. */
   content?: React.ReactNode | React.ComponentType<any>;
   metadata?: Record<string, unknown>;
 }
@@ -58,12 +82,22 @@ export interface DesktopAppsContext {
   defaults?: Partial<Omit<DesktopApp, 'id' | 'title' | 'content'>>;
   /** Per-app overrides keyed by manifest id; manifest fields take precedence. */
   overrides?: Record<string, Partial<Omit<DesktopApp, 'id' | 'title' | 'content'>>>;
+  /** Includes manifests marked as `hidden`. Defaults to `false`. */
+  includeHidden?: boolean;
 }
 
 export interface DesktopAppRegistry {
-  /** Registers or replaces a manifest. Invalid manifests are ignored with a warning. */
+  /**
+   * Registers or replaces a manifest. Invalid manifests are ignored with a warning.
+   * Successful calls bump `getVersion()` and notify subscribers.
+   */
   register(manifest: DesktopAppManifest): boolean;
+  /** Removes a manifest. Successful calls bump `getVersion()` and notify subscribers. */
   unregister(id: string): boolean;
+  /** Subscribes to manifest changes; returns an unsubscribe function. */
+  subscribe(listener: () => void): () => void;
+  /** Monotonic version bumped by every successful register/unregister. */
+  getVersion(): number;
   get(id: string): DesktopAppManifest | undefined;
   list(options?: { includeHidden?: boolean }): DesktopAppManifest[];
   has(id: string): boolean;
@@ -189,6 +223,14 @@ function validateManifest(manifest: DesktopAppManifest): string | null {
     return `app "${manifest.id}" has an invalid load function.`;
   }
 
+  if (manifest.lazy !== undefined && typeof manifest.lazy !== 'function') {
+    return `app "${manifest.id}" has an invalid lazy loader.`;
+  }
+
+  if (manifest.component !== undefined && typeof manifest.component !== 'function') {
+    return `app "${manifest.id}" has an invalid component.`;
+  }
+
   return null;
 }
 
@@ -245,6 +287,14 @@ function normalizeManifest(manifest: DesktopAppManifest): DesktopAppManifest {
     normalized.permissions = permissions;
   }
 
+  if (manifest.component !== undefined) {
+    normalized.component = manifest.component;
+  }
+
+  if (manifest.lazy !== undefined) {
+    normalized.lazy = manifest.lazy;
+  }
+
   if (manifest.load !== undefined) {
     normalized.load = manifest.load;
   }
@@ -295,6 +345,26 @@ function isStaticComponent(value: unknown): value is React.ComponentType<any> {
   );
 }
 
+/** Wraps a registry-loaded component in React.lazy + Suspense. */
+function createLazyContent(registry: DesktopAppRegistry, id: string): React.ReactNode {
+  const LazyComponent = React.lazy(async () => {
+    const component = await registry.loadComponent(id);
+
+    if (!component) {
+      throw new Error(`[Desktop.apps] Unable to load the "${id}" app component.`);
+    }
+
+    return { default: component };
+  });
+
+  const SuspenseWrapper = () =>
+    React.createElement(React.Suspense, { fallback: null }, React.createElement(LazyComponent));
+
+  SuspenseWrapper.displayName = `DesktopApp(${id})`;
+
+  return React.createElement(SuspenseWrapper);
+}
+
 function resolveContent(
   registry: DesktopAppRegistry,
   manifest: DesktopAppManifest
@@ -305,30 +375,24 @@ function resolveContent(
       : manifest.content;
   }
 
+  if (manifest.component !== undefined) {
+    return React.createElement(manifest.component);
+  }
+
+  if (manifest.lazy !== undefined) {
+    return createLazyContent(registry, manifest.id);
+  }
+
   if (manifest.load === undefined) {
     return null;
   }
 
+  // Backwards compatibility: `load` still accepts either a component or a loader.
   if (isStaticComponent(manifest.load)) {
     return React.createElement(manifest.load);
   }
 
-  const LazyComponent = React.lazy(async () => {
-    const component = await registry.loadComponent(manifest.id);
-
-    if (!component) {
-      throw new Error(`[Desktop.apps] Unable to load the "${manifest.id}" app component.`);
-    }
-
-    return { default: component };
-  });
-
-  const SuspenseWrapper = () =>
-    React.createElement(React.Suspense, { fallback: null }, React.createElement(LazyComponent));
-
-  SuspenseWrapper.displayName = `DesktopApp(${manifest.id})`;
-
-  return React.createElement(SuspenseWrapper);
+  return createLazyContent(registry, manifest.id);
 }
 
 /**
@@ -338,6 +402,41 @@ function resolveContent(
 export function createDesktopAppRegistry(manifests: DesktopAppManifest[] = []): DesktopAppRegistry {
   const registered = new Map<string, DesktopAppManifest>();
   const componentCache = new Map<string, Promise<React.ComponentType<any> | null>>();
+  const listeners = new Set<() => void>();
+  let version = 0;
+
+  const notify = (): void => {
+    version += 1;
+
+    Array.from(listeners).forEach((listener) => {
+      if (!listeners.has(listener)) {
+        return;
+      }
+
+      try {
+        listener();
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        warn(`app registry listener failed: ${message}`);
+      }
+    });
+  };
+
+  const loadWith = (
+    id: string,
+    loader: DesktopAppLoader
+  ): Promise<React.ComponentType<any> | null> => {
+    const pending = Promise.resolve()
+      .then(() => loader())
+      .then((module) => (module && module.default ? module.default : null))
+      .catch((error: unknown) => {
+        componentCache.delete(id);
+        throw error;
+      });
+
+    componentCache.set(id, pending);
+    return pending;
+  };
 
   const registry: DesktopAppRegistry = {
     register(manifest) {
@@ -357,12 +456,35 @@ export function createDesktopAppRegistry(manifests: DesktopAppManifest[] = []): 
 
       registered.set(manifest.id, normalizeManifest(manifest));
       componentCache.delete(manifest.id);
+      notify();
       return true;
     },
 
     unregister(id) {
       componentCache.delete(id);
-      return registered.delete(id);
+      const removed = registered.delete(id);
+
+      if (removed) {
+        notify();
+      }
+
+      return removed;
+    },
+
+    subscribe(listener) {
+      if (typeof listener !== 'function') {
+        return () => undefined;
+      }
+
+      listeners.add(listener);
+
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+
+    getVersion() {
+      return version;
     },
 
     get(id) {
@@ -493,30 +615,32 @@ export function createDesktopAppRegistry(manifests: DesktopAppManifest[] = []): 
 
       const manifest = registered.get(id);
 
-      if (!manifest || manifest.load === undefined) {
+      if (!manifest) {
         return Promise.resolve(null);
       }
 
-      const loader = manifest.load;
-
-      if (isStaticComponent(loader)) {
-        return Promise.resolve(loader);
+      if (manifest.component !== undefined) {
+        return Promise.resolve(manifest.component);
       }
 
-      const pending = Promise.resolve()
-        .then(() => loader())
-        .then((module) => (module && module.default ? module.default : null))
-        .catch((error: unknown) => {
-          componentCache.delete(id);
-          throw error;
-        });
+      if (manifest.lazy !== undefined) {
+        return loadWith(id, manifest.lazy);
+      }
 
-      componentCache.set(id, pending);
-      return pending;
+      if (manifest.load === undefined) {
+        return Promise.resolve(null);
+      }
+
+      // Backwards compatibility: `load` still accepts either a component or a loader.
+      if (isStaticComponent(manifest.load)) {
+        return Promise.resolve(manifest.load);
+      }
+
+      return loadWith(id, manifest.load);
     },
 
     toDesktopApps(context = {}) {
-      return registry.list().map((manifest) => {
+      return registry.list({ includeHidden: context.includeHidden ?? false }).map((manifest) => {
         const app: DesktopApp = {
           ...(context.defaults ?? {}),
           ...(context.overrides?.[manifest.id] ?? {}),

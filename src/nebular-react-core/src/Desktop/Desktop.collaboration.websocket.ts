@@ -46,9 +46,24 @@ export interface DesktopCollaborationCodec {
   decode(data: unknown): DesktopCollaborationWireMessage | null;
 }
 
+export interface DesktopWebSocketUrlContext {
+  /** Zero-based reconnect attempt index; `0` for the first connection. */
+  attempt: number;
+  /** The local collaborator id configured for the adapter. */
+  selfId: string;
+}
+
+/** A fixed URL or a factory evaluated on every connection attempt. */
+export type DesktopWebSocketUrl = string | ((context: DesktopWebSocketUrlContext) => string);
+
 export interface DesktopWebSocketCollaborationOptions {
   selfId: string;
   protocols?: string | string[];
+  /**
+   * Resolves the subprotocols on every connection attempt, overriding `protocols`.
+   * Useful for rotating access tokens without recreating the adapter.
+   */
+  getProtocols?(): string | string[] | undefined;
   /** Override used by tests and SSR environments. Falls back to the global WebSocket. */
   WebSocketImpl?: new (url: string, protocols?: string | string[]) => DesktopWebSocketLike;
   reconnect?: DesktopWebSocketReconnectOptions;
@@ -115,10 +130,10 @@ function isLayoutSnapshot(value: unknown): value is DesktopLayoutSnapshot {
  * keeps the last presence and the last layout, replaying both after a reconnect.
  */
 export function createWebSocketCollaboration(
-  url: string,
+  url: DesktopWebSocketUrl,
   options: DesktopWebSocketCollaborationOptions
 ): DesktopCollaborationAdapter {
-  const { selfId, protocols, heartbeatMs: heartbeatOption, codec } = options;
+  const { selfId, protocols, getProtocols, heartbeatMs: heartbeatOption, codec } = options;
   const reconnectOptions = options.reconnect ?? {};
   const reconnectEnabled = reconnectOptions.enabled !== false;
   const initialDelayMs = Math.max(
@@ -148,6 +163,21 @@ export function createWebSocketCollaboration(
   let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   let lastPresence: DesktopCollaborator | null = null;
   let pendingLayout: DesktopLayoutSnapshot | null = null;
+
+  const resolveUrl = (): string =>
+    typeof url === 'string' ? url : url({ attempt: reconnectAttempts, selfId });
+
+  const resolveProtocols = (): string | string[] | undefined => {
+    if (!getProtocols) {
+      return protocols;
+    }
+
+    try {
+      return getProtocols();
+    } catch {
+      return undefined;
+    }
+  };
 
   const clearReconnectTimer = () => {
     if (reconnectTimer !== null) {
@@ -282,10 +312,14 @@ export function createWebSocketCollaboration(
     let nextSocket: DesktopWebSocketLike;
 
     try {
+      // Resolved on every attempt so hosts can refresh auth tokens or endpoints.
+      const nextUrl = resolveUrl();
+      const nextProtocols = resolveProtocols();
+
       nextSocket =
-        typeof protocols === 'undefined'
-          ? new WebSocketImpl(url)
-          : new WebSocketImpl(url, protocols);
+        typeof nextProtocols === 'undefined'
+          ? new WebSocketImpl(nextUrl)
+          : new WebSocketImpl(nextUrl, nextProtocols);
     } catch {
       scheduleReconnect();
       return;

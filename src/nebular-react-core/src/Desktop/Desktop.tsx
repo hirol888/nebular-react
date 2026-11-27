@@ -1,4 +1,13 @@
-import React, { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react';
 import { useComponentDefaultProps, useNebularLocale } from '@nebular-react/styles';
 import { useMergedRef } from '@nebular-react/hooks';
 import { useStyles } from './Desktop.styles';
@@ -94,8 +103,10 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   const {
     apps: appsProp,
     appRegistry,
+    groups,
     deepLink,
     onDeepLink,
+    onBeforeClose,
     windows: controlledWindows,
     defaultWindows,
     onWindowsChange,
@@ -310,6 +321,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarAnchor, setCalendarAnchor] = useState<DOMRect | null>(null);
   const [calendarDate, setCalendarDate] = useState<Date>(() => new Date());
+  const closeGuardRef = useRef<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -456,9 +468,32 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     defaultWorkspace ?? workspaces[0]?.id
   );
   const activeWorkspace = controlledWorkspace ?? internalWorkspace;
-  const registryApps = useMemo(
-    () => (appRegistry ? appRegistry.toDesktopApps() : []),
+  const subscribeRegistry = useCallback(
+    (listener: () => void) => appRegistry?.subscribe(listener) ?? (() => undefined),
     [appRegistry]
+  );
+  const getRegistryVersion = useCallback(() => appRegistry?.getVersion() ?? 0, [appRegistry]);
+  const registryVersion = useSyncExternalStore(
+    subscribeRegistry,
+    getRegistryVersion,
+    getRegistryVersion
+  );
+  const registrySource = useMemo(
+    () => ({ registry: appRegistry, version: registryVersion }),
+    [appRegistry, registryVersion]
+  );
+  const registryApps = useMemo(
+    () => (registrySource.registry ? registrySource.registry.toDesktopApps() : []),
+    [registrySource]
+  );
+  const deepLinkApps = useMemo(
+    () =>
+      registrySource.registry ? registrySource.registry.toDesktopApps({ includeHidden: true }) : [],
+    [registrySource]
+  );
+  const deepLinkAppsById = useMemo(
+    () => new Map(deepLinkApps.map((app) => [app.id, app])),
+    [deepLinkApps]
   );
   const apps = useMemo(() => {
     if (registryApps.length === 0) {
@@ -686,6 +721,53 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       }
     },
     [updateWindows, onWindowClose, announce, labels, getApp, groupTaskbar]
+  );
+
+  const requestCloseWindow = useCallback(
+    (id: string) => {
+      const target = windowsRef.current.find((window) => window.id === id);
+
+      if (!target || closeGuardRef.current.has(id)) {
+        return;
+      }
+
+      if (!onBeforeClose) {
+        closeWindow(id);
+        return;
+      }
+
+      let decision: boolean | Promise<boolean>;
+
+      try {
+        decision = onBeforeClose(target);
+      } catch {
+        return;
+      }
+
+      if (decision === true) {
+        closeWindow(id);
+        return;
+      }
+
+      if (decision === false) {
+        return;
+      }
+
+      closeGuardRef.current.add(id);
+
+      return Promise.resolve(decision)
+        .then((allowed) => {
+          closeGuardRef.current.delete(id);
+
+          if (allowed) {
+            closeWindow(id);
+          }
+        })
+        .catch(() => {
+          closeGuardRef.current.delete(id);
+        });
+    },
+    [closeWindow, onBeforeClose]
   );
 
   const minimizeWindow = useCallback(
@@ -1237,7 +1319,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         return undefined;
       }
 
-      const app = appsById.get(link.appId);
+      const app = deepLinkAppsById.get(link.appId) ?? appsById.get(link.appId);
 
       if (!app) {
         return undefined;
@@ -1268,6 +1350,11 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
 
       const windowId = openWindow({
         appId: link.appId,
+        title: app.title,
+        content: app.content,
+        icon: app.icon,
+        width: app.defaultWidth,
+        height: app.defaultHeight,
         state: { deepLink: deepLinkState }
       });
 
@@ -1277,7 +1364,15 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
 
       return windowId;
     },
-    [appsById, focusWindow, onDeepLink, openWindow, resolveDeepLink, setWindowState]
+    [
+      appsById,
+      deepLinkAppsById,
+      focusWindow,
+      onDeepLink,
+      openWindow,
+      resolveDeepLink,
+      setWindowState
+    ]
   );
   const lastDeepLinkRef = useRef<string | undefined>(undefined);
 
@@ -1300,6 +1395,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       displayMode,
       openWindow,
       closeWindow,
+      requestCloseWindow,
       minimizeWindow,
       maximizeWindow,
       restoreWindow,
@@ -1322,6 +1418,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       displayMode,
       openWindow,
       closeWindow,
+      requestCloseWindow,
       minimizeWindow,
       maximizeWindow,
       restoreWindow,
@@ -1672,13 +1769,20 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
 
       if (modal) {
         event.preventDefault();
-        closeWindow(modal.id);
+        requestCloseWindow(modal.id);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [closeOnEscape, contextMenu, launcherOpen, currentWindows, activeWorkspace, closeWindow]);
+  }, [
+    closeOnEscape,
+    contextMenu,
+    launcherOpen,
+    currentWindows,
+    activeWorkspace,
+    requestCloseWindow
+  ]);
 
   useEffect(() => {
     if (!focusRequest) {
@@ -2061,7 +2165,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         label: labels.close(title),
         danger: true,
         icon: <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />,
-        onSelect: () => closeWindow(id)
+        onSelect: () => requestCloseWindow(id)
       });
     }
 
@@ -2138,7 +2242,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       key: 'close-all',
       label: labels.close(group.title),
       danger: true,
-      onSelect: () => group.windows.forEach((window) => closeWindow(window.id))
+      onSelect: () => group.windows.forEach((window) => requestCloseWindow(window.id))
     });
 
     contextMenuTriggerRef.current = event.currentTarget as HTMLElement;
@@ -2197,7 +2301,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   };
 
   const openOverflowMenu = (
-    groups: DesktopTaskbarGroup[],
+    overflowGroups: DesktopTaskbarGroup[],
     event: React.MouseEvent<HTMLElement>
   ) => {
     event.preventDefault();
@@ -2206,7 +2310,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       { type: 'label', key: 'title', label: labels.apps }
     ];
 
-    groups.forEach((group) => {
+    overflowGroups.forEach((group) => {
       entries.push({
         type: 'item',
         key: `group-${group.key}`,
@@ -2523,7 +2627,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                 keepInBounds={keepInBounds}
                 onPromote={promoteWindow}
                 onUpdate={patchWindow}
-                onClose={closeWindow}
+                onClose={requestCloseWindow}
                 onMinimize={minimizeWindow}
                 onMaximize={maximizeWindow}
                 onRestore={restoreWindow}
@@ -2663,6 +2767,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         </div>
         <DesktopTaskbar
           apps={apps}
+          groups={groups}
           windows={currentWindows}
           activeWorkspace={activeWorkspace}
           workspaces={workspaces}

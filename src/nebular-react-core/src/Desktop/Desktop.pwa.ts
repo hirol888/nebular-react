@@ -26,6 +26,28 @@ export interface DesktopServiceWorkerOptions {
   updateViaCache?: ServiceWorkerUpdateViaCache;
   /** Calls `registration.update()` after a successful registration. */
   update?: boolean;
+  /**
+   * Called when a newly installed worker is waiting to activate because an older
+   * worker still controls the page (an update is available).
+   */
+  onUpdate?(registration: ServiceWorkerRegistration): void;
+  /**
+   * Called together with `onUpdate` when the installed worker is waiting for
+   * activation. Use it to show an "update available" prompt to the user.
+   */
+  onWaiting?(registration: ServiceWorkerRegistration): void;
+  /** Sends `{ type: 'SKIP_WAITING' }` to the waiting worker. */
+  skipWaiting?: boolean;
+  /** Reloads the page once when a new worker takes control (`controllerchange`). */
+  reloadOnUpdate?: boolean;
+}
+
+function safely(action: () => void): void {
+  try {
+    action();
+  } catch {
+    // Service worker callbacks must never break registration.
+  }
 }
 
 function isStandalone(): boolean {
@@ -117,14 +139,100 @@ export async function registerDesktopServiceWorker(
   }
 
   try {
-    const registration = await navigator.serviceWorker.register(url, {
+    const container = navigator.serviceWorker;
+    const registration = await container.register(url, {
       scope: options.scope,
       updateViaCache: options.updateViaCache
     });
 
     if (options.update) {
-      registration.update().catch(() => undefined);
+      safely(() => registration.update().catch(() => undefined));
     }
+
+    if (options.reloadOnUpdate) {
+      let reloaded = false;
+      const handleControllerChange = () => {
+        if (reloaded) {
+          return;
+        }
+
+        reloaded = true;
+        safely(() => window.location.reload());
+      };
+
+      safely(() => {
+        if (typeof container.addEventListener === 'function') {
+          container.addEventListener('controllerchange', handleControllerChange);
+        } else {
+          container.oncontrollerchange = handleControllerChange;
+        }
+      });
+    }
+
+    const watchedWorkers = new WeakSet<ServiceWorker>();
+    const notifiedWorkers = new WeakSet<ServiceWorker>();
+
+    const postSkipWaiting = (worker: ServiceWorker) => {
+      safely(() => worker.postMessage({ type: 'SKIP_WAITING' }));
+    };
+
+    const notifyInstalled = (worker: ServiceWorker) => {
+      if (worker.state !== 'installed' || notifiedWorkers.has(worker)) {
+        return;
+      }
+
+      // Without a controller this is the first install, not an update.
+      if (!container.controller) {
+        return;
+      }
+
+      notifiedWorkers.add(worker);
+
+      safely(() => options.onWaiting?.(registration));
+      safely(() => options.onUpdate?.(registration));
+
+      if (options.skipWaiting) {
+        const waiting = registration.waiting ?? worker;
+
+        if (waiting) {
+          postSkipWaiting(waiting);
+        }
+      }
+    };
+
+    const watchWorker = (worker: ServiceWorker | null | undefined) => {
+      if (!worker || watchedWorkers.has(worker)) {
+        return;
+      }
+
+      watchedWorkers.add(worker);
+      const handleStateChange = () => notifyInstalled(worker);
+
+      safely(() => {
+        if (typeof worker.addEventListener === 'function') {
+          worker.addEventListener('statechange', handleStateChange);
+        } else {
+          worker.onstatechange = handleStateChange;
+        }
+      });
+
+      // The worker may already be installed by the time it is observed.
+      safely(() => notifyInstalled(worker));
+    };
+
+    const handleUpdateFound = () => {
+      watchWorker(registration.installing ?? registration.waiting);
+    };
+
+    safely(() => {
+      if (typeof registration.addEventListener === 'function') {
+        registration.addEventListener('updatefound', handleUpdateFound);
+      } else {
+        registration.onupdatefound = handleUpdateFound;
+      }
+    });
+
+    watchWorker(registration.installing);
 
     return registration;
   } catch {

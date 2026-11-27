@@ -1816,6 +1816,10 @@ aparece apenas com a busca vazia, sem duplicar itens presentes em `actions`.
 
 ## Desktop (window manager)
 
+> Em Next.js/App Router, importe o Desktop (e os demais componentes com hooks) em um
+> módulo com `'use client'`. O pacote não força um boundary global para continuar
+> compatível com SSR e com usos apenas de tipos/temas.
+
 ```tsx
 const apps = [
   { id: 'notes', title: 'Notes', content: <NotesApp />, defaultWidth: 520 },
@@ -1907,7 +1911,7 @@ const apps = [
 - `Alt+Tab` / `Alt+Shift+Tab` alternam entre janelas visíveis quando
   `keyboardShortcuts` está ativo.
 - A taskbar navega com setas, `Home` e `End`; o menu Iniciar aceita setas, `Home`, `End`,
-  `Escape` e busca por digitação.
+  `Escape`, `ArrowRight` para entrar em um grupo e `ArrowLeft` para voltar um nível.
 - Ações de abrir/minimizar/maximizar/restaurar/fechar são anunciadas em uma região
   `aria-live` localizada.
 
@@ -1918,6 +1922,10 @@ const apps = [
 - `maxTaskbarItems` limita os botões visíveis e move o restante para um menu de overflow.
 - Apps com `pinned: true` aparecem na seção **Fixados**, os últimos apps abertos aparecem em
   **Recentes** e `startMenuSearch` (padrão `true`) habilita a busca no menu Iniciar.
+- `groups` recebe uma árvore de `DesktopAppGroup` e `DesktopApp.groupId` associa cada app ao
+  seu grupo. O menu Iniciar abre uma coluna lateral por nível no hover, clique ou
+  `ArrowRight`; `ArrowLeft`/`Escape` voltam um nível. A busca continua plana e o modo
+  `compact` mantém a lista vertical tradicional.
 - `enableContextMenu` (padrão `true`) habilita o menu de contexto por clique direito ou
   `Shift+F10` em janelas e botões da taskbar, com minimizar, maximizar/restaurar, fechar e
   mover para outra área de trabalho.
@@ -1997,6 +2005,10 @@ const apps = [
   fila do último layout e heartbeat. `mergeCollaborativeLayouts` faz merge LWW, e os hooks
   `useDesktopCollaborators`/`useCollaborativeLayout` cuidam de presença, TTL e broadcast com
   debounce.
+- Para colaboração granular, `applyDesktopLayoutOperation`,
+  `mergeDesktopLayoutOperationLogs` e `replayDesktopLayoutOperations` implementam um log de
+  operações com contador Lamport (upsert/remove de janela, workspaces e workspace ativa). É a
+  base para um protocolo OT/CRDT; o merge padrão continua LWW por snapshot.
 - `createCollaborationRoom(tenantId, appId)` gera um nome estável de sala para o servidor
   (SignalR/WebSocket) e `isCollaboratorStale` apoia a poda de presenças.
 - Abrir o mesmo app novamente cria outra janela independente; cada janela tem estado,
@@ -2009,11 +2021,28 @@ const apps = [
 - `appRegistry` mescla manifestos visíveis aos `apps`; `deepLink` abre `app://...` uma vez e
   `useDesktop()` expõe `openDeepLink`/`resolveDeepLink`. O link fica em
   `window.state.deepLink` (`{ path, query }`) e `onDeepLink` recebe o link e o id da janela.
+  Apps `hidden` continuam acessíveis por deep link; o registry é reativo
+  (`subscribe`/`getVersion`) e aceita `component`/`lazy` explícitos no manifesto.
+- `onBeforeClose(window)` permite confirmar/salvar antes de fechar; retorne `false` (ou uma
+  promise que resolve `false`) para manter a janela. `requestCloseWindow(id)` respeita o
+  guard; `closeWindow(id)` continua sendo fechamento forçado.
+- `getDesktopDeepLinkFromUrl`, `setDesktopDeepLinkInUrl` e `subscribeDesktopDeepLink`
+  sincronizam o deep link com query string/hash sem impor roteador.
+- `createDesktopThemeStyle(tokens)` converte `DesktopThemeTokens` tipados nas CSS vars
+  internas, evitando que o host dependa de nomes de variáveis.
+- `createDesktopSurfaceBus` agora envia comandos estruturados (`focus`, `close`, `minimize`,
+  `restore`, `move-window`) via `sendCommand`/`subscribeCommand`, mantendo o envio de
+  snapshots compatível.
 - `createRestLayoutTransport` cobre APIs com revisão: endpoints/headers/query/body/parsers
   configuráveis, `DesktopLayoutRequestError` tipado e detecção de conflito 409/412.
   `getDesktopDeviceId` aceita `storage`, `getStorage`, `generate` e `fallback` (SSR/nativo).
 - `createWebSocketCollaboration` aceita `codec` (`encode`/`decode`) para MessagePack, base64,
-  SignalR ou qualquer protocolo próprio, mantendo o contrato de presença/layout.
+  SignalR ou qualquer protocolo próprio, mantendo o contrato de presença/layout. O primeiro
+  argumento pode ser uma factory `({ attempt, selfId }) => url` e `getProtocols()` resolve os
+  subprotocolos a cada tentativa, permitindo renovar token/URL na reconexão.
+- `registerDesktopServiceWorker(url, { onUpdate, onWaiting, skipWaiting, reloadOnUpdate })`
+  acompanha `updatefound`/`statechange`, envia `SKIP_WAITING` e recarrega uma única vez quando
+  configurado; continua retornando `null` em ambientes sem suporte.
 - `widgets` renderiza `DesktopWidgets` (painel flutuante colapsável) e `calendar` transforma
   o relógio da taskbar em botão que abre `DesktopCalendarFlyout`.
 - `iconSelection` (padrão `true`) habilita seleção de ícones do wallpaper por
@@ -2049,7 +2078,9 @@ const apps = [
   manifestos, resolve `fileExtensions`, permissões (`files`, `clipboard`, `notifications`,
   `fullscreen`, `window-management`, `network`), deep links (`app://notes/path?x=1`,
   `nebular://` ou scheme próprio), carregamento lazy com cache/retry e conversão para
-  `DesktopApp` via `toDesktopApps()`.
+  `DesktopApp` via `toDesktopApps()`. Use `component` (estático) ou `lazy` (loader) para
+  evitar heurística; `load` continua como compatibilidade. O registry é reativo
+  (`subscribe`/`getVersion`) e `toDesktopApps({ includeHidden: true })` inclui ocultos.
 - `DesktopAppFrame` hospeda apps de terceiros em iframe com sandbox mínimo
   (`allow-scripts`), `referrerPolicy="no-referrer"`, allowlist de origens para
   `postMessage` e handle imperativo (`postMessage`/`getFrame`). Só use
@@ -2149,6 +2180,10 @@ const transport = useMemo(() => createDirectoryLayoutTransport({ deviceId, tenan
 
 - `useDesktopLayoutPreferences` expõe `status`, `revision`, `conflict`, `remoteSnapshot`,
   `noLayout`, `adapter`, `saveNow`, `refresh` e `resolveConflict`.
+- Em conflito, `local` regrava com a revisão remota e `remote` aplica
+  `onApplySnapshot(remoteSnapshot)`. Use `isConflict`, `getConflictRevision` e
+  `getConflictSnapshot` para ensinar o hook a interpretar erros proprietários; o default
+  entende `DesktopLayoutRequestError` e objetos com `{ conflict: true, revision }`.
 - `adapter` é estável e pode ser passado direto ao `<Desktop layoutAdapter>` para que a
   gravação automática e a UI compartilhem a mesma revision.
 - Em conflito, `local` regrava com a revisão remota e `remote` aplica
@@ -2171,8 +2206,30 @@ Painel flutuante de widgets para o Desktop:
 
 - Controlado por `collapsed`/`onCollapsedChange` ou não controlado; cada widget pode
   iniciar colapsado com `defaultCollapsed`.
-- `onClose` remove o painel quando o host permitir; sem widgets, mostra
-  `desktop.noWidgets`.
+- Arraste pelo header (`position`/`defaultPosition`/`onPositionChange`) e redimensione pelo
+  canto quando `resizable` (`size`/`defaultSize`/`onSizeChange`); `bounds` limita a área e
+  setas/Shift+setas movem pelo teclado.
+- `container` renderiza o painel via portal no elemento informado; sem ele, renderiza inline.
+- `onClose` remove o painel quando o host permitir; sem widgets, mostra `desktop.noWidgets`.
+
+## Desktop theme tokens
+
+`createDesktopThemeStyle(tokens)` evita depender dos nomes internos das CSS vars:
+
+```tsx
+<Desktop
+  style={createDesktopThemeStyle({
+    accent: '#ff6600',
+    background: '#0f1115',
+    windowBackground: '#171a21',
+    taskbarBackground: 'rgba(23, 26, 33, 0.9)'
+  })}
+/>
+```
+
+- `DESKTOP_THEME_TOKEN_VARS` expõe o mapa token → variável.
+- Tokens vazios são ignorados, preservando os fallbacks do tema.
+- As variáveis continuam sobrescrevíveis diretamente para casos não cobertos.
 - Posição e aparência via CSS vars `--desktop-widgets-*`.
 
 ## DesktopCalendarFlyout
@@ -2192,6 +2249,8 @@ Flyout de calendário ancorado no relógio da taskbar, habilitado por `calendar`
 
 - `role="dialog"`, foco inicial, restauração de foco, Escape e clique fora.
 - `anchorRect` posiciona abaixo/acima do gatilho; sem âncora, centraliza na viewport.
+- `container` renderiza o flyout via portal (útil quando o host tem `overflow` ou stacking
+  contexts próprios).
 
 ## WindowBreadcrumb
 
@@ -2265,6 +2324,9 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   input/drag-and-drop e preview de imagem, texto, áudio, vídeo e PDF (com `noPreview`
   quando o tipo não é suportado).
 - Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
+- `FileExplorerProps.authorize(request)` permite autorização assíncrona por operação
+  (`read`, `rename`, `delete`, `move`, `upload` etc.); negações abortam a ação sem chamar o
+  provider. `virtualRowHeight` ajusta a virtualização e a altura das linhas.
 - O provider REST (`createRestFileSystemProvider`) aceita `routes`, `query`, `parseList`,
   `parseEntry`, `parseUpload` e `mapError`; endpoints de lixeira (`trash`, `restore`,
   `trashList`, `emptyTrash`) só são habilitados quando a rota correspondente é informada.

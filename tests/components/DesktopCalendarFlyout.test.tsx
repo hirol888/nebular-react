@@ -159,6 +159,106 @@ describe('DesktopCalendarFlyout', () => {
     expect(selected.getDate()).toBe(20);
   });
 
+  it('renders through a portal into the provided container', () => {
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    const { container, unmount } = render(
+      <DesktopCalendarFlyout open onClose={jest.fn()} container={host} />
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Calendar' });
+
+    expect(host).toContainElement(dialog);
+    expect(container).not.toContainElement(dialog);
+
+    unmount();
+    expect(host).toBeEmptyDOMElement();
+    host.remove();
+  });
+
+  it('keeps focus, Escape and outside clicks working inside a portal', async () => {
+    const user = userEvent.setup();
+    const onClose = jest.fn();
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    render(
+      <>
+        <button type="button">Outside</button>
+        <DesktopCalendarFlyout open onClose={onClose} container={host} />
+      </>
+    );
+
+    expect(screen.getByRole('dialog')).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole('button', { name: 'Outside' }));
+    expect(onClose).toHaveBeenCalledTimes(2);
+
+    host.remove();
+  });
+
+  it('keeps its fixed positioning inside a portal', () => {
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    render(
+      <DesktopCalendarFlyout
+        open
+        onClose={jest.fn()}
+        container={host}
+        anchorRect={{ left: 100, top: 50, width: 40, height: 20 }}
+      />
+    );
+
+    expect(screen.getByRole('dialog')).toHaveStyle({
+      position: 'fixed',
+      left: '120px',
+      top: '78px'
+    });
+
+    host.remove();
+  });
+
+  it('restores focus after closing when rendered inside a portal', async () => {
+    const user = userEvent.setup();
+    const host = document.createElement('div');
+
+    document.body.appendChild(host);
+
+    function PortalFocusHarness() {
+      const [open, setOpen] = useState(false);
+
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open calendar
+          </button>
+          <DesktopCalendarFlyout open={open} onClose={() => setOpen(false)} container={host} />
+        </>
+      );
+    }
+
+    render(<PortalFocusHarness />);
+
+    const trigger = screen.getByRole('button', { name: 'Open calendar' });
+
+    await user.click(trigger);
+    expect(screen.getByRole('dialog')).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: 'Close calendar' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    host.remove();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = render(
       <DesktopCalendarFlyout open onClose={jest.fn()} date={new Date(2026, 0, 15)} />

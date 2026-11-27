@@ -200,6 +200,171 @@ describe('Desktop app registry', () => {
     await expect(registry.loadComponent('class-app')).resolves.toBe(ClassApp);
   });
 
+  it('renders component statically without applying loader heuristics', async () => {
+    // Lowercase, zero-arg arrow: the legacy `load` heuristic would treat it as a loader.
+    const lowercaseApp = () => React.createElement('div', null, 'Lowercase static content');
+    const registry = createDesktopAppRegistry([createManifest({ component: lowercaseApp })]);
+    const [app] = registry.toDesktopApps();
+
+    render(React.createElement(React.Fragment, null, app.content as React.ReactNode));
+
+    expect(await screen.findByText('Lowercase static content')).toBeInTheDocument();
+    await expect(registry.loadComponent('notes')).resolves.toBe(lowercaseApp);
+  });
+
+  it('always treats lazy as a loader, even when its name looks like a component', async () => {
+    const NotesLoader = jest.fn(async () => ({ default: NotesApp }));
+    const registry = createDesktopAppRegistry([createManifest({ lazy: NotesLoader })]);
+    const [app] = registry.toDesktopApps();
+
+    render(React.createElement(React.Fragment, null, app.content as React.ReactNode));
+
+    expect(await screen.findByText('Notes content')).toBeInTheDocument();
+    expect(NotesLoader).toHaveBeenCalledTimes(1);
+    await expect(registry.loadComponent('notes')).resolves.toBe(NotesApp);
+    expect(NotesLoader).toHaveBeenCalledTimes(1);
+  });
+
+  it('prefers component over lazy and load without throwing', async () => {
+    const StaticApp = () => React.createElement('div', null, 'Component content');
+    const lazyLoader = jest.fn(async () => ({ default: NotesApp }));
+    const legacyLoader = jest.fn(async () => ({ default: NotesApp }));
+    let registry!: ReturnType<typeof createDesktopAppRegistry>;
+
+    expect(() => {
+      registry = createDesktopAppRegistry([
+        createManifest({
+          component: StaticApp,
+          lazy: lazyLoader,
+          load: legacyLoader
+        })
+      ]);
+    }).not.toThrow();
+
+    const [app] = registry.toDesktopApps();
+
+    render(React.createElement(React.Fragment, null, app.content as React.ReactNode));
+
+    expect(await screen.findByText('Component content')).toBeInTheDocument();
+    expect(lazyLoader).not.toHaveBeenCalled();
+    expect(legacyLoader).not.toHaveBeenCalled();
+    await expect(registry.loadComponent('notes')).resolves.toBe(StaticApp);
+  });
+
+  it('prefers content over component, lazy and load', async () => {
+    let staticCalls = 0;
+    const StaticApp = () => {
+      staticCalls++;
+      return React.createElement('div', null, 'Component content');
+    };
+    const lazyLoader = jest.fn(async () => ({ default: NotesApp }));
+    const legacyLoader = jest.fn(async () => ({ default: NotesApp }));
+    const registry = createDesktopAppRegistry([
+      createManifest({
+        content: 'Ready-made content',
+        component: StaticApp,
+        lazy: lazyLoader,
+        load: legacyLoader
+      })
+    ]);
+    const [app] = registry.toDesktopApps();
+
+    render(React.createElement(React.Fragment, null, app.content as React.ReactNode));
+
+    expect(await screen.findByText('Ready-made content')).toBeInTheDocument();
+    expect(staticCalls).toBe(0);
+    expect(lazyLoader).not.toHaveBeenCalled();
+    expect(legacyLoader).not.toHaveBeenCalled();
+  });
+
+  it('rejects non-function load, lazy and component sources', () => {
+    const registry = createDesktopAppRegistry();
+
+    expect(
+      registry.register({
+        id: 'bad-load',
+        title: 'Bad load',
+        load: 'nope'
+      } as unknown as DesktopAppManifest)
+    ).toBe(false);
+    expect(
+      registry.register({
+        id: 'bad-lazy',
+        title: 'Bad lazy',
+        lazy: 'nope'
+      } as unknown as DesktopAppManifest)
+    ).toBe(false);
+    expect(
+      registry.register({
+        id: 'bad-component',
+        title: 'Bad component',
+        component: 'nope'
+      } as unknown as DesktopAppManifest)
+    ).toBe(false);
+
+    expect(registry.list({ includeHidden: true })).toEqual([]);
+    expect(warn).toHaveBeenCalledTimes(3);
+
+    expect(
+      registry.register(
+        createManifest({
+          component: NotesApp,
+          lazy: async () => ({ default: NotesApp }),
+          load: async () => ({ default: NotesApp })
+        })
+      )
+    ).toBe(true);
+  });
+
+  it('notifies subscribers and increments the version on successful mutations', () => {
+    const registry = createDesktopAppRegistry();
+    const listener = jest.fn();
+    const unsubscribe = registry.subscribe(listener);
+
+    expect(registry.getVersion()).toBe(0);
+
+    expect(registry.register(createManifest())).toBe(true);
+    expect(registry.getVersion()).toBe(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(registry.get('notes')).toBeDefined();
+
+    expect(registry.register(createManifest({ id: 'Bad Id' }))).toBe(false);
+    expect(registry.getVersion()).toBe(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    expect(registry.register(createManifest({ title: 'Notes 2' }))).toBe(true);
+    expect(registry.getVersion()).toBe(2);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    expect(registry.unregister('missing')).toBe(false);
+    expect(registry.getVersion()).toBe(2);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    expect(registry.unregister('notes')).toBe(true);
+    expect(registry.getVersion()).toBe(3);
+    expect(listener).toHaveBeenCalledTimes(3);
+    expect(registry.get('notes')).toBeUndefined();
+
+    unsubscribe();
+    unsubscribe();
+    registry.register(createManifest());
+
+    expect(registry.getVersion()).toBe(4);
+    expect(listener).toHaveBeenCalledTimes(3);
+
+    const otherListener = jest.fn();
+    const otherUnsubscribe = registry.subscribe(otherListener);
+
+    registry.unregister('notes');
+
+    expect(otherListener).toHaveBeenCalledTimes(1);
+    otherUnsubscribe();
+    registry.register(createManifest());
+
+    expect(registry.getVersion()).toBe(6);
+    expect(otherListener).toHaveBeenCalledTimes(1);
+  });
+
   it('converts visible manifests into DesktopApp entries', async () => {
     const lazyLoader = jest.fn(async () => ({ default: NotesApp }));
     const registry = createDesktopAppRegistry([
@@ -240,5 +405,18 @@ describe('Desktop app registry', () => {
 
     expect(await screen.findByText('Notes content')).toBeInTheDocument();
     expect(lazyLoader).toHaveBeenCalledTimes(1);
+  });
+
+  it('includes hidden manifests in toDesktopApps only when requested', () => {
+    const registry = createDesktopAppRegistry([
+      createManifest(),
+      createManifest({ id: 'hidden-app', title: 'Hidden', hidden: true, content: 'Hidden' })
+    ]);
+
+    expect(registry.toDesktopApps().map((app) => app.id)).toEqual(['notes']);
+    expect(registry.toDesktopApps({ includeHidden: true }).map((app) => app.id)).toEqual([
+      'notes',
+      'hidden-app'
+    ]);
   });
 });

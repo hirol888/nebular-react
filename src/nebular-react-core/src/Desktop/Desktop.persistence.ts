@@ -316,6 +316,11 @@ export interface RestLayoutAdapterOptions {
   transformSave?(snapshot: DesktopLayoutSnapshot): unknown;
 }
 
+/**
+ * @deprecated Prefer `createRestLayoutTransport` + `createVersionedLayoutAdapter`
+ * when the API exposes a revision/ETag. This adapter remains for simple APIs that
+ * store the snapshot without optimistic concurrency.
+ */
 export function createRestLayoutAdapter({
   endpoint,
   loadEndpoint,

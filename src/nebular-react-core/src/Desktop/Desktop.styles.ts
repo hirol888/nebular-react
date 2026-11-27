@@ -377,6 +377,48 @@ export const useStyles = createStyles((_theme) => ({
     textAlign: 'center'
   },
 
+  startMenuGrouped: {
+    width: 'auto',
+    overflowY: 'auto'
+  },
+
+  startMenuColumns: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.25rem',
+    minHeight: 0
+  },
+
+  startMenuColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '0 0 auto',
+    gap: '0.2rem',
+    minWidth: 'var(--desktop-start-menu-column-width, 13rem)',
+    maxHeight: 'inherit',
+    overflowY: 'auto',
+    paddingInline: '0.1rem'
+  },
+
+  startMenuGroupItem: {
+    justifyContent: 'flex-start'
+  },
+
+  startMenuGroupItemOpen: {
+    backgroundColor:
+      'var(--desktop-start-menu-item-hover-background-color, var(--background-basic-color-2, #f7f9fc))'
+  },
+
+  startMenuGroupChevron: {
+    width: '0.4rem',
+    height: '0.4rem',
+    marginInlineStart: 'auto',
+    borderTop: '1.5px solid currentColor',
+    borderInlineEnd: '1.5px solid currentColor',
+    opacity: 0.55,
+    transform: 'rotate(45deg)'
+  },
+
   window: {
     position: 'absolute',
     display: 'flex',

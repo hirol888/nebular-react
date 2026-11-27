@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
   DesktopLayoutPreferences,
+  DesktopLayoutRequestError,
   useDesktopLayoutPreferences,
   type DesktopLayoutSnapshot,
   type VersionedLayoutTransport
@@ -163,6 +164,145 @@ describe('useDesktopLayoutPreferences', () => {
     expect(result.current.status).toBe('ready');
     expect(result.current.conflict).toBeUndefined();
     expect(result.current.revision).toBe('rev-3');
+  });
+
+  it('detects a typed conflict from the save error even when the reload fails', async () => {
+    const initial = createSnapshot('2026-01-01T10:00:00.000Z', 1);
+    const local = createSnapshot('2026-01-02T10:00:00.000Z', 2);
+    const remote = createSnapshot('2026-01-03T10:00:00.000Z', 3);
+    const saveError = new DesktopLayoutRequestError('Desktop layout save failed with 409', {
+      status: 409,
+      conflict: true,
+      revision: 11,
+      payload: { snapshot: remote }
+    });
+    const load = jest
+      .fn()
+      .mockResolvedValueOnce({ snapshot: initial, revision: 10 })
+      .mockRejectedValueOnce(new Error('Network unavailable'));
+    const save = jest.fn().mockRejectedValueOnce(saveError).mockResolvedValueOnce({ revision: 12 });
+    const transport: VersionedLayoutTransport = { load, save };
+    const onError = jest.fn();
+
+    const { result } = renderHook(() =>
+      useDesktopLayoutPreferences({ transport, snapshot: local, onError })
+    );
+
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+
+    await act(async () => {
+      await result.current.saveNow();
+    });
+
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(result.current.status).toBe('conflict');
+    expect(result.current.saveError).toBeUndefined();
+    expect(result.current.conflict).toEqual({
+      localSavedAt: local.savedAt,
+      remoteSavedAt: remote.savedAt
+    });
+    expect(result.current.remoteSnapshot).toEqual(remote);
+    expect(result.current.revision).toBe(11);
+    expect(onError).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await result.current.resolveConflict('local');
+    });
+
+    expect(save).toHaveBeenNthCalledWith(2, local, 11, { scope: 'device' });
+    expect(result.current.status).toBe('ready');
+    expect(result.current.conflict).toBeUndefined();
+    expect(result.current.revision).toBe(12);
+  });
+
+  it('supports custom conflict detection for proprietary errors', async () => {
+    const initial = createSnapshot('2026-01-01T10:00:00.000Z', 1);
+    const local = createSnapshot('2026-01-02T10:00:00.000Z', 2);
+    const remote = createSnapshot('2026-01-03T10:00:00.000Z', 3);
+    const saveError = Object.assign(new Error('Layout is stale'), {
+      code: 'LAYOUT_STALE',
+      currentRevision: 'rev-remote',
+      body: { layout: remote }
+    });
+    const load = jest
+      .fn()
+      .mockResolvedValueOnce({ snapshot: initial, revision: 'rev-1' })
+      .mockRejectedValueOnce(new Error('Network unavailable'));
+    const save = jest
+      .fn()
+      .mockRejectedValueOnce(saveError)
+      .mockResolvedValueOnce({ revision: 'rev-3' });
+    const transport: VersionedLayoutTransport = { load, save };
+    const isConflict = jest.fn(
+      (error: unknown) => (error as { code?: string }).code === 'LAYOUT_STALE'
+    );
+    const getConflictRevision = jest.fn(
+      (error: unknown) => (error as { currentRevision?: string }).currentRevision
+    );
+    const getConflictSnapshot = jest.fn(
+      (error: unknown) => (error as { body?: { layout?: DesktopLayoutSnapshot } }).body?.layout
+    );
+
+    const { result } = renderHook(() =>
+      useDesktopLayoutPreferences({
+        transport,
+        snapshot: local,
+        isConflict,
+        getConflictRevision,
+        getConflictSnapshot
+      })
+    );
+
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+
+    await act(async () => {
+      await result.current.saveNow();
+    });
+
+    expect(isConflict).toHaveBeenCalledWith(saveError);
+    expect(getConflictRevision).toHaveBeenCalledWith(saveError);
+    expect(getConflictSnapshot).toHaveBeenCalledWith(saveError);
+    expect(result.current.status).toBe('conflict');
+    expect(result.current.revision).toBe('rev-remote');
+    expect(result.current.remoteSnapshot).toEqual(remote);
+    expect(result.current.conflict).toEqual({
+      localSavedAt: local.savedAt,
+      remoteSavedAt: remote.savedAt
+    });
+
+    await act(async () => {
+      await result.current.resolveConflict('local');
+    });
+
+    expect(save).toHaveBeenNthCalledWith(2, local, 'rev-remote', { scope: 'device' });
+    expect(result.current.status).toBe('ready');
+  });
+
+  it('keeps non-conflict request errors in the error state', async () => {
+    const remote = createSnapshot('2026-01-01T10:00:00.000Z');
+    const local = createSnapshot('2026-01-02T10:00:00.000Z', 3);
+    const saveError = new DesktopLayoutRequestError('Desktop layout save failed with 500', {
+      status: 500
+    });
+    const load = jest.fn(async () => ({ snapshot: remote, revision: 'rev-1' }));
+    const save = jest.fn().mockRejectedValueOnce(saveError);
+    const transport: VersionedLayoutTransport = { load, save };
+    const onError = jest.fn();
+
+    const { result } = renderHook(() =>
+      useDesktopLayoutPreferences({ transport, snapshot: local, onError })
+    );
+
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+
+    await act(async () => {
+      await result.current.saveNow();
+    });
+
+    expect(result.current.status).toBe('error');
+    expect(result.current.saveError).toBe(saveError);
+    expect(result.current.conflict).toBeUndefined();
+    expect(onError).toHaveBeenCalledWith(saveError);
   });
 
   it('applies the remote snapshot when resolving a conflict in favor of the server', async () => {
