@@ -1471,6 +1471,22 @@ describe('Desktop', () => {
     expect(windowElement).toHaveAttribute('hidden');
   });
 
+  it('renders a custom live taskbar preview', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Desktop
+        apps={apps}
+        defaultWindows={[createWindow()]}
+        renderTaskbarPreview={(group) => <div data-testid="live-preview">{group.title} live</div>}
+      />
+    );
+
+    await user.hover(screen.getByRole('button', { name: 'Notes' }));
+
+    expect(screen.getByTestId('live-preview')).toHaveTextContent('Notes live');
+  });
+
   it('renders widgets and opens the calendar flyout from the clock', async () => {
     const user = userEvent.setup();
 

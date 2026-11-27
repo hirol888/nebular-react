@@ -1,6 +1,7 @@
 import React from 'react';
 import { DefaultProps } from '@nebular-react/styles';
 import type { DesktopWidget } from '../DesktopWidgets';
+import type { DesktopTaskbarGroup } from './DesktopTaskbar';
 import type { CommandPaletteAction } from '../CommandPalette';
 import type { NotificationItem } from '../NotificationCenter';
 import type { DesktopStylesNames } from './Desktop.styles';
@@ -375,6 +376,8 @@ export interface DesktopProps
   offlineBanner?: boolean;
   /** Shows a compact online/offline indicator in the taskbar. */
   connectionStatus?: boolean;
+  /** Custom live preview rendered inside the taskbar hover preview. */
+  renderTaskbarPreview?(group: DesktopTaskbarGroup): React.ReactNode;
   /** Enables Ctrl/Cmd+K command palette. */
   commandPalette?: boolean;
   commands?: CommandPaletteAction[];

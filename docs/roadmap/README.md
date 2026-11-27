@@ -165,11 +165,11 @@
   status online/offline e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST,
   navegação, views, copiar/cortar/colar, abas, drag para pasta (inclusive entre panes), fila
   de upload, permissões, paginação, virtualização, preview de mídia e lixeira/restore/undo.
-- **Testes**: 3.317 testes em 271 suítes, incluindo interação, teclado,
+- **Testes**: 3.321 testes em 272 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
   DataGrid, novos componentes, `jest-axe` e Playwright para ponteiro real, múltiplas janelas,
-  snap, modo compacto e regressão visual opcional. A cobertura é de 90,74% de instruções,
-  80,39% de branches, 91,10% de funções e 90,68% de linhas, com limites mínimos no CI.
+  snap, modo compacto e regressão visual opcional. A cobertura é de 90,73% de instruções,
+  80,38% de branches, 91,08% de funções e 90,67% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

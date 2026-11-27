@@ -41,6 +41,13 @@ export type {
   DesktopConnectionStatusProps,
   DesktopConnectionStatusStylesNames
 } from './DesktopConnectionStatus';
+export { registerDesktopServiceWorker, useInstallPrompt } from './Desktop.pwa';
+export type {
+  DesktopBeforeInstallPromptEvent,
+  DesktopInstallPromptChoice,
+  DesktopServiceWorkerOptions,
+  UseInstallPromptResult
+} from './Desktop.pwa';
 export {
   createDesktopSurfaceBus,
   getDesktopSurfaceDisplayId,

@@ -62,6 +62,7 @@ pacote de ícones essenciais ganhou `menu-outline`,
 Também entram widgets (`DesktopWidgets`), flyout de calendário no relógio
 (`DesktopCalendarFlyout`), seleção de ícones do wallpaper com marquee, gestos touch
 (`useLongPress`/`useSwipeGesture`), status online/offline (`useOnlineStatus`,
-`DesktopOfflineBanner`, `DesktopConnectionStatus`) e suporte a Playwright para testes de
-ponteiro, múltiplas janelas e regressão visual. O FileExplorer ganha lixeira com
-`trash`/`restore`/`listTrash`/`emptyTrash`, undo e painel de restauração.
+`DesktopOfflineBanner`, `DesktopConnectionStatus`), preview customizado da taskbar
+(`renderTaskbarPreview`), PWA (`useInstallPrompt`, `registerDesktopServiceWorker`) e suporte
+a Playwright para testes de ponteiro, múltiplas janelas e regressão visual. O FileExplorer
+ganha lixeira com `trash`/`restore`/`listTrash`/`emptyTrash`, undo e painel de restauração.

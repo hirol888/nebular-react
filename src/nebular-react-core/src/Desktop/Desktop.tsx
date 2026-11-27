@@ -143,6 +143,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     onCalendarDateChange,
     offlineBanner,
     connectionStatus,
+    renderTaskbarPreview,
     commandPalette,
     commands,
     showOverview,
@@ -2625,6 +2626,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
               : undefined
           }
           clockExpanded={calendar ? calendarOpen : undefined}
+          renderPreview={renderTaskbarPreview}
           classNames={classNames}
           styles={styles}
           unstyled={unstyled}

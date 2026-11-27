@@ -66,6 +66,8 @@ export interface DesktopTaskbarProps extends DesktopStyleProps {
   /** When provided, the clock becomes a button that opens the calendar flyout. */
   onClockClick?(rect: DOMRect): void;
   clockExpanded?: boolean;
+  /** Custom live preview for a taskbar group (real thumbnails, mini app, etc.). */
+  renderPreview?(group: DesktopTaskbarGroup): React.ReactNode;
 }
 
 export function DesktopTaskbar({
@@ -104,6 +106,7 @@ export function DesktopTaskbar({
   notifications,
   onClockClick,
   clockExpanded,
+  renderPreview,
   classNames,
   styles,
   unstyled
@@ -421,19 +424,21 @@ export function DesktopTaskbar({
             )}
             {preview.group.title}
           </div>
-          {preview.group.preview ?? (
-            <ul className={cx(classes.taskbarPreviewList)}>
-              {preview.group.windows.map((window) => (
-                <li key={window.id}>
-                  {windowTitleText(
-                    window,
-                    window.appId ? appsById.get(window.appId) : undefined,
-                    labels.window
-                  )}
-                </li>
+          {renderPreview
+            ? renderPreview(preview.group)
+            : (preview.group.preview ?? (
+                <ul className={cx(classes.taskbarPreviewList)}>
+                  {preview.group.windows.map((window) => (
+                    <li key={window.id}>
+                      {windowTitleText(
+                        window,
+                        window.appId ? appsById.get(window.appId) : undefined,
+                        labels.window
+                      )}
+                    </li>
+                  ))}
+                </ul>
               ))}
-            </ul>
-          )}
         </div>
       )}
     </div>

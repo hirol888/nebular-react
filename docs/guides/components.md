@@ -2002,6 +2002,11 @@ const apps = [
   o banner de modo offline. Os hooks `useOnlineStatus`, `useLongPress` e `useSwipeGesture`
   são exportados para hosts; em telas touch/pen, swipe para baixo no título minimiza
   (ou restaura, se maximizada) e swipe para cima maximiza.
+- `renderTaskbarPreview(group)` permite thumbnails/mini-apps reais no preview da taskbar;
+  sem ele, vale `DesktopApp.preview` e a lista de janelas.
+- `useInstallPrompt()` expõe `canInstall`/`installed`/`install()` para PWA e
+  `registerDesktopServiceWorker(url, options)` registra o service worker de offline sem
+  lançar em ambientes sem suporte.
 - `alwaysOnTop` mantém a janela acima das demais; `skipTaskbar` oculta o botão da taskbar;
   `keepInBounds` (padrão `true`) impede que drag/resize saiam da área do desktop.
 - `displayMode="span"` + `displays` habilita snap/maximize por monitor, divisórias visuais,
