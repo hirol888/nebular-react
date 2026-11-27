@@ -31,6 +31,21 @@ export interface DesktopWebSocketReconnectOptions {
   jitter?: (attempt: number) => number;
 }
 
+export interface DesktopCollaborationWireMessage {
+  type: 'presence' | 'layout' | 'ping';
+  sender: string;
+  presence?: DesktopCollaborator;
+  layout?: DesktopLayoutSnapshot;
+  sentAt: string;
+}
+
+export interface DesktopCollaborationCodec {
+  /** Serializes a message for the socket (defaults to JSON). */
+  encode(message: DesktopCollaborationWireMessage): string;
+  /** Parses an incoming socket payload; return null for malformed messages. */
+  decode(data: unknown): DesktopCollaborationWireMessage | null;
+}
+
 export interface DesktopWebSocketCollaborationOptions {
   selfId: string;
   protocols?: string | string[];
@@ -39,14 +54,8 @@ export interface DesktopWebSocketCollaborationOptions {
   reconnect?: DesktopWebSocketReconnectOptions;
   /** Sends `ping` messages at this interval while connected. Disabled by default. */
   heartbeatMs?: number;
-}
-
-interface CollaborationSocketMessage {
-  type: 'presence' | 'layout' | 'ping';
-  sender: string;
-  presence?: DesktopCollaborator;
-  layout?: DesktopLayoutSnapshot;
-  sentAt: string;
+  /** Custom wire format (MessagePack, base64, protobuf-as-base64, etc.). */
+  codec?: DesktopCollaborationCodec;
 }
 
 interface IncomingSocketMessage {
@@ -109,7 +118,7 @@ export function createWebSocketCollaboration(
   url: string,
   options: DesktopWebSocketCollaborationOptions
 ): DesktopCollaborationAdapter {
-  const { selfId, protocols, heartbeatMs: heartbeatOption } = options;
+  const { selfId, protocols, heartbeatMs: heartbeatOption, codec } = options;
   const reconnectOptions = options.reconnect ?? {};
   const reconnectEnabled = reconnectOptions.enabled !== false;
   const initialDelayMs = Math.max(
@@ -154,7 +163,7 @@ export function createWebSocketCollaboration(
     }
   };
 
-  const sendMessage = (message: CollaborationSocketMessage): boolean => {
+  const sendMessage = (message: DesktopCollaborationWireMessage): boolean => {
     const target = socket;
 
     if (!target || !open || target.readyState !== WS_OPEN) {
@@ -162,7 +171,7 @@ export function createWebSocketCollaboration(
     }
 
     try {
-      target.send(JSON.stringify(message));
+      target.send(codec ? codec.encode(message) : JSON.stringify(message));
       return true;
     } catch {
       return false;
@@ -297,7 +306,7 @@ export function createWebSocketCollaboration(
     };
 
     nextSocket.onmessage = (event: MessageEvent) => {
-      const message = parseIncomingMessage(event?.data);
+      const message = codec ? codec.decode(event?.data) : parseIncomingMessage(event?.data);
 
       // Messages without a sender are malformed; own messages are echoes.
       if (!message || typeof message.sender !== 'string' || message.sender === selfId) {

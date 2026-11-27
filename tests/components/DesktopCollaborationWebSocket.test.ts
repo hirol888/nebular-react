@@ -360,4 +360,43 @@ describe('createWebSocketCollaboration', () => {
     jest.advanceTimersByTime(25);
     expect(FakeWebSocket.instances).toHaveLength(2);
   });
+
+  it('supports a custom wire codec', () => {
+    const codec = {
+      encode: (message: unknown) => `custom:${JSON.stringify(message)}`,
+      decode: (data: unknown) => {
+        if (typeof data !== 'string' || !data.startsWith('custom:')) {
+          return null;
+        }
+
+        return JSON.parse(data.slice('custom:'.length));
+      }
+    };
+    const adapter = createWebSocketCollaboration('ws://collab.test', {
+      selfId: 'me',
+      WebSocketImpl: FakeWebSocket,
+      codec
+    });
+    const presence = jest.fn();
+    adapter.subscribePresence(presence);
+    adapter.connect();
+
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    adapter.broadcastPresence({ id: 'me', name: 'Me' });
+
+    expect(socket.sent[0].startsWith('custom:')).toBe(true);
+
+    socket.receive(
+      `custom:${JSON.stringify({
+        type: 'presence',
+        sender: 'peer',
+        presence: { id: 'peer', name: 'Peer' },
+        sentAt: '2026-01-01T00:00:00.000Z'
+      })}`
+    );
+
+    expect(presence).toHaveBeenCalledWith(expect.objectContaining({ id: 'peer' }));
+    adapter.disconnect();
+  });
 });

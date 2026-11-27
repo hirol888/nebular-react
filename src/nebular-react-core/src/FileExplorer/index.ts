@@ -11,7 +11,9 @@ export {
 } from './FileExplorer.providers';
 export type {
   MemoryFileSystemProvider,
-  RestFileSystemProviderOptions
+  RestFileSystemProviderOptions,
+  RestFileSystemQuery,
+  RestFileSystemRoutes
 } from './FileExplorer.providers';
 export type {
   FileExplorerDualPaneLabels,

@@ -61,6 +61,7 @@ export {
   createLocalStorageLayoutAdapter,
   createMemoryLayoutAdapter,
   createRestLayoutAdapter,
+  createRestLayoutTransport,
   createSessionStorageLayoutAdapter,
   createVersionedLayoutAdapter,
   deserializeDesktopLayout,
@@ -75,15 +76,21 @@ export type {
   DesktopSurfaceSyncResult
 } from './Desktop.surfaces';
 export type {
+  DesktopDeviceIdOptions,
   RestLayoutAdapterOptions,
+  RestLayoutQuery,
+  RestLayoutTransportOptions,
   SerializeDesktopLayoutOptions
 } from './Desktop.persistence';
+export { DesktopLayoutRequestError } from './Desktop.persistence';
 export type { BroadcastLayoutAdapter } from './Desktop.persistence';
 export type { VersionedLayoutTransport } from './Desktop.persistence';
 export { createBroadcastCollaboration } from './Desktop.collaboration';
 export type { DesktopCollaborationAdapter, DesktopCollaborator } from './Desktop.collaboration';
 export { createWebSocketCollaboration } from './Desktop.collaboration.websocket';
 export type {
+  DesktopCollaborationCodec,
+  DesktopCollaborationWireMessage,
   DesktopWebSocketCollaborationOptions,
   DesktopWebSocketLike,
   DesktopWebSocketReconnectOptions

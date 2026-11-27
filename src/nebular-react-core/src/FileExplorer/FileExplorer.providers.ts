@@ -318,12 +318,41 @@ export function createMemoryFileSystemProvider(seed: FileEntry[] = []): MemoryFi
   };
 }
 
+export interface RestFileSystemRoutes {
+  list: string;
+  search: string;
+  folders: string;
+  entries: string;
+  move: string;
+  copy: string;
+  upload: string;
+  download: string;
+  trash: string;
+  restore: string;
+  trashList: string;
+  emptyTrash: string;
+}
+
+export type RestFileSystemQuery = Record<string, string | number | boolean | null | undefined>;
+
 export interface RestFileSystemProviderOptions {
   endpoint: string;
   headers?: Record<string, string> | (() => Record<string, string>);
   credentials?: RequestCredentials;
   fetch?: typeof fetch;
   mapEntry?(entry: unknown): FileEntry;
+  /** Overrides individual endpoint paths (relative to `endpoint`). */
+  routes?: Partial<RestFileSystemRoutes>;
+  /** Extra query params for GET requests (tenant, app, locale...). */
+  query?: RestFileSystemQuery | (() => RestFileSystemQuery);
+  /** Custom list/search parser. */
+  parseList?(payload: unknown): FileListResponse;
+  /** Custom single-entry parser. */
+  parseEntry?(payload: unknown): FileEntry;
+  /** Custom upload parser. */
+  parseUpload?(payload: unknown): FileEntry[];
+  /** Maps a failed response to a domain error. */
+  mapError?(response: Response, payload: unknown): FileSystemError | undefined;
 }
 
 interface ListResponse {
@@ -387,7 +416,7 @@ function mapListResponse(
 }
 
 /**
- * REST contract:
+ * REST contract (default routes, all customizable through `routes`):
  * GET    {endpoint}/entries?path=/Documents[&page=0&pageSize=50]
  *        -> FileEntry[] | { entries, total?, hasMore? }
  * GET    {endpoint}/search?q=foo&limit=50[&page&pageSize]
@@ -399,14 +428,25 @@ function mapListResponse(
  * POST   {endpoint}/copy      { paths, destination }
  * POST   {endpoint}/upload    multipart form      -> FileEntry[]
  * GET    {endpoint}/download?path=/file           -> Blob
+ *
+ * Trash endpoints are only enabled when the corresponding route is provided.
  */
-export function createRestFileSystemProvider({
-  endpoint,
-  headers,
-  credentials = 'same-origin',
-  fetch: fetchImpl,
-  mapEntry
-}: RestFileSystemProviderOptions): FileSystemProvider {
+export function createRestFileSystemProvider(
+  options: RestFileSystemProviderOptions
+): FileSystemProvider {
+  const {
+    endpoint,
+    headers,
+    credentials = 'same-origin',
+    fetch: fetchImpl,
+    mapEntry,
+    routes: routeOverrides,
+    query,
+    parseList,
+    parseEntry,
+    parseUpload,
+    mapError
+  } = options;
   const request = fetchImpl ?? (typeof fetch !== 'undefined' ? fetch : undefined);
 
   if (!request) {
@@ -414,66 +454,139 @@ export function createRestFileSystemProvider({
   }
 
   const base = endpoint.replace(/\/$/, '');
+  const routes: RestFileSystemRoutes = {
+    list: '/entries',
+    search: '/search',
+    folders: '/folders',
+    entries: '/entries',
+    move: '/move',
+    copy: '/copy',
+    upload: '/upload',
+    download: '/download',
+    trash: '/trash',
+    restore: '/restore',
+    trashList: '/trash',
+    emptyTrash: '/trash',
+    ...routeOverrides
+  };
+  const route = (path: string) => `${base}${path.startsWith('/') ? '' : '/'}${path}`;
   const resolveHeaders = (): Record<string, string> =>
     typeof headers === 'function' ? headers() : (headers ?? {});
+  const resolveQuery = (): RestFileSystemQuery =>
+    typeof query === 'function' ? query() : (query ?? {});
   const map = (entry: FileEntry) => (mapEntry ? mapEntry(entry) : entry);
+  const withQuery = (url: string): string => {
+    const params = new URLSearchParams();
 
-  const json = async <T>(response: Response): Promise<T> => {
-    if (!response.ok) {
-      throw new FileSystemError(`Request failed with ${response.status}`, {
-        status: response.status
-      });
+    Object.entries(resolveQuery()).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.set(key, String(value));
+      }
+    });
+
+    const search = params.toString();
+
+    if (!search) {
+      return url;
     }
 
-    return (await response.json()) as T;
+    return `${url}${url.includes('?') ? '&' : '?'}${search}`;
   };
+  const parsePayload = async (response: Response): Promise<unknown> => {
+    if (response.status === 204) {
+      return undefined;
+    }
 
-  return {
-    async list(path, options) {
-      const query = [
-        `path=${encodeURIComponent(normalizePath(path))}`,
-        ...getPaginationParams(options).map(([key, value]) => `${key}=${value}`)
-      ].join('&');
-      const response = await request(`${base}/entries?${query}`, {
+    if (typeof response.text !== 'function' && typeof response.json === 'function') {
+      return response.json();
+    }
+
+    const text = await response.text();
+
+    if (!text) {
+      return undefined;
+    }
+
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      return text;
+    }
+  };
+  const fail = async (response: Response, action: string): Promise<never> => {
+    const payload = await parsePayload(response);
+    const mapped = mapError?.(response, payload);
+
+    if (mapped) {
+      throw mapped;
+    }
+
+    throw new FileSystemError(`${action} failed with ${response.status}`, {
+      status: response.status
+    });
+  };
+  const jsonResponse = async <T>(response: Response, action: string): Promise<T> => {
+    if (!response.ok) {
+      await fail(response, action);
+    }
+
+    return (await parsePayload(response)) as T;
+  };
+  const parseEntries = (payload: unknown): FileListResponse =>
+    parseList ? parseList(payload) : resolveEntries(payload as FileEntry[] | ListResponse);
+  const parseSingleEntry = (payload: unknown): FileEntry =>
+    parseEntry ? parseEntry(payload) : (payload as FileEntry);
+  const parseBody = (response: Response, action: string) => jsonResponse<unknown>(response, action);
+
+  const provider: FileSystemProvider = {
+    async list(path, listOptions) {
+      const params = new URLSearchParams({ path: normalizePath(path) });
+      getPaginationParams(listOptions).forEach(([key, value]) => params.set(key, value));
+      const response = await request(withQuery(`${route(routes.list)}?${params.toString()}`), {
         headers: resolveHeaders(),
         credentials,
-        signal: options?.signal
+        signal: listOptions?.signal
       });
-      return mapListResponse(await json<ListResponse | FileEntry[]>(response), map);
+      const payload = await parseBody(response, 'List');
+      return mapListResponse(parseEntries(payload) as FileEntry[] | ListResponse, map);
     },
-    async search(query, options) {
-      const params = new URLSearchParams({ q: query });
-      if (options?.limit) {
-        params.set('limit', String(options.limit));
+    async search(searchQuery, searchOptions) {
+      const params = new URLSearchParams({ q: searchQuery });
+
+      if (searchOptions?.limit) {
+        params.set('limit', String(searchOptions.limit));
       }
-      getPaginationParams(options).forEach(([key, value]) => params.set(key, value));
-      const response = await request(`${base}/search?${params.toString()}`, {
+
+      getPaginationParams(searchOptions).forEach(([key, value]) => params.set(key, value));
+
+      const response = await request(withQuery(`${route(routes.search)}?${params.toString()}`), {
         headers: resolveHeaders(),
         credentials,
-        signal: options?.signal
+        signal: searchOptions?.signal
       });
-      return mapListResponse(await json<ListResponse | FileEntry[]>(response), map);
+      const payload = await parseBody(response, 'Search');
+      return mapListResponse(parseEntries(payload) as FileEntry[] | ListResponse, map);
     },
     async createFolder(parent, name) {
-      const response = await request(`${base}/folders`, {
+      const response = await request(route(routes.folders), {
         method: 'POST',
         headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
         credentials,
         body: JSON.stringify({ parent, name })
       });
-      return map(await json<FileEntry>(response));
+      return map(parseSingleEntry(await parseBody(response, 'Create folder')));
     },
     async rename(path, name) {
-      const response = await request(`${base}/entries`, {
+      const response = await request(route(routes.entries), {
         method: 'PATCH',
         headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
         credentials,
         body: JSON.stringify({ path, name })
       });
-      return map(await json<FileEntry>(response));
+      return map(parseSingleEntry(await parseBody(response, 'Rename')));
     },
     async remove(paths) {
-      const response = await request(`${base}/entries`, {
+      const response = await request(route(routes.entries), {
         method: 'DELETE',
         headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
         credentials,
@@ -481,13 +594,11 @@ export function createRestFileSystemProvider({
       });
 
       if (!response.ok) {
-        throw new FileSystemError(`Remove failed with ${response.status}`, {
-          status: response.status
-        });
+        await fail(response, 'Remove');
       }
     },
     async move(paths, destination) {
-      const response = await request(`${base}/move`, {
+      const response = await request(route(routes.move), {
         method: 'POST',
         headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
         credentials,
@@ -495,13 +606,11 @@ export function createRestFileSystemProvider({
       });
 
       if (!response.ok) {
-        throw new FileSystemError(`Move failed with ${response.status}`, {
-          status: response.status
-        });
+        await fail(response, 'Move');
       }
     },
     async copy(paths, destination) {
-      const response = await request(`${base}/copy`, {
+      const response = await request(route(routes.copy), {
         method: 'POST',
         headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
         credentials,
@@ -509,39 +618,94 @@ export function createRestFileSystemProvider({
       });
 
       if (!response.ok) {
-        throw new FileSystemError(`Copy failed with ${response.status}`, {
-          status: response.status
-        });
+        await fail(response, 'Copy');
       }
     },
-    async upload(parent, files, options) {
+    async upload(parent, files, uploadOptions) {
       const form = new FormData();
       form.set('parent', parent);
       files.forEach((file) => form.append('files', file));
-      const response = await request(`${base}/upload`, {
+      const response = await request(route(routes.upload), {
         method: 'POST',
         headers: resolveHeaders(),
         credentials,
         body: form,
-        signal: options?.signal
+        signal: uploadOptions?.signal
       });
-      const entries = await json<FileEntry[]>(response);
-      options?.onProgress?.({ file: files[0], percent: 100 });
+      const payload = await parseBody(response, 'Upload');
+      const entries = parseUpload ? parseUpload(payload) : (payload as FileEntry[]);
+      uploadOptions?.onProgress?.({ file: files[0], percent: 100 });
       return entries.map(map);
     },
     async download(path) {
       const response = await request(
-        `${base}/download?path=${encodeURIComponent(normalizePath(path))}`,
+        withQuery(`${route(routes.download)}?path=${encodeURIComponent(normalizePath(path))}`),
         { headers: resolveHeaders(), credentials }
       );
 
       if (!response.ok) {
-        throw new FileSystemError(`Download failed with ${response.status}`, {
-          status: response.status
-        });
+        await fail(response, 'Download');
       }
 
       return response.blob();
     }
   };
+
+  if (routeOverrides?.trash) {
+    provider.trash = async (paths) => {
+      const response = await request(route(routes.trash), {
+        method: 'POST',
+        headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
+        credentials,
+        body: JSON.stringify({ paths })
+      });
+
+      if (!response.ok) {
+        await fail(response, 'Trash');
+      }
+    };
+  }
+
+  if (routeOverrides?.restore) {
+    provider.restore = async (paths) => {
+      const response = await request(route(routes.restore), {
+        method: 'POST',
+        headers: { ...resolveHeaders(), 'Content-Type': 'application/json' },
+        credentials,
+        body: JSON.stringify({ paths })
+      });
+
+      if (!response.ok) {
+        await fail(response, 'Restore');
+      }
+    };
+  }
+
+  if (routeOverrides?.trashList) {
+    provider.listTrash = async () => {
+      const response = await request(withQuery(route(routes.trashList)), {
+        headers: resolveHeaders(),
+        credentials
+      });
+      const payload = await parseBody(response, 'List trash');
+      const result = parseEntries(payload);
+      return (Array.isArray(result) ? result : result.entries).map(map);
+    };
+  }
+
+  if (routeOverrides?.emptyTrash) {
+    provider.emptyTrash = async () => {
+      const response = await request(route(routes.emptyTrash), {
+        method: 'DELETE',
+        headers: resolveHeaders(),
+        credentials
+      });
+
+      if (!response.ok) {
+        await fail(response, 'Empty trash');
+      }
+    };
+  }
+
+  return provider;
 }

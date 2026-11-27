@@ -17,6 +17,7 @@ import {
   deserializeDesktopLayout,
   serializeDesktopLayout
 } from './Desktop.persistence';
+import type { DesktopDeepLink } from './Desktop.apps';
 import type {
   DesktopContextValue,
   DesktopDisplay,
@@ -91,7 +92,10 @@ const defaultProps: Partial<DesktopProps> = {
 
 const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   const {
-    apps,
+    apps: appsProp,
+    appRegistry,
+    deepLink,
+    onDeepLink,
     windows: controlledWindows,
     defaultWindows,
     onWindowsChange,
@@ -452,6 +456,20 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     defaultWorkspace ?? workspaces[0]?.id
   );
   const activeWorkspace = controlledWorkspace ?? internalWorkspace;
+  const registryApps = useMemo(
+    () => (appRegistry ? appRegistry.toDesktopApps() : []),
+    [appRegistry]
+  );
+  const apps = useMemo(() => {
+    if (registryApps.length === 0) {
+      return appsProp;
+    }
+
+    const byId = new Map(appsProp.map((app) => [app.id, app]));
+    registryApps.forEach((app) => byId.set(app.id, app));
+
+    return Array.from(byId.values());
+  }, [appsProp, registryApps]);
   const appsById = useMemo(() => new Map(apps.map((app) => [app.id, app])), [apps]);
   const isCompact =
     !!compact || (!!autoCompact && measuredWidth > 0 && measuredWidth < compactBreakpoint);
@@ -1207,6 +1225,71 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     [apps, openWindow]
   );
 
+  const resolveDeepLink = useCallback(
+    (url: string): DesktopDeepLink | null => appRegistry?.resolveDeepLink(url) ?? null,
+    [appRegistry]
+  );
+  const openDeepLink = useCallback(
+    (url: string): string | undefined => {
+      const link = resolveDeepLink(url);
+
+      if (!link) {
+        return undefined;
+      }
+
+      const app = appsById.get(link.appId);
+
+      if (!app) {
+        return undefined;
+      }
+
+      const deepLinkState = {
+        path: link.path,
+        query: link.query
+      };
+
+      if (app.singleInstance) {
+        const existing = windowsRef.current.find(
+          (window) => window.appId === app.id && !window.parentId
+        );
+
+        if (existing) {
+          const previousState =
+            existing.state && typeof existing.state === 'object' ? existing.state : {};
+          setWindowState(existing.id, {
+            ...(previousState as Record<string, unknown>),
+            deepLink: deepLinkState
+          });
+          focusWindow(existing.id);
+          onDeepLink?.(link, existing.id);
+          return existing.id;
+        }
+      }
+
+      const windowId = openWindow({
+        appId: link.appId,
+        state: { deepLink: deepLinkState }
+      });
+
+      if (windowId) {
+        onDeepLink?.(link, windowId);
+      }
+
+      return windowId;
+    },
+    [appsById, focusWindow, onDeepLink, openWindow, resolveDeepLink, setWindowState]
+  );
+  const lastDeepLinkRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!deepLink || deepLink === lastDeepLinkRef.current) {
+      return;
+    }
+
+    lastDeepLinkRef.current = deepLink;
+    openDeepLink(deepLink);
+  }, [deepLink, openDeepLink]);
+
   const desktopContext = useMemo<DesktopContextValue>(
     () => ({
       windows: currentWindows,
@@ -1226,7 +1309,9 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       moveWindowToDisplay,
       setWindowState,
       openFile,
-      reopenClosedWindow
+      reopenClosedWindow,
+      openDeepLink,
+      resolveDeepLink
     }),
     [
       currentWindows,
@@ -1246,7 +1331,9 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
       moveWindowToDisplay,
       setWindowState,
       openFile,
-      reopenClosedWindow
+      reopenClosedWindow,
+      openDeepLink,
+      resolveDeepLink
     ]
   );
 

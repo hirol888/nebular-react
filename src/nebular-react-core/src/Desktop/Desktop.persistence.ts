@@ -403,6 +403,258 @@ export function createRestLayoutAdapter({
   };
 }
 
+export class DesktopLayoutRequestError extends Error {
+  readonly status: number;
+  readonly payload?: unknown;
+  readonly revision?: string | number;
+  readonly conflict: boolean;
+
+  constructor(
+    message: string,
+    options: {
+      status: number;
+      payload?: unknown;
+      revision?: string | number;
+      conflict?: boolean;
+    }
+  ) {
+    super(message);
+    this.name = 'DesktopLayoutRequestError';
+    this.status = options.status;
+    this.payload = options.payload;
+    this.revision = options.revision;
+    this.conflict = options.conflict ?? (options.status === 409 || options.status === 412);
+  }
+}
+
+export type RestLayoutQuery = Record<string, string | number | boolean | null | undefined>;
+
+export interface RestLayoutTransportOptions {
+  endpoint: string;
+  /** Override the read endpoint (e.g. query API) while writes go to the command API. */
+  loadEndpoint?: string;
+  /** Override the write endpoint. */
+  saveEndpoint?: string;
+  headers?: Record<string, string> | (() => Record<string, string>);
+  method?: 'PUT' | 'POST' | 'PATCH';
+  credentials?: RequestCredentials;
+  fetch?: typeof fetch;
+  /** Extra query params (tenant, app, device, locale...) or a lazy getter. */
+  query?: RestLayoutQuery | (() => RestLayoutQuery);
+  /** Parses the load payload. Defaults to `{ snapshot: payload, revision: headers }`. */
+  parseLoad?(
+    payload: unknown,
+    response: Response
+  ): { snapshot: DesktopLayoutSnapshot | null; revision?: string | number } | null;
+  /** Builds the save body. Defaults to `{ snapshot, revision }`. */
+  buildBody?(
+    snapshot: DesktopLayoutSnapshot,
+    revision: string | number | undefined,
+    options?: { scope?: DesktopLayoutScope; keepalive?: boolean }
+  ): unknown;
+  /** Parses the save payload. Defaults to revision headers. */
+  parseSave?(payload: unknown, response: Response): { revision?: string | number } | void;
+  /** Headers read for the current revision. Defaults to `X-Revision` and `ETag`. */
+  revisionHeaders?: string[];
+  /** Custom conflict detection. Defaults to HTTP 409/412. */
+  isConflict?(response: Response, payload: unknown): boolean;
+  /** Treat 404 as "no layout". Defaults to true. */
+  notFoundIsEmpty?: boolean;
+}
+
+function appendQuery(url: string, query: RestLayoutQuery): string {
+  const params = new URLSearchParams();
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      params.set(key, String(value));
+    }
+  });
+
+  const search = params.toString();
+
+  if (!search) {
+    return url;
+  }
+
+  return `${url}${url.includes('?') ? '&' : '?'}${search}`;
+}
+
+function readRevision(
+  response: Response,
+  payload: unknown,
+  headers: string[]
+): string | number | undefined {
+  for (const header of headers) {
+    const value = response.headers.get(header);
+
+    if (value) {
+      return value.replace(/^W\//, '').replace(/^"|"$/g, '');
+    }
+  }
+
+  if (payload && typeof payload === 'object') {
+    const candidate = payload as { revision?: unknown; version?: unknown };
+
+    if (typeof candidate.revision === 'string' || typeof candidate.revision === 'number') {
+      return candidate.revision;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Generic REST transport for optimistic-concurrency layout APIs.
+ *
+ * The host controls endpoints, query params, request body and payload parsing, so the
+ * same helper works with different backends (Directory, standalone services, BFFs).
+ */
+export function createRestLayoutTransport({
+  endpoint,
+  loadEndpoint,
+  saveEndpoint,
+  headers,
+  method = 'PUT',
+  credentials = 'same-origin',
+  fetch: fetchImpl,
+  query,
+  parseLoad,
+  buildBody,
+  parseSave,
+  revisionHeaders = ['X-Revision', 'ETag'],
+  isConflict,
+  notFoundIsEmpty = true
+}: RestLayoutTransportOptions): VersionedLayoutTransport {
+  const request = fetchImpl ?? (typeof fetch !== 'undefined' ? fetch : undefined);
+
+  if (!request) {
+    throw new Error('createRestLayoutTransport requires a fetch implementation');
+  }
+
+  const resolveHeaders = (): Record<string, string> => ({
+    Accept: 'application/json',
+    ...(typeof headers === 'function' ? headers() : headers)
+  });
+  const resolveQuery = (): RestLayoutQuery =>
+    typeof query === 'function' ? query() : (query ?? {});
+  const withQuery = (url: string) => appendQuery(url, resolveQuery());
+  const parsePayload = async (response: Response): Promise<unknown> => {
+    if (response.status === 204) {
+      return undefined;
+    }
+
+    const text = await response.text();
+
+    if (!text) {
+      return undefined;
+    }
+
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      return text;
+    }
+  };
+  const isConflictResponse = (response: Response, payload: unknown) =>
+    isConflict ? isConflict(response, payload) : response.status === 409 || response.status === 412;
+
+  return {
+    async load(signal) {
+      const response = await request(withQuery(loadEndpoint ?? endpoint), {
+        method: 'GET',
+        headers: resolveHeaders(),
+        credentials,
+        signal
+      });
+
+      if (response.status === 404 && notFoundIsEmpty) {
+        return null;
+      }
+
+      const payload = await parsePayload(response);
+
+      if (!response.ok) {
+        throw new DesktopLayoutRequestError(`Desktop layout load failed with ${response.status}`, {
+          status: response.status,
+          payload,
+          revision: readRevision(response, payload, revisionHeaders),
+          conflict: isConflictResponse(response, payload)
+        });
+      }
+
+      if (parseLoad) {
+        const parsed = parseLoad(payload, response);
+
+        if (!parsed?.snapshot) {
+          return null;
+        }
+
+        return {
+          snapshot: parsed.snapshot,
+          revision: parsed.revision ?? readRevision(response, payload, revisionHeaders)
+        };
+      }
+
+      if (payload && typeof payload === 'object' && 'snapshot' in payload) {
+        const candidate = payload as {
+          snapshot: DesktopLayoutSnapshot | null;
+          revision?: string | number;
+        };
+
+        if (!candidate.snapshot) {
+          return null;
+        }
+
+        return {
+          snapshot: candidate.snapshot,
+          revision: candidate.revision ?? readRevision(response, payload, revisionHeaders)
+        };
+      }
+
+      if (!payload || typeof payload !== 'object') {
+        return null;
+      }
+
+      return {
+        snapshot: payload as DesktopLayoutSnapshot,
+        revision: readRevision(response, payload, revisionHeaders)
+      };
+    },
+
+    async save(snapshot, revision, options) {
+      const response = await request(withQuery(saveEndpoint ?? endpoint), {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...resolveHeaders()
+        },
+        credentials,
+        body: JSON.stringify(
+          buildBody ? buildBody(snapshot, revision, options) : { snapshot, revision }
+        ),
+        keepalive: options?.keepalive
+      });
+      const payload = await parsePayload(response);
+
+      if (!response.ok) {
+        throw new DesktopLayoutRequestError(`Desktop layout save failed with ${response.status}`, {
+          status: response.status,
+          payload,
+          revision: readRevision(response, payload, revisionHeaders),
+          conflict: isConflictResponse(response, payload)
+        });
+      }
+
+      if (parseSave) {
+        return parseSave(payload, response) ?? undefined;
+      }
+
+      return { revision: readRevision(response, payload, revisionHeaders) };
+    }
+  };
+}
+
 export function createLocalStorageLayoutAdapter(storageKey: string): DesktopPersistenceAdapter {
   return createStorageLayoutAdapter(storageKey, 'local');
 }
@@ -411,23 +663,57 @@ export function createSessionStorageLayoutAdapter(storageKey: string): DesktopPe
   return createStorageLayoutAdapter(storageKey, 'session');
 }
 
-export function getDesktopDeviceId(storageKey = 'nebular-desktop-device-id'): string {
-  const storage = getStorage('local');
+export interface DesktopDeviceIdOptions {
+  storageKey?: string;
+  /** Storage override (for tests, SSR or alternative persistence). */
+  storage?: Storage | null;
+  /** Resolves storage lazily; ignored when `storage` is provided. */
+  getStorage?(): Storage | null;
+  /** Custom id generator. Defaults to `crypto.randomUUID()` with a fallback. */
+  generate?(): string;
+  /** Returned when no storage is available. Defaults to `shared`. */
+  fallback?: string;
+}
+
+/**
+ * Returns a stable device id. By default it persists in `localStorage`, but hosts can
+ * inject any `Storage`, a custom generator or a fallback (SSR/native shells).
+ */
+export function getDesktopDeviceId(
+  options: string | DesktopDeviceIdOptions = 'nebular-desktop-device-id'
+): string {
+  const config: DesktopDeviceIdOptions =
+    typeof options === 'string' ? { storageKey: options } : options;
+  const storageKey = config.storageKey ?? 'nebular-desktop-device-id';
+  const fallback = config.fallback ?? 'shared';
+  const storage =
+    config.storage !== undefined ? config.storage : (config.getStorage?.() ?? getStorage('local'));
 
   if (!storage) {
-    return 'shared';
+    return fallback;
   }
 
-  const existing = storage.getItem(storageKey);
+  try {
+    const existing = storage.getItem(storageKey);
 
-  if (existing) {
-    return existing;
+    if (existing) {
+      return existing;
+    }
+  } catch {
+    return fallback;
   }
 
   const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    config.generate?.() ??
+    (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
       ? crypto.randomUUID()
-      : `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  storage.setItem(storageKey, id);
+      : `device-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+
+  try {
+    storage.setItem(storageKey, id);
+  } catch {
+    // Storage may be disabled (private mode/quota); the id still works for this session.
+  }
+
   return id;
 }

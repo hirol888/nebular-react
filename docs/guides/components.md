@@ -2,14 +2,14 @@
 
 ## Catálogo
 
-| Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `DesktopLayoutTemplates`, `DesktopLayoutPreferences`, `DesktopWidgets`, `DesktopCalendarFlyout`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
+| Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `DesktopLayoutTemplates`, `DesktopLayoutPreferences`, `DesktopWidgets`, `DesktopCalendarFlyout`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                           |
 | Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `FileExplorer`, `FileExplorerDualPane`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
-| Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                           |
-| Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Feedback    | `Alert`, `Toastr`, `Loader`, `LoadingBar`, `ProgressBar`, `RingProgress`, `Skeleton`, `EmptyState`, `LoadingOverlay`, `Result`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Overlays    | `Tooltip`, `Popover`, `Menu`, `ContextMenu`, `Dialog`, `Window`, `Portal`, `Drawer`, `ConfirmDialog`, `CommandPalette`, `HoverCard`, `Modal`, `Popconfirm`, `ImageViewer`, `Tour`, `NotificationCenter`, `Overlay`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                            |
+| Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Feedback    | `Alert`, `Toastr`, `Loader`, `LoadingBar`, `ProgressBar`, `RingProgress`, `Skeleton`, `EmptyState`, `LoadingOverlay`, `Result`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Overlays    | `Tooltip`, `Popover`, `Menu`, `ContextMenu`, `Dialog`, `Window`, `Portal`, `Drawer`, `ConfirmDialog`, `CommandPalette`, `HoverCard`, `Modal`, `Popconfirm`, `ImageViewer`, `Tour`, `NotificationCenter`, `Overlay`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 As props de cada componente estão na página **Docs** do Storybook, gerada por
 Autodocs a partir das interfaces TypeScript.
@@ -34,19 +34,19 @@ interface DefaultProps<StylesNames, StylesParams> {
 
 ## Componentes de composição
 
-| Componente | Contrato principal |
-| --- | --- |
-| `InlineEdit` | `value` ou `defaultValue` controla o texto confirmado. `validate` pode mostrar um erro no campo e `onCommit` pode ser assíncrono. Se a gravação falhar, o rascunho fica disponível para nova tentativa. `Escape` cancela. Em texto multilinha, `Ctrl+Enter` ou `Cmd+Enter` confirma. |
-| `Toolbar` | Envolva cada controle em `Toolbar.Item` e use `Toolbar.Separator` para dividir grupos. Os controles devem encaminhar as props de foco à sua raiz. Use o nome acessível e `orientation` conforme o contexto. |
-| `OverflowList` | Recebe `items`, `getItemKey` e `renderItem`. Mantém os itens que cabem na linha e reúne os demais em uma área expansível. Para preservar estado entre mudanças de largura, mantenha o estado do item no consumidor. |
-| `BulkActionBar` | Recebe seleção e ações por props. `onSelectPage` e `onSelectAllMatching` representam escopos diferentes. O consumidor decide como gerenciar a seleção e executar `onAction`. |
-| `ImportPreview` | Recebe colunas e linhas já lidas, campos de destino e `mapping` controlado. `onConfirm` entrega o mapeamento e o lote depois da revisão dos erros fornecidos. |
-| `ConflictResolutionDialog` | Recebe as duas versões por campo e mantém decisões em `choices`. `onResolve` devolve os valores escolhidos para que o consumidor grave a nova versão. |
-| `SchemaForm` | Renderiza campos declarados em `fields` com valores, regras de visibilidade e validação informadas pelo consumidor. Use um renderizador próprio para controles específicos. |
-| `RecurrenceEditor` | Edita um `SchedulerRecurrence` controlado ou `null`. Aceita início, fuso e quantidade de ocorrências para a prévia. |
-| `Combobox` | Permite controlar consulta e seleção e oferece `renderInput` e `renderOption` para personalizar o campo e as opções. |
-| `TableOfContents` | Recebe os IDs e rótulos das seções, acompanha a leitura e aceita um contêiner de rolagem via `scrollContainerRef`. |
-| `ChatSources` | Mostra referências numeradas com título, link e trecho opcional. Aceita expansão controlada e callback para abrir a fonte em uma interface do consumidor. |
+| Componente                 | Contrato principal                                                                                                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `InlineEdit`               | `value` ou `defaultValue` controla o texto confirmado. `validate` pode mostrar um erro no campo e `onCommit` pode ser assíncrono. Se a gravação falhar, o rascunho fica disponível para nova tentativa. `Escape` cancela. Em texto multilinha, `Ctrl+Enter` ou `Cmd+Enter` confirma. |
+| `Toolbar`                  | Envolva cada controle em `Toolbar.Item` e use `Toolbar.Separator` para dividir grupos. Os controles devem encaminhar as props de foco à sua raiz. Use o nome acessível e `orientation` conforme o contexto.                                                                          |
+| `OverflowList`             | Recebe `items`, `getItemKey` e `renderItem`. Mantém os itens que cabem na linha e reúne os demais em uma área expansível. Para preservar estado entre mudanças de largura, mantenha o estado do item no consumidor.                                                                  |
+| `BulkActionBar`            | Recebe seleção e ações por props. `onSelectPage` e `onSelectAllMatching` representam escopos diferentes. O consumidor decide como gerenciar a seleção e executar `onAction`.                                                                                                         |
+| `ImportPreview`            | Recebe colunas e linhas já lidas, campos de destino e `mapping` controlado. `onConfirm` entrega o mapeamento e o lote depois da revisão dos erros fornecidos.                                                                                                                        |
+| `ConflictResolutionDialog` | Recebe as duas versões por campo e mantém decisões em `choices`. `onResolve` devolve os valores escolhidos para que o consumidor grave a nova versão.                                                                                                                                |
+| `SchemaForm`               | Renderiza campos declarados em `fields` com valores, regras de visibilidade e validação informadas pelo consumidor. Use um renderizador próprio para controles específicos.                                                                                                          |
+| `RecurrenceEditor`         | Edita um `SchedulerRecurrence` controlado ou `null`. Aceita início, fuso e quantidade de ocorrências para a prévia.                                                                                                                                                                  |
+| `Combobox`                 | Permite controlar consulta e seleção e oferece `renderInput` e `renderOption` para personalizar o campo e as opções.                                                                                                                                                                 |
+| `TableOfContents`          | Recebe os IDs e rótulos das seções, acompanha a leitura e aceita um contêiner de rolagem via `scrollContainerRef`.                                                                                                                                                                   |
+| `ChatSources`              | Mostra referências numeradas com título, link e trecho opcional. Aceita expansão controlada e callback para abrir a fonte em uma interface do consumidor.                                                                                                                            |
 
 O `CronInput` oferece edição visual com `withVisualEditor`. O campo de expressão continua disponível para padrões personalizados. Os callbacks `validate` e `renderPreview` permitem usar o dialeto e o cálculo de ocorrências da aplicação.
 
@@ -54,29 +54,29 @@ No `WorkflowDesigner`, `validateConnection` pode devolver o motivo de uma ligaç
 
 ## Arquivos, conteúdo e áreas de trabalho
 
-| Componente | Contrato principal |
-| --- | --- |
-| `RepeatableFieldset` | Mantém uma lista controlada de grupos editáveis. Informe uma chave estável por item e use `renderItem` para compor os campos. Adição, remoção e reordenação podem ser operadas pelo teclado. |
-| `FilePreview` | Exibe imagens e texto. Passe `pdf={{ pageCount, renderPage }}` para usar um renderizador de PDF com controles de página e zoom. Use `renderers` para outros formatos e `FileManager.renderPreview` para integrar a prévia ao gerenciador. |
-| `VersionHistory` | Recebe revisões em ordem de exibição, da mais recente para a mais antiga. Compare duas versões com o `DiffViewer` ou com `renderComparison`. Se habilitar `onRestore`, o consumidor recebe a revisão selecionada em Depois. |
-| `ImageComparison` | Exibe duas imagens alinhadas com um divisor que pode ser movido por mouse, toque e teclado. Forneça texto alternativo para cada imagem. |
-| `DockLayout` | Recebe um layout serializável de grupos de abas e divisões, além do registro com o conteúdo dos painéis. A aplicação pode persistir o layout retornado por `onLayoutChange`. |
-| `MediaPlayer` | Reproduz fontes de áudio e vídeo com controles Nebular e suporte a faixas de legenda. |
-| `LocationPicker` | Recebe e devolve latitude e longitude. `renderMap` permite incorporar o mapa do consumidor. `searchLocations` recebe o texto e um `AbortSignal` para cancelar buscas substituídas. |
+| Componente           | Contrato principal                                                                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RepeatableFieldset` | Mantém uma lista controlada de grupos editáveis. Informe uma chave estável por item e use `renderItem` para compor os campos. Adição, remoção e reordenação podem ser operadas pelo teclado.                                              |
+| `FilePreview`        | Exibe imagens e texto. Passe `pdf={{ pageCount, renderPage }}` para usar um renderizador de PDF com controles de página e zoom. Use `renderers` para outros formatos e `FileManager.renderPreview` para integrar a prévia ao gerenciador. |
+| `VersionHistory`     | Recebe revisões em ordem de exibição, da mais recente para a mais antiga. Compare duas versões com o `DiffViewer` ou com `renderComparison`. Se habilitar `onRestore`, o consumidor recebe a revisão selecionada em Depois.               |
+| `ImageComparison`    | Exibe duas imagens alinhadas com um divisor que pode ser movido por mouse, toque e teclado. Forneça texto alternativo para cada imagem.                                                                                                   |
+| `DockLayout`         | Recebe um layout serializável de grupos de abas e divisões, além do registro com o conteúdo dos painéis. A aplicação pode persistir o layout retornado por `onLayoutChange`.                                                              |
+| `MediaPlayer`        | Reproduz fontes de áudio e vídeo com controles Nebular e suporte a faixas de legenda.                                                                                                                                                     |
+| `LocationPicker`     | Recebe e devolve latitude e longitude. `renderMap` permite incorporar o mapa do consumidor. `searchLocations` recebe o texto e um `AbortSignal` para cancelar buscas substituídas.                                                        |
 
 O `FilterBuilder` aceita grupos aninhados com `group`, `defaultGroup` ou `nested`. Cada grupo pode combinar condições com E ou OU. Use `onGroupChange` para persistir a árvore e `applyFilterBuilderGroup` para aplicá-la a dados locais. A API de regras planas continua disponível.
 
 ## Edição e visualização de conteúdo
 
-| Componente | Contrato principal |
-| --- | --- |
-| `PropertyGrid` | Agrupa descritores de campo por categoria e edita os valores com `value` ou `defaultValue`. Informe `readOnly` ou `defaultValue` no descritor para controlar edição e restauração. |
-| `TemplateEditor` | Edita texto com variáveis `{{caminho}}`. Informe `variables` para inserir tokens e mostrar os valores de exemplo. A prévia usa texto literal e indica as variáveis desconhecidas. |
-| `TimeSlotPicker` | Recebe horários com ID, início e fim em instantes absolutos. `value` é o ID selecionado e `onChange` recebe o horário original. `timeZone` controla a exibição e `onDayChange` devolve a data local em ISO. |
-| `FormDesigner` | Adiciona, remove e reordena campos. O histórico de edição pode ser mantido pelo consumidor com `value` e `onChange`. Use `toSchemaFormFields` para converter a definição serializável em campos de `SchemaForm`. |
+| Componente          | Contrato principal                                                                                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PropertyGrid`      | Agrupa descritores de campo por categoria e edita os valores com `value` ou `defaultValue`. Informe `readOnly` ou `defaultValue` no descritor para controlar edição e restauração.                                   |
+| `TemplateEditor`    | Edita texto com variáveis `{{caminho}}`. Informe `variables` para inserir tokens e mostrar os valores de exemplo. A prévia usa texto literal e indica as variáveis desconhecidas.                                    |
+| `TimeSlotPicker`    | Recebe horários com ID, início e fim em instantes absolutos. `value` é o ID selecionado e `onChange` recebe o horário original. `timeZone` controla a exibição e `onDayChange` devolve a data local em ISO.          |
+| `FormDesigner`      | Adiciona, remove e reordena campos. O histórico de edição pode ser mantido pelo consumidor com `value` e `onChange`. Use `toSchemaFormFields` para converter a definição serializável em campos de `SchemaForm`.     |
 | `DataMappingEditor` | Liga caminhos de origem e destino, ou atribui constantes de texto. Use `sample` para prévia e `applyDataMapping` para criar um objeto de destino com os vínculos configurados. Caminhos usam pontos entre segmentos. |
-| `TranscriptViewer` | Recebe trechos com tempos em segundos. `currentTime` destaca o trecho atual, e `onSeek` recebe o início selecionado. Use `MediaPlayer.mediaRef` e `onPlaybackTimeChange` para sincronizar o player. |
-| `ImageAnnotator` | Edita pontos e retângulos com comentários. Posições e dimensões são frações da imagem de 0 a 1. A lista e os campos de geometria permitem editar uma marcação por teclado. |
+| `TranscriptViewer`  | Recebe trechos com tempos em segundos. `currentTime` destaca o trecho atual, e `onSeek` recebe o início selecionado. Use `MediaPlayer.mediaRef` e `onPlaybackTimeChange` para sincronizar o player.                  |
+| `ImageAnnotator`    | Edita pontos e retângulos com comentários. Posições e dimensões são frações da imagem de 0 a 1. A lista e os campos de geometria permitem editar uma marcação por teclado.                                           |
 
 ## Tamanho, status, forma e aparência
 
@@ -1703,15 +1703,15 @@ Consulte as stories de cada componente para exemplos interativos e variações d
 
 ## Seleção, disponibilidade e regras
 
-| Componente | Contrato principal |
-| --- | --- |
-| `RecordPicker` | `searchRecords` recebe consulta, página e `signal` e devolve os registros e o total. Forneça identificadores estáveis com `getRecordId` para manter seleções ao trocar de página. `columns` configura a pesquisa detalhada. |
-| `AvailabilityEditor` | `value` descreve os horários semanais, as exceções por data e o fuso. `onChange` recebe o rascunho e os problemas encontrados, como sobreposições. |
-| `DecisionTableEditor` | `fields` e `outcomes` definem as colunas da tabela. `onChange` recebe as regras na ordem exibida. `evaluate` conecta um motor de regras da aplicação à simulação. |
-| `ChoiceCardGroup` | `options` descreve as escolhas. Em modo padrão, `value` é a chave escolhida. Com `multiple`, use uma lista de chaves. |
-| `IconPicker` | Escolhe um par `{ pack, name }` nos catálogos registrados no provedor. Use `packs` para limitar os catálogos e `fontIcons` para listar ícones de fontes. |
-| `OnboardingChecklist` | Recebe `tasks` e informa mudanças com `onTaskStatusChange`. Cada tarefa pode ter um link, uma ação ou um `Tour`. A aplicação pode persistir o progresso. |
-| `TraceWaterfall` | Recebe `spans` com identificador, relação de pai, horário inicial e duração em milissegundos. `renderDetails` permite adicionar os detalhes que a aplicação disponibiliza. |
+| Componente            | Contrato principal                                                                                                                                                                                                          |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecordPicker`        | `searchRecords` recebe consulta, página e `signal` e devolve os registros e o total. Forneça identificadores estáveis com `getRecordId` para manter seleções ao trocar de página. `columns` configura a pesquisa detalhada. |
+| `AvailabilityEditor`  | `value` descreve os horários semanais, as exceções por data e o fuso. `onChange` recebe o rascunho e os problemas encontrados, como sobreposições.                                                                          |
+| `DecisionTableEditor` | `fields` e `outcomes` definem as colunas da tabela. `onChange` recebe as regras na ordem exibida. `evaluate` conecta um motor de regras da aplicação à simulação.                                                           |
+| `ChoiceCardGroup`     | `options` descreve as escolhas. Em modo padrão, `value` é a chave escolhida. Com `multiple`, use uma lista de chaves.                                                                                                       |
+| `IconPicker`          | Escolhe um par `{ pack, name }` nos catálogos registrados no provedor. Use `packs` para limitar os catálogos e `fontIcons` para listar ícones de fontes.                                                                    |
+| `OnboardingChecklist` | Recebe `tasks` e informa mudanças com `onTaskStatusChange`. Cada tarefa pode ter um link, uma ação ou um `Tour`. A aplicação pode persistir o progresso.                                                                    |
+| `TraceWaterfall`      | Recebe `spans` com identificador, relação de pai, horário inicial e duração em milissegundos. `renderDetails` permite adicionar os detalhes que a aplicação disponibiliza.                                                  |
 
 ### Edição em lote no DataGrid
 
@@ -1828,10 +1828,19 @@ const apps = [
   taskbarPosition="bottom"
   systemTray={<NotificationButton />}
   defaultWindows={[
-    { id: 'welcome', appId: 'notes', x: 80, y: 64, width: 520, height: 340,
-      minimized: false, maximized: false, zIndex: 1 }
+    {
+      id: 'welcome',
+      appId: 'notes',
+      x: 80,
+      y: 64,
+      width: 520,
+      height: 340,
+      minimized: false,
+      maximized: false,
+      zIndex: 1
+    }
   ]}
-/>
+/>;
 ```
 
 - `apps` alimenta o menu **Iniciar** e o taskbar; cada app abre uma ou mais janelas.
@@ -1875,7 +1884,7 @@ const apps = [
         footer: <WindowStatusBar items={statusItems} />
       }
     ]}
-  />;
+  />
   ```
 - A janela é rolável no body e o desktop preenche o container; `fullscreen` fixa em
   `inset: 0` para uso como modo de exibição da aplicação.
@@ -1992,6 +2001,14 @@ const apps = [
   (SignalR/WebSocket) e `isCollaboratorStale` apoia a poda de presenças.
 - `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
   pode ser definido por app/janela.
+- `appRegistry` mescla manifestos visíveis aos `apps`; `deepLink` abre `app://...` uma vez e
+  `useDesktop()` expõe `openDeepLink`/`resolveDeepLink`. O link fica em
+  `window.state.deepLink` (`{ path, query }`) e `onDeepLink` recebe o link e o id da janela.
+- `createRestLayoutTransport` cobre APIs com revisão: endpoints/headers/query/body/parsers
+  configuráveis, `DesktopLayoutRequestError` tipado e detecção de conflito 409/412.
+  `getDesktopDeviceId` aceita `storage`, `getStorage`, `generate` e `fallback` (SSR/nativo).
+- `createWebSocketCollaboration` aceita `codec` (`encode`/`decode`) para MessagePack, base64,
+  SignalR ou qualquer protocolo próprio, mantendo o contrato de presença/layout.
 - `widgets` renderiza `DesktopWidgets` (painel flutuante colapsável) e `calendar` transforma
   o relógio da taskbar em botão que abre `DesktopCalendarFlyout`.
 - `iconSelection` (padrão `true`) habilita seleção de ícones do wallpaper por
@@ -2071,7 +2088,7 @@ const adapter = useMemo(
   onSave={() => saveNow()}
   saving={saving}
   saved={saved}
-/>
+/>;
 ```
 
 - `scope`/`defaultScope`: `device` ou `shared`.
@@ -2122,7 +2139,7 @@ const transport = useMemo(() => createDirectoryLayoutTransport({ deviceId, tenan
   deviceId={deviceId}
   onLoaded={setSnapshot}
   onApplySnapshot={setSnapshot}
-/>
+/>;
 ```
 
 - `useDesktopLayoutPreferences` expõe `status`, `revision`, `conflict`, `remoteSnapshot`,
@@ -2243,6 +2260,9 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   input/drag-and-drop e preview de imagem, texto, áudio, vídeo e PDF (com `noPreview`
   quando o tipo não é suportado).
 - Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
+- O provider REST (`createRestFileSystemProvider`) aceita `routes`, `query`, `parseList`,
+  `parseEntry`, `parseUpload` e `mapError`; endpoints de lixeira (`trash`, `restore`,
+  `trashList`, `emptyTrash`) só são habilitados quando a rota correspondente é informada.
 - Se o provider implementar `trash`, excluir move para a lixeira e mostra uma barra com
   **Undo** (`undoTimeoutMs`, padrão 8s); `restore` desfaz, e `listTrash`/`emptyTrash`
   habilitam o painel de lixeira com restauração e esvaziamento. Sem `trash`, `remove`

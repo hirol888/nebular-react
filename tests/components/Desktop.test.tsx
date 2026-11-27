@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
   Desktop,
+  createDesktopAppRegistry,
   createMemoryLayoutAdapter,
   createVersionedLayoutAdapter,
   serializeDesktopLayout,
@@ -83,6 +84,14 @@ function mockDesktopArea(container: HTMLElement): HTMLElement {
   });
 
   return area;
+}
+
+function DeepLinkContent() {
+  const { window } = useDesktopWindow();
+  const state = window.state as
+    { deepLink?: { path: string; query: Record<string, string> } } | undefined;
+
+  return <p>{state?.deepLink?.path ?? 'no deep link'}</p>;
 }
 
 describe('Desktop', () => {
@@ -1381,6 +1390,31 @@ describe('Desktop', () => {
 
     expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
     expect(onIconOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'notes-shortcut' }));
+  });
+
+  it('opens a deep link registered in the app registry', async () => {
+    const onDeepLink = jest.fn();
+    const registry = createDesktopAppRegistry([
+      { id: 'notes', title: 'Notes', content: <DeepLinkContent /> }
+    ]);
+
+    render(
+      <Desktop
+        appRegistry={registry}
+        deepLink="app://notes/reports/2026?id=42"
+        onDeepLink={onDeepLink}
+      />
+    );
+
+    expect(await screen.findByText('reports/2026')).toBeInTheDocument();
+    expect(onDeepLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        appId: 'notes',
+        path: 'reports/2026',
+        query: { id: '42' }
+      }),
+      expect.any(String)
+    );
   });
 
   it('selects wallpaper icons with Ctrl+click and clears with Escape', async () => {

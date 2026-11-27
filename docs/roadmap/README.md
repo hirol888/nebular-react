@@ -165,11 +165,16 @@
   status online/offline e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST,
   navegação, views, copiar/cortar/colar, abas, drag para pasta (inclusive entre panes), fila
   de upload, permissões, paginação, virtualização, preview de mídia e lixeira/restore/undo.
-- **Testes**: 3.321 testes em 272 suítes, incluindo interação, teclado,
+- **Integrações genéricas**: app registry com deep links (`app://`), `createRestLayoutTransport`
+  com query/body/parsers configuráveis, `getDesktopDeviceId` com storage/generator
+  injetáveis, codec próprio na colaboração WebSocket e provider REST do FileExplorer com
+  rotas/query/parsers customizáveis. Nada no núcleo depende do AllApp ou de um backend
+  específico.
+- **Testes**: 3.330 testes em 273 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
   DataGrid, novos componentes, `jest-axe` e Playwright para ponteiro real, múltiplas janelas,
-  snap, modo compacto e regressão visual opcional. A cobertura é de 90,73% de instruções,
-  80,38% de branches, 91,08% de funções e 90,67% de linhas, com limites mínimos no CI.
+  snap, modo compacto e regressão visual opcional. A cobertura é de 90,69% de instruções,
+  80,33% de branches, 91,06% de funções e 90,64% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

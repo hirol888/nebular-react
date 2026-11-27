@@ -66,3 +66,8 @@ Também entram widgets (`DesktopWidgets`), flyout de calendário no relógio
 (`renderTaskbarPreview`), PWA (`useInstallPrompt`, `registerDesktopServiceWorker`) e suporte
 a Playwright para testes de ponteiro, múltiplas janelas e regressão visual. O FileExplorer
 ganha lixeira com `trash`/`restore`/`listTrash`/`emptyTrash`, undo e painel de restauração.
+
+A camada de integração ficou agnóstica de backend: `appRegistry`/`deepLink`/`openDeepLink`,
+`createRestLayoutTransport` (query, body, parsers e erros de conflito configuráveis),
+`getDesktopDeviceId` com storage/generator injetáveis, codec customizável na colaboração
+WebSocket e provider REST do FileExplorer com rotas, query e parsers próprios.

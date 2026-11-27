@@ -635,6 +635,56 @@ describe('FileExplorer', () => {
     );
   });
 
+  it('supports custom REST routes, query params and transformers', async () => {
+    const jsonResponse = (body: unknown) => ({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify(body)
+    });
+    const fetchMock = jest.fn().mockImplementation((url: string) => {
+      if (url.includes('/bin')) {
+        return Promise.resolve(jsonResponse({ data: { items: [] } }));
+      }
+
+      return Promise.resolve(
+        jsonResponse({ data: { items: [{ id: 'remote', name: 'remote.txt' }] } })
+      );
+    });
+    const provider = createRestFileSystemProvider({
+      endpoint: 'https://api.example.test/files',
+      fetch: fetchMock as unknown as typeof fetch,
+      routes: { list: '/list', trash: '/bin', restore: '/restore', trashList: '/bin' },
+      query: { tenant: 'acme' },
+      parseList: (payload) => ({
+        entries: (payload as { data: { items: { id: string; name: string }[] } }).data.items.map(
+          (item) => ({
+            id: item.id,
+            name: item.name,
+            path: `/${item.name}`,
+            type: 'file'
+          })
+        )
+      }),
+      mapEntry: (entry) => ({
+        ...(entry as FileEntry),
+        path: `/mapped${(entry as FileEntry).path}`
+      })
+    });
+
+    const entries = await provider.list('/');
+
+    expect(entries).toEqual([
+      expect.objectContaining({ name: 'remote.txt', path: '/mapped/remote.txt' })
+    ]);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://api.example.test/files/list?path=%2F&tenant=acme'
+    );
+
+    await provider.trash?.(['/remote.txt']);
+    expect(fetchMock.mock.calls[1][0]).toBe('https://api.example.test/files/bin');
+    await expect(provider.listTrash?.()).resolves.toEqual([]);
+  });
+
   it('maps paginated REST responses and forwards page options', async () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,

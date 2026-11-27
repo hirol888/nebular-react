@@ -2,6 +2,7 @@ import React from 'react';
 import { DefaultProps } from '@nebular-react/styles';
 import type { DesktopWidget } from '../DesktopWidgets';
 import type { DesktopTaskbarGroup } from './DesktopTaskbar';
+import type { DesktopAppRegistry, DesktopDeepLink } from './Desktop.apps';
 import type { CommandPaletteAction } from '../CommandPalette';
 import type { NotificationItem } from '../NotificationCenter';
 import type { DesktopStylesNames } from './Desktop.styles';
@@ -326,6 +327,10 @@ export interface DesktopContextValue {
   setWindowState(id: string, state: unknown): void;
   openFile(file: DesktopFileReference): string | undefined;
   reopenClosedWindow(): void;
+  /** Resolves and opens a deep link registered in the app registry. */
+  openDeepLink(url: string): string | undefined;
+  /** Resolves a deep link without opening a window. */
+  resolveDeepLink(url: string): DesktopDeepLink | null;
 }
 
 export interface DesktopProps
@@ -333,6 +338,11 @@ export interface DesktopProps
     DefaultProps<DesktopStylesNames>,
     Omit<React.ComponentPropsWithoutRef<'div'>, 'onChange'> {
   apps?: DesktopApp[];
+  /** Optional registry; its visible manifests are merged into `apps`. */
+  appRegistry?: DesktopAppRegistry;
+  /** Deep link opened once on mount/when it changes (e.g. `app://notes/reports/2026?id=1`). */
+  deepLink?: string;
+  onDeepLink?(link: DesktopDeepLink, windowId: string): void;
   windows?: DesktopWindowState[];
   defaultWindows?: DesktopWindowState[];
   onWindowsChange?(windows: DesktopWindowState[]): void;
