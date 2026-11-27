@@ -85,3 +85,7 @@ protocolos dinâmicos no WebSocket. Também entra um log de operações com cont
 (`applyDesktopLayoutOperation`/`replayDesktopLayoutOperations`) como base para OT/CRDT.
 `createRestLayoutAdapter` foi marcado como deprecated em favor de
 `createRestLayoutTransport`.
+
+Adiciona o subpath `@nebular-react/core/client` com `'use client'` para consumidores do
+Next.js App Router e um workflow de Playwright no GitHub Actions Linux, com job manual para
+gerar o baseline visual Linux.
