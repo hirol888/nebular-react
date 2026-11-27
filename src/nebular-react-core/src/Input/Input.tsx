@@ -5,9 +5,9 @@ import {
   ComponentSize,
   DefaultProps,
   Selectors,
-  useComponentDefaultProps
+  useComponentDefaultProps,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import { useFocusWithin, useMergedRef } from '@nebular-react/hooks';
 import useStyles, { InputStylesParams } from './Input.style';
 import { FormField } from '../Shared';
@@ -26,8 +26,7 @@ export interface BaseInputProps extends Omit<React.ComponentPropsWithoutRef<'inp
 }
 
 export interface InputProps
-  extends DefaultProps<InputStylesNames, InputStylesParams>,
-    BaseInputProps {}
+  extends DefaultProps<InputStylesNames, InputStylesParams>, BaseInputProps {}
 
 const defaultProps: Partial<InputProps> = {
   size: 'medium',
@@ -87,6 +86,6 @@ const _Input = forwardRef<HTMLInputElement, InputProps & { component: any }>((pr
   );
 });
 
-_Input.displayName = '@nebular-react/core/Input';
+_Input.displayName = 'Input';
 
 export const Input = createPolymorphicComponent<'input', InputProps>(_Input);

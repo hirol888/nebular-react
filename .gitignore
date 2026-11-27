@@ -24,8 +24,10 @@ lerna-debug.log*
 
 # build
 lib/
+lib-cjs/
 cjs/
 esm/
+coverage/
 docs/.docgen/
 
 # typescript
@@ -33,10 +35,15 @@ docs/.docgen/
 
 # project
 .eslintcache
+.cache/
 docs/.cache
 docs/public
 storybook-static
 .next
+playwright-report/
+test-results/
+e2e/**/*-actual.png
+e2e/**/*-diff.png
 docs/src/components/Test.tsx
 ____*.internal.ts
 ____*.internal.tsx

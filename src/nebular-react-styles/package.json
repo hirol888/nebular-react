@@ -1,15 +1,67 @@
 {
   "name": "@nebular-react/styles",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "icon-packs": ["lib/theme/icon-packs/eva.d.ts"]
+    }
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./lib-cjs/index.d.cts",
+        "default": "./cjs/index.js"
+      },
+      "default": "./cjs/index.js"
+    },
+    "./icon-packs": {
+      "nebular-light": {
+        "import": {
+          "types": "./lib/theme/icon-packs/essentials.d.ts",
+          "default": "./esm/theme/icon-packs/essentials.js"
+        },
+        "require": {
+          "types": "./lib-cjs/theme/icon-packs/essentials.d.cts",
+          "default": "./cjs/theme/icon-packs/essentials.js"
+        },
+        "default": "./cjs/theme/icon-packs/essentials.js"
+      },
+      "import": {
+        "types": "./lib/theme/icon-packs/eva.d.ts",
+        "default": "./esm/theme/icon-packs/eva.js"
+      },
+      "require": {
+        "types": "./lib-cjs/theme/icon-packs/eva.d.cts",
+        "default": "./cjs/theme/icon-packs/eva.js"
+      },
+      "default": "./cjs/theme/icon-packs/eva.js"
+    },
+    "./lib/*": "./lib/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cjs",
+    "esm",
+    "lib",
+    "lib-cjs"
+  ],
   "license": "MIT",
   "author": "Huining Li <hiro.l.dragon@gmail.com>",
   "sideEffects": false,
   "homepage": "https://github.com/hirol888/nebular-react",
   "repository": {
-    "url": "https://github.com/hirol888/nebular-react.git",
+    "url": "git+https://github.com/hirol888/nebular-react.git",
     "type": "git",
     "directory": "src/nebular-react-styles"
   },
@@ -25,16 +77,21 @@
     "styling"
   ],
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0",
-    "@emotion/react": ">=11.9.0"
+    "react": ">=19.2.0",
+    "react-dom": ">=19.2.0",
+    "@emotion/react": ">=11.14.0"
   },
   "dependencies": {
-    "@mantine/utils": "^6.0.1",
-    "@mantine/hooks": "^6.0.1",
-    "clsx": "1.1.1",
-    "csstype": "3.0.9",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/serialize": "^1.3.3",
+    "@emotion/utils": "^1.4.2",
+    "clsx": "2.1.1",
+    "csstype": "3.2.4",
     "eva-icons": "^1.1.3"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

@@ -1,5 +1,10 @@
 import React, { forwardRef } from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  useNebularLocale
+} from '@nebular-react/styles';
 import { Button } from '../../../Button';
 import useStyles from './CalendarActions.style';
 import { BaseCalendarActionsProps } from './types';
@@ -7,8 +12,7 @@ import { BaseCalendarActionsProps } from './types';
 export type CalendarActionsStylesNames = Selectors<typeof useStyles>;
 
 export interface CalendarActionsProps
-  extends DefaultProps<CalendarActionsStylesNames>,
-    BaseCalendarActionsProps {
+  extends DefaultProps<CalendarActionsStylesNames>, BaseCalendarActionsProps {
   setCurrentTime?: () => void;
   saveValue?: () => void;
 }
@@ -26,6 +30,7 @@ const defaultProps: Partial<CalendarActionsProps> = {
 };
 
 const CalendarActions = forwardRef<HTMLDivElement, CalendarActionsProps>((props, ref) => {
+  const { t } = useNebularLocale();
   const {
     showCurrentTimeButton,
     applyButtonText,
@@ -42,7 +47,14 @@ const CalendarActions = forwardRef<HTMLDivElement, CalendarActionsProps>((props,
     styles,
     unstyled,
     ...others
-  } = useComponentDefaultProps(defaultProps, props);
+  } = useComponentDefaultProps(
+    {
+      ...defaultProps,
+      applyButtonText: t('calendar.ok', 'ok'),
+      currentTimeButtonText: t('calendar.now', 'now')
+    },
+    props
+  );
   const { classes, cx } = useStyles(null, {
     name: 'calendar-actions',
     classNames,
@@ -51,7 +63,7 @@ const CalendarActions = forwardRef<HTMLDivElement, CalendarActionsProps>((props,
   });
 
   return (
-    <div className={cx(classes.root)} ref={ref} {...others}>
+    <div {...others} className={cx(classes.root)} ref={ref}>
       {showCurrentTimeButton && (
         <Button
           appearance={currentTimeButtonAppearance}
@@ -75,6 +87,6 @@ const CalendarActions = forwardRef<HTMLDivElement, CalendarActionsProps>((props,
   );
 });
 
-CalendarActions.displayName = '@nebular-react/core/CalendarActions';
+CalendarActions.displayName = 'CalendarActions';
 
 export { CalendarActions };

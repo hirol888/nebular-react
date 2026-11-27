@@ -1,14 +1,12 @@
 import React, { Children, forwardRef, isValidElement } from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import { StepHeader } from './StepHeader';
 import useStyles from './Stepper.style';
 
 export type StepStylesNames = Selectors<typeof useStyles>;
 
 export interface StepProps
-  extends DefaultProps<StepStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<StepStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   hidden?: boolean;
   children?: React.ReactNode;
 }
@@ -28,6 +26,6 @@ const _Step = forwardRef<HTMLDivElement, StepProps>((props, ref) => {
   );
 });
 
-_Step.displayName = '@nebular-react/core/Step';
+_Step.displayName = 'Step';
 
 export const Step = createPolymorphicComponent<'div', StepProps>(_Step);

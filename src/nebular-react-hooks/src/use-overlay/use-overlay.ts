@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { throttle } from 'lodash';
+import React, { useMemo, useRef } from 'react';
+import throttle from 'lodash/throttle.js';
 import { useIsomorphicEffect } from '@mantine/hooks';
 import { coerceArray, coerceCssPixelValue } from '../utils';
 import {
@@ -11,8 +11,8 @@ import { ScrollStrategy } from './get-scroll-styles/types';
 
 export interface OverlayConfig {
   apply?: () => void;
-  paneRef: React.MutableRefObject<HTMLElement>;
-  paneWrapperRef: React.MutableRefObject<HTMLElement>;
+  paneRef: React.RefObject<HTMLElement | null>;
+  paneWrapperRef: React.RefObject<HTMLElement | null>;
   opened: boolean;
   panelClass?: string;
   scrollStrategy?: ScrollStrategy;
@@ -29,7 +29,7 @@ export interface OverlayConfig {
 }
 
 export function useOverlay(config: OverlayConfig): {
-  backdropElementRef: React.MutableRefObject<HTMLDivElement>;
+  backdropElementRef: React.RefObject<HTMLDivElement | null>;
   enableBlockStrategy: () => void;
   disableBlockStrategy: () => void;
 } {
@@ -58,6 +58,8 @@ export function useOverlay(config: OverlayConfig): {
   });
   const backdropElementRef = useRef<HTMLDivElement>(null);
   const _scrollDispatchers = getScrollDispatchers(scrollDispatchers);
+  const shouldReposition = scrollStrategy === 'reposition' || scrollStrategy === 'repositon';
+  const throttledApplyStyles = useMemo(() => throttle(() => apply?.(), 30), [apply]);
 
   useIsomorphicEffect(() => {
     if (paneWrapperRef.current && paneRef.current && opened) {
@@ -73,7 +75,7 @@ export function useOverlay(config: OverlayConfig): {
         enableScrollStyles(scrollStylesState);
       }
 
-      if (scrollStrategy === 'repositon') {
+      if (shouldReposition) {
         _scrollDispatchers.forEach((dispatcher) =>
           dispatcher.addEventListener('scroll', throttledApplyStyles)
         );
@@ -109,18 +111,18 @@ export function useOverlay(config: OverlayConfig): {
         disableScrollStyles(scrollStylesState);
       }
 
-      if (scrollStrategy === 'repositon') {
+      if (shouldReposition) {
         _scrollDispatchers.forEach((dispatcher) =>
           dispatcher?.removeEventListener('scroll', throttledApplyStyles)
         );
       }
 
+      throttledApplyStyles.cancel();
+
       //keyboardDispatcher
       //outsideClickDispatcher
     };
-  }, [paneWrapperRef.current, paneRef.current, opened]);
-
-  const throttledApplyStyles = throttle(apply, 30);
+  }, [paneWrapperRef.current, paneRef.current, opened, shouldReposition, throttledApplyStyles]);
 
   const enableBlockStrategy = () => enableScrollStyles(scrollStylesState);
   const disableBlockStrategy = () => disableScrollStyles(scrollStylesState);
@@ -172,7 +174,7 @@ function toggleClasses(element: HTMLElement, cssClasses: string | string[], isAd
 
 /** Attaches a backdrop for this overlay. */
 function attachBackdrop(
-  paneWrapperRef: React.MutableRefObject<HTMLElement>,
+  paneWrapperRef: React.RefObject<HTMLElement | null>,
   backdropClickHandler?: (event: MouseEvent) => void,
   backdropClass?: string
 ): HTMLDivElement {
@@ -211,7 +213,7 @@ function attachBackdrop(
 
 /** Detaches the backdrop (if any) associated with the overlay. */
 function detachBackdrop(
-  backdropElementRef: React.MutableRefObject<HTMLDivElement>,
+  backdropElementRef: React.RefObject<HTMLDivElement | null>,
   backdropClickHandler?: (event: MouseEvent) => void,
   backdropClass?: string
 ): void {
@@ -221,12 +223,13 @@ function detachBackdrop(
     return;
   }
 
-  // eslint-disable-next-line prefer-const
   let timeoutId: ReturnType<typeof setTimeout>;
   const finishDetach = () => {
     // It may not be attached to anything in certain cases (e.g. unit tests).
     if (backdropToDetach) {
-      backdropToDetach.removeEventListener('click', backdropClickHandler);
+      if (typeof backdropClickHandler === 'function') {
+        backdropToDetach.removeEventListener('click', backdropClickHandler);
+      }
       backdropToDetach.removeEventListener('transitionend', finishDetach);
       backdropToDetach.remove();
       backdropElementRef.current = null;
@@ -256,15 +259,22 @@ function detachBackdrop(
 function getScrollDispatchers(
   scrollDispatchers: (HTMLElement | string)[]
 ): ((Window & typeof globalThis) | HTMLElement)[] {
-  let _scrollDispatchers: ((Window & typeof globalThis) | HTMLElement)[] = [window];
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return [];
+  }
+
+  const dispatchers: ((Window & typeof globalThis) | HTMLElement)[] = [window];
 
   scrollDispatchers.forEach((dispatcher) => {
     const _dispatcher =
       typeof dispatcher === 'string'
-        ? (document.querySelector(dispatcher) as HTMLElement)
+        ? (document.querySelector(dispatcher) as HTMLElement | null)
         : dispatcher;
-    _scrollDispatchers = [..._scrollDispatchers, _dispatcher];
+
+    if (_dispatcher) {
+      dispatchers.push(_dispatcher);
+    }
   });
 
-  return _scrollDispatchers;
+  return dispatchers;
 }

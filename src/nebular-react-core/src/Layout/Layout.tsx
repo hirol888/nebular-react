@@ -3,15 +3,16 @@ import {
   changeDimensions,
   changeScrollPosition,
   DefaultProps,
+  Direction,
   LayoutDimensions,
   NebularProviderContext,
   ScrollPosition,
   Selectors,
   useComponentDefaultProps,
-  useNebularDir
+  useNebularDir,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { mergeRefs, usePlatform } from '@nebular-react/hooks';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { getPlatform, mergeRefs } from '@nebular-react/hooks';
 import useStyles from './Layout.style';
 import { LayoutHeader } from './LayoutHeader/LayoutHeader';
 import { LayoutFooter } from './LayoutFooter/LayoutFooter';
@@ -22,8 +23,7 @@ const scrollBlockClass = 'global-scrollblock';
 export type LayoutStylesNames = Selectors<typeof useStyles>;
 
 export interface LayoutProps
-  extends DefaultProps<LayoutStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<LayoutStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   windowMode?: boolean;
   withScroll?: boolean;
   center?: boolean;
@@ -69,13 +69,20 @@ const _Layout = React.forwardRef<HTMLDivElement, LayoutProps>((props: LayoutProp
   const layoutContainerRef = useRef<HTMLDivElement>(null);
 
   const { scrollable } = useContext(NebularProviderContext);
+  const dir = useNebularDir();
+
+  useEffect(() => {
+    if (restoreScrollTop) {
+      scrollableContainerRef.current?.scrollTo({ top: 0, left: 0 });
+    }
+  }, [restoreScrollTop]);
 
   useEffect(() => {
     if (scrollableContainerRef.current) {
       changeDimensions(getDimensions(scrollableContainerRef.current, withScroll));
       changeScrollPosition(getScrollPosition(scrollableContainerRef.current, withScroll));
     }
-  }, [scrollableContainerRef.current]);
+  }, [withScroll]);
 
   useEffect(() => {
     if (withScroll) {
@@ -93,11 +100,12 @@ const _Layout = React.forwardRef<HTMLDivElement, LayoutProps>((props: LayoutProp
           layoutContainerRef,
           scrollableContainerOverflowPrevValue,
           scrollableContainerRef,
-          layoutPaddingPrevValue
+          layoutPaddingPrevValue,
+          dir
         );
       }
     }
-  }, [scrollable]);
+  }, [scrollable, withScroll, dir]);
 
   useEffect(() => {
     if (withScroll) {
@@ -127,7 +135,11 @@ const _Layout = React.forwardRef<HTMLDivElement, LayoutProps>((props: LayoutProp
           {header && <>{header}</>}
           <div className={cx(classes.layoutContainer)}>
             {sidebars && <>{sidebars}</>}
-            <div className={cx(classes.content)}>
+            <div
+              className={cx(classes.content, {
+                [classes.contentCenter]: center
+              })}
+            >
               {subheader && <>{subheader}</>}
               <div className={cx(classes.columns)}>{columns && <>{columns}</>}</div>
               {footer}
@@ -166,7 +178,7 @@ function getDimensions(container: HTMLDivElement, withScroll: boolean): LayoutDi
 }
 
 function getScrollPosition(container: HTMLDivElement, withScroll: boolean): ScrollPosition {
-  const { isBrowser } = usePlatform();
+  const { isBrowser } = getPlatform();
   if (!isBrowser) {
     return { x: 0, y: 0 };
   }
@@ -196,9 +208,9 @@ function getScrollPosition(container: HTMLDivElement, withScroll: boolean): Scro
 
 function enableScroll(
   isScrollBlocked: React.MutableRefObject<boolean>,
-  layoutRef: React.MutableRefObject<HTMLDivElement>,
+  layoutRef: React.RefObject<HTMLDivElement | null>,
   scrollableContainerOverflowPrevValue: React.MutableRefObject<string>,
-  scrollableContainerRef: React.MutableRefObject<HTMLDivElement>,
+  scrollableContainerRef: React.RefObject<HTMLDivElement | null>,
   layoutPaddingPrevValue: React.MutableRefObject<{ left: string; right: string } | null>
 ) {
   if (isScrollBlocked.current) {
@@ -221,10 +233,11 @@ function enableScroll(
 
 function blockScroll(
   isScrollBlocked: React.MutableRefObject<boolean>,
-  layoutContainerRef: React.MutableRefObject<HTMLDivElement>,
+  layoutContainerRef: React.RefObject<HTMLDivElement | null>,
   scrollableContainerOverflowPrevValue: React.MutableRefObject<string>,
-  scrollableContainerRef: React.MutableRefObject<HTMLDivElement>,
-  layoutPaddingPrevValue: React.MutableRefObject<{ left: string; right: string } | null>
+  scrollableContainerRef: React.RefObject<HTMLDivElement | null>,
+  layoutPaddingPrevValue: React.MutableRefObject<{ left: string; right: string } | null>,
+  dir: Direction
 ) {
   if (isScrollBlocked.current) {
     return;
@@ -252,8 +265,6 @@ function blockScroll(
     right: layoutContainerRef.current?.style.paddingRight ?? ''
   };
 
-  const dir = useNebularDir();
-
   if (layoutContainerRef.current) {
     if (dir === 'ltr') {
       layoutContainerRef.current.style.paddingRight = `${scrollWidth}px`;
@@ -263,7 +274,7 @@ function blockScroll(
   }
 }
 
-_Layout.displayName = '@nebular-react/core/Layout';
+_Layout.displayName = 'Layout';
 _Layout.Header = LayoutHeader;
 _Layout.Footer = LayoutFooter;
 _Layout.Column = LayoutColumn;

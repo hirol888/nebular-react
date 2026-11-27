@@ -7,7 +7,9 @@
     "./scripts",
     "./configuration",
     "./configuration/types",
-    "./tests"
+    "./tests",
+    "./e2e",
+    "./playwright.config.ts"
   ],
   "exclude": [
     "public",
@@ -17,11 +19,13 @@
     "node_modules",
     "src/nebular-react-*/esm/**/*",
     "src/nebular-react-*/lib/**/*",
+    "src/nebular-react-*/lib-cjs/**/*",
     "src/nebular-react-*/cjs/**/*"
   ],
   "compilerOptions": {
+    "types": ["node", "jest", "@testing-library/jest-dom", "jest-axe"],
     "paths": {
-      "@nebular-react/*": ["src/nebular-react-*/src"]
+      "@nebular-react/*": ["./src/nebular-react-*/src"]
     }
   }
 }

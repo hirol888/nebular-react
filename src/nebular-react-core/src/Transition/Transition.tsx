@@ -22,7 +22,7 @@ export function Transition({
   exitDuration = duration,
   mounted,
   children,
-  timingFunction,
+  timingFunction = 'ease',
   onExit,
   onEnter,
   onExited,

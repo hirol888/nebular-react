@@ -1,4 +1,4 @@
-import { usePlatform } from '../../use-platform/use-platform';
+import { getPlatform } from '../../use-platform/use-platform';
 
 /**
  * Gets whether an element is disabled.
@@ -32,7 +32,7 @@ export function isVisible(element: HTMLElement): boolean {
  * @returns Whether the element is tabbable.
  */
 export function isTabbable(element: HTMLElement): boolean {
-  const { isBrowser, WEBKIT, IOS, FIREFOX } = usePlatform();
+  const { isBrowser, WEBKIT, IOS, FIREFOX } = getPlatform();
 
   // Nothing is tabbable on the server 😎
   if (!isBrowser) {

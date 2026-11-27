@@ -12,6 +12,7 @@ export default createStyles((theme) => ({
       textAlign: 'center',
       border: '1px solid var(--chat-message-file-text-color)',
       width: '10rem',
+      maxWidth: '100%',
       height: '10rem',
       overflow: 'hidden',
       display: 'flex',

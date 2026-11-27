@@ -23,25 +23,27 @@ function useMeasure<E extends Element = Element>(): UseMeasureResult<E> {
   const [element, ref] = useState<E | null>(null);
   const [rect, setRect] = useState<UseMeasureRect>(defaultState);
 
-  const observer = useMemo(
-    () =>
-      new (window as any).ResizeObserver((entries) => {
-        if (entries[0]) {
-          const { x, y, width, height, top, left, bottom, right } =
-            entries[0].target.getBoundingClientRect();
-          setRect({ x, y, width, height, top, left, bottom, right });
-        }
-      }),
-    []
-  );
+  const observer = useMemo(() => {
+    if (typeof window === 'undefined' || typeof window.ResizeObserver === 'undefined') {
+      return null;
+    }
+
+    return new (window as any).ResizeObserver((entries) => {
+      if (entries[0]) {
+        const { x, y, width, height, top, left, bottom, right } =
+          entries[0].target.getBoundingClientRect();
+        setRect({ x, y, width, height, top, left, bottom, right });
+      }
+    });
+  }, []);
 
   useIsomorphicEffect(() => {
-    if (!element) return;
+    if (!element || !observer) return undefined;
     observer.observe(element);
     return () => {
       observer.disconnect();
     };
-  }, [element]);
+  }, [element, observer]);
 
   return [ref, rect];
 }
@@ -49,25 +51,27 @@ function useMeasure<E extends Element = Element>(): UseMeasureResult<E> {
 export function useMeasureElement<E extends Element = Element>(element?: E) {
   const [rect, setRect] = useState<UseMeasureRect>(defaultState);
 
-  const observer = useMemo(
-    () =>
-      new (window as any).ResizeObserver((entries) => {
-        if (entries[0]) {
-          const { x, y, width, height, top, left, bottom, right } =
-            entries[0].target.getBoundingClientRect();
-          setRect({ x, y, width, height, top, left, bottom, right });
-        }
-      }),
-    []
-  );
+  const observer = useMemo(() => {
+    if (typeof window === 'undefined' || typeof window.ResizeObserver === 'undefined') {
+      return null;
+    }
+
+    return new (window as any).ResizeObserver((entries) => {
+      if (entries[0]) {
+        const { x, y, width, height, top, left, bottom, right } =
+          entries[0].target.getBoundingClientRect();
+        setRect({ x, y, width, height, top, left, bottom, right });
+      }
+    });
+  }, []);
 
   useIsomorphicEffect(() => {
-    if (!element) return;
+    if (!element || !observer) return undefined;
     observer.observe(element);
     return () => {
       observer.disconnect();
     };
-  }, [element]);
+  }, [element, observer]);
 
   return rect;
 }

@@ -10,10 +10,12 @@ import useStyles from './CalendarNavigation.style';
 
 export type CalendarViewModeStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarViewModeProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarViewModeStylesNames> {
+export interface CalendarViewModeProps<
+  TDate extends Date | Moment = Date
+> extends DefaultProps<CalendarViewModeStylesNames> {
   date?: TDate;
   viewMode?: CalendarViewModeType;
+  locale?: string;
   onChangeMode?: () => void;
 }
 
@@ -22,11 +24,20 @@ const defaultProps: Partial<CalendarViewModeProps> = {
 };
 
 function CalendarViewMode<TDate extends Date | Moment = Date>(props: CalendarViewModeProps<TDate>) {
-  const { date, viewMode, onChangeMode, className, classNames, styles, unstyled, ...others } =
-    useComponentDefaultProps<CalendarViewModeProps<TDate>>(
-      defaultProps as CalendarViewModeProps<TDate>,
-      props
-    );
+  const {
+    date,
+    viewMode,
+    locale,
+    onChangeMode,
+    className,
+    classNames,
+    styles,
+    unstyled,
+    ...others
+  } = useComponentDefaultProps<CalendarViewModeProps<TDate>>(
+    defaultProps as CalendarViewModeProps<TDate>,
+    props
+  );
   const { classes, cx } = useStyles(null, {
     name: 'calendar-view-mode',
     classNames,
@@ -34,10 +45,10 @@ function CalendarViewMode<TDate extends Date | Moment = Date>(props: CalendarVie
     unstyled
   });
 
-  const { locale } = useCalendarPickerContext<TDate>();
-
-  const dateFns = useDateFns<TDate>(locale);
-  const calendarFns = useCalendar<TDate>(locale);
+  const { locale: contextLocale } = useCalendarPickerContext<TDate>();
+  const activeLocale = locale ?? contextLocale;
+  const dateFns = useDateFns<TDate>(activeLocale);
+  const calendarFns = useCalendar<TDate>(activeLocale);
 
   const getText = (): string => {
     if (!date) {
@@ -93,6 +104,6 @@ function CalendarViewMode<TDate extends Date | Moment = Date>(props: CalendarVie
   );
 }
 
-CalendarViewMode.displayName = '@nebular-react/core/CalendarViewMode';
+CalendarViewMode.displayName = 'CalendarViewMode';
 
 export { CalendarViewMode };

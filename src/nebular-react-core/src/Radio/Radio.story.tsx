@@ -5,7 +5,7 @@ import { ControlStatusExample, ExampleItemsRows } from '../Shared';
 import { Card } from '../Card';
 import { Radio } from './Radio';
 
-export default { title: 'Radio' };
+export default { title: 'Radio', component: Radio };
 
 export function Showcase() {
   const [selectedValue, setSelectedValue] = useState<string>('orange');
@@ -53,6 +53,28 @@ export function Disabled() {
         </ExampleItemsRows>
       </Card.Footer>
     </Card>
+  );
+}
+
+export function DataDriven() {
+  const [value, setValue] = useState('orange');
+
+  return (
+    <Radio.Group
+      label="Favorite fruit"
+      description="Rendered from a data array"
+      data={[
+        { label: 'Apple', value: 'apple' },
+        { label: 'Orange', value: 'orange' },
+        { label: 'Peach', value: 'peach' },
+        { label: 'Unavailable', value: 'unavailable', disabled: true }
+      ]}
+      value={value}
+      onChange={setValue}
+      orientation="horizontal"
+      name="fruit-data"
+      required
+    />
   );
 }
 

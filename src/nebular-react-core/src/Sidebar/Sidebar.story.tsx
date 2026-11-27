@@ -4,7 +4,7 @@ import { Layout } from '../Layout';
 import { Sidebar, SidebarRef } from './Sidebar';
 import useStyles from './Sidebar.story.style';
 
-export default { title: 'Sidebar' };
+export default { title: 'Sidebar', component: Sidebar };
 
 export function Showcase() {
   const { classes, cx } = useStyles();

@@ -1,4 +1,5 @@
 import { ComponentOrCustomStatus, createStyles } from '@nebular-react/styles';
+import { Property } from 'csstype';
 
 export interface ToastComponentStylesParams {
   status: ComponentOrCustomStatus;
@@ -35,7 +36,7 @@ export default createStyles((theme, { status, hasIcon }: ToastComponentStylesPar
     marginRight: '0.25rem',
     fontFamily: 'var(--toastr-title-text-font-family)',
     fontSize: 'var(--toastr-title-text-font-size)',
-    fontWeight: 'var(--toastr-title-text-font-weight)' as any,
+    fontWeight: 'var(--toastr-title-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--toastr-title-text-line-height)',
 
     color: `var(--toastr-${status}-text-color)`
@@ -53,7 +54,7 @@ export default createStyles((theme, { status, hasIcon }: ToastComponentStylesPar
   message: {
     fontFamily: 'var(--toastr-text-font-family)',
     fontSize: 'var(--toastr-text-font-size)',
-    fontWeight: 'var(--toastr-text-font-weight)' as any,
+    fontWeight: 'var(--toastr-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--toastr-text-line-height)'
   },
 
@@ -72,7 +73,7 @@ export default createStyles((theme, { status, hasIcon }: ToastComponentStylesPar
   },
 
   contentContainer: {
-    display: hasIcon ? null : 'flex',
-    flexDirection: hasIcon ? null : 'column'
+    display: hasIcon ? undefined : 'flex',
+    flexDirection: hasIcon ? undefined : 'column'
   }
 }));

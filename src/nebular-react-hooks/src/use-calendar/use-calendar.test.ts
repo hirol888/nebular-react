@@ -1,6 +1,6 @@
 import moment, { Moment } from 'moment';
 import { DateType } from '../use-date-fns/use-date-fns';
-import { useCalendar } from './use-calendar';
+import { createCalendar } from './use-calendar';
 
 describe('@nebular-react/hooks/use-calendar', () => {
   describe('native date', () => {
@@ -19,7 +19,7 @@ describe('@nebular-react/hooks/use-calendar', () => {
         paddToTwoSymbols,
         buildDateFormat,
         createDaysGrid
-      } = useCalendar<Date>());
+      } = createCalendar<Date>());
     });
 
     it('getViewYears', () => {
@@ -224,7 +224,7 @@ describe('@nebular-react/hooks/use-calendar', () => {
     let createDaysGrid: (activeMonth: Moment, boundingMonth?: boolean) => (Moment | null)[][];
 
     beforeEach(() => {
-      ({ getViewYears, getHoursRange, getResetTime, createDaysGrid } = useCalendar<Moment>());
+      ({ getViewYears, getHoursRange, getResetTime, createDaysGrid } = createCalendar<Moment>());
     });
 
     it('getViewYears', () => {

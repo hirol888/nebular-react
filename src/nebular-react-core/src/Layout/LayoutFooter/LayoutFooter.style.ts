@@ -7,6 +7,14 @@ export default createStyles(() => ({
     boxShadow: 'var(--footer-shadow)'
   },
 
+  fixed: {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 'var(--footer-fixed-z-index, 10)'
+  },
+
   nav: {
     display: 'flex',
     justifyContent: 'center',

@@ -2,7 +2,7 @@ import React from 'react';
 import { ControlStatusExample } from '../Shared';
 import { Alert } from './Alert';
 
-export default { title: 'Alert' };
+export default { title: 'Alert', component: Alert };
 
 export function Showcase() {
   return (

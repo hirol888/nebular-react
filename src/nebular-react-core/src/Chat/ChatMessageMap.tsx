@@ -2,11 +2,15 @@ import { DefaultProps, useComponentDefaultProps } from '@nebular-react/styles';
 import React, { useContext } from 'react';
 import { ChatContext } from './Chat.context';
 import { ChatMessageFile } from './ChatMessageFile';
-import { BaseChatMessageTextProps } from './types';
+import { BaseChatMessageTextProps, ChatLabels } from './types';
 
 export interface ChatMessageMapProps extends DefaultProps, BaseChatMessageTextProps {
   latitude?: number;
   longitude?: number;
+  /** Search term used to highlight matches inside the message text. */
+  highlight?: string;
+  /** Overrides the localized `chat.*` labels used by the map attachment. */
+  labels?: Partial<ChatLabels>;
 }
 
 const defaultProps: Partial<ChatMessageMapProps> = {
@@ -21,6 +25,8 @@ const ChatMessageMap = React.forwardRef<HTMLDivElement, ChatMessageMapProps>((pr
     dateFormat,
     latitude,
     longitude,
+    highlight,
+    labels,
     className,
     classNames,
     styles,
@@ -42,6 +48,8 @@ const ChatMessageMap = React.forwardRef<HTMLDivElement, ChatMessageMapProps>((pr
       sender={sender}
       date={date}
       dateFormat={dateFormat}
+      highlight={highlight}
+      labels={labels}
       className={className}
       classNames={classNames}
       styles={styles}
@@ -52,6 +60,6 @@ const ChatMessageMap = React.forwardRef<HTMLDivElement, ChatMessageMapProps>((pr
   );
 });
 
-ChatMessageMap.displayName = '@nebular-react/core/ChatMessageMap';
+ChatMessageMap.displayName = 'ChatMessageMap';
 
 export { ChatMessageMap };

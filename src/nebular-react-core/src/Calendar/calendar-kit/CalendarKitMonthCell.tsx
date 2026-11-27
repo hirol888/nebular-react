@@ -7,8 +7,7 @@ import { CalendarPickerContext, useCalendarPickerContext } from './CalendarPicke
 import { CalendarDayPicker } from './CalendarDayPicker';
 
 export interface CalendarKitMonthCellProps<TDate extends Date | Moment = Date>
-  extends DefaultProps,
-    BaseCalendarCellProps<TDate> {}
+  extends DefaultProps, BaseCalendarCellProps<TDate> {}
 
 function CalendarKitMonthCell<TDate extends Date | Moment = Date>(
   props: CalendarKitMonthCellProps<TDate>

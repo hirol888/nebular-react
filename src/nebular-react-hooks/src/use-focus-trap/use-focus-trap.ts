@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { isFocusable, isTabbable } from './utils/interactivity-check';
 
 export function useFocusTrap(deferAnchors: boolean = false): {
-  elementRef: React.MutableRefObject<HTMLDivElement>;
+  elementRef: React.RefObject<HTMLDivElement | null>;
   setIsEnabled: React.Dispatch<React.SetStateAction<boolean>>;
   focusInitialElement: (options?: FocusOptions) => boolean;
   blurPreviousFocusedElement: () => void;
@@ -12,7 +12,11 @@ export function useFocusTrap(deferAnchors: boolean = false): {
   const startAnchor = useRef<HTMLElement>(null);
   const endAnchor = useRef<HTMLElement>(null);
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
-  const previouslyFocusedElement = useRef<HTMLElement>(document.activeElement as HTMLElement);
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    previouslyFocusedElement.current = document.activeElement as HTMLElement;
+  }, []);
 
   useEffect(() => {
     if (!deferAnchors && elementRef.current) {
@@ -22,7 +26,10 @@ export function useFocusTrap(deferAnchors: boolean = false): {
     return () => {
       destroy();
     };
-  }, [elementRef.current]);
+    // Anchors are created/destroyed once (or when deferAnchors changes); the
+    // helper functions are intentionally captured from this render only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deferAnchors]);
 
   useEffect(() => {
     if (startAnchor.current && endAnchor.current) {
@@ -42,12 +49,11 @@ export function useFocusTrap(deferAnchors: boolean = false): {
       endAnchor.current!.addEventListener('focus', endAnchorListener);
     }
 
-    if (elementRef.current.parentNode) {
-      elementRef.current.parentNode.insertBefore(startAnchor.current!, elementRef.current);
-      elementRef.current.parentNode.insertBefore(
-        endAnchor.current!,
-        elementRef.current.nextSibling
-      );
+    const element = elementRef.current;
+
+    if (element?.parentNode) {
+      element.parentNode.insertBefore(startAnchor.current!, element);
+      element.parentNode.insertBefore(endAnchor.current!, element.nextSibling);
     }
   };
 
@@ -152,18 +158,24 @@ function toggleAnchorTabIndex(isEnabled: boolean, anchor: HTMLElement) {
  * @returns The boundary element.
  */
 function getRegionBoundary(
-  elementRef: React.MutableRefObject<HTMLElement>,
+  elementRef: React.RefObject<HTMLElement | null>,
   bound: 'start' | 'end'
 ): HTMLElement | null {
+  const element = elementRef.current;
+
+  if (!element) {
+    return null;
+  }
+
   // Contains the deprecated version of selector, for temporary backwards comparability.
-  const markers = elementRef.current?.querySelectorAll(
+  const markers = element.querySelectorAll(
     `[focus-region-${bound}], [focusRegion${bound}], [focus-${bound}]`
   ) as NodeListOf<HTMLElement>;
 
   if (bound === 'start') {
-    return markers.length ? markers[0] : getFirstTabbableElement(elementRef.current);
+    return markers.length ? markers[0] : getFirstTabbableElement(element);
   }
-  return markers.length ? markers[markers.length - 1] : getLastTabbableElement(elementRef.current);
+  return markers.length ? markers[markers.length - 1] : getLastTabbableElement(element);
 }
 
 /** Get the first tabbable element from a DOM subtree (inclusive). */
@@ -176,7 +188,7 @@ function getFirstTabbableElement(root: HTMLElement): HTMLElement | null {
 
   for (let i = 0; i < children.length; i++) {
     const tabbableChild =
-      children[i].nodeType === document.ELEMENT_NODE
+      children[i].nodeType === Node.ELEMENT_NODE
         ? getFirstTabbableElement(children[i] as HTMLElement)
         : null;
 
@@ -199,7 +211,7 @@ function getLastTabbableElement(root: HTMLElement): HTMLElement | null {
 
   for (let i = children.length - 1; i >= 0; i--) {
     const tabbableChild =
-      children[i].nodeType === document.ELEMENT_NODE
+      children[i].nodeType === Node.ELEMENT_NODE
         ? getLastTabbableElement(children[i] as HTMLElement)
         : null;
 

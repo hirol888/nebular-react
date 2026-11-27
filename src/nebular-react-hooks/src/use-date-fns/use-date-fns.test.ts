@@ -1,4 +1,4 @@
-import { DayPeriod, useDateFns } from './use-date-fns';
+import { createDateFns, DayPeriod } from './use-date-fns';
 
 describe('@nebular-react/hooks/use-date-fns', () => {
   describe('native date', () => {
@@ -91,7 +91,7 @@ describe('@nebular-react/hooks/use-date-fns', () => {
         // parse,
         // today,
         // getWeekNumber,
-      } = useDateFns<Date>());
+      } = createDateFns<Date>());
     });
 
     describe('isBetween', () => {

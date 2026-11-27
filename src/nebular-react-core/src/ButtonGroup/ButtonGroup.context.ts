@@ -14,8 +14,8 @@ interface ButtonGroupContextType {
   appearance?: ButtonToggleAppearance;
   size?: ComponentSize;
   shape?: ComponentShape;
-  isItemActive?(itemValue: string): boolean;
-  handleActiveItemChange?(itemValue: string): void;
+  isItemActive(itemValue: string): boolean;
+  handleActiveItemChange(itemValue: string): void;
 }
 
 export const ButtonGroupContext = React.createContext<ButtonGroupContextType>({
@@ -25,7 +25,9 @@ export const ButtonGroupContext = React.createContext<ButtonGroupContextType>({
   notPressedStatus: 'basic',
   appearance: 'filled',
   size: 'medium',
-  shape: 'rectangle'
+  shape: 'rectangle',
+  isItemActive: () => false,
+  handleActiveItemChange: () => undefined
 });
 
 export function useButtonGroupContext(): ButtonGroupContextType {
@@ -37,7 +39,9 @@ export function useButtonGroupContext(): ButtonGroupContextType {
       notPressedStatus: 'basic',
       appearance: 'filled',
       size: 'medium',
-      shape: 'rectangle'
+      shape: 'rectangle',
+      isItemActive: () => false,
+      handleActiveItemChange: () => undefined
     }
   );
 }

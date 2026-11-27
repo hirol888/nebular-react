@@ -1,9 +1,11 @@
+import type { Property } from 'csstype';
 import {
   ButtonAppearance,
   ComponentOrCustomStatus,
   ComponentShape,
   ComponentSize,
   createStyles,
+  keyframes,
   NebularTheme,
   CSSObject
 } from '@nebular-react/styles';
@@ -18,6 +20,11 @@ export interface ButtonStylesParams {
   status: ComponentOrCustomStatus;
 }
 
+const spin = keyframes({
+  from: { transform: 'rotate(0deg)' },
+  to: { transform: 'rotate(360deg)' }
+});
+
 const getIconDirStyles = (
   withPrefixIcon: boolean,
   withSuffixIcon: boolean,
@@ -26,7 +33,7 @@ const getIconDirStyles = (
   theme: NebularTheme
 ): CSSObject => {
   if (iconOnly) {
-    return null;
+    return {};
   }
 
   if (withPrefixIcon && !withSuffixIcon) {
@@ -42,7 +49,7 @@ const getIconDirStyles = (
     };
   }
 
-  return null;
+  return {};
 };
 
 const getAppearanceStyles = (
@@ -63,7 +70,7 @@ const getAppearanceStyles = (
   if (appearance === 'outline') {
     return getOutlineStyles(status, size, theme);
   }
-  return null;
+  return {};
 };
 
 const getFilledStyles = (
@@ -73,7 +80,7 @@ const getFilledStyles = (
 ): CSSObject => ({
   borderStyle: 'var(--button-filled-border-style)',
   borderWidth: 'var(--button-filled-border-width)',
-  textTransform: 'var(--button-filled-text-transform)' as any,
+  textTransform: 'var(--button-filled-text-transform)' as unknown as Property.TextTransform,
 
   padding: `var(--button-filled-${size}-padding)`,
 
@@ -112,7 +119,7 @@ const getGhostStyles = (
   borderColor: 'var(--button-ghost-border-color)',
   borderStyle: 'var(--button-ghost-border-style)',
   borderWidth: 'var(--button-ghost-border-width)',
-  textTransform: 'var(--button-ghost-text-transform)' as any,
+  textTransform: 'var(--button-ghost-text-transform)' as unknown as Property.TextTransform,
 
   padding: `var(--button-ghost-${size}-padding)`,
 
@@ -163,7 +170,7 @@ const getHeroStyles = (
   const rightActiveColor = `var(--button-hero-${status}-active-right-background-color)`;
   return {
     textShadow: 'var(--button-hero-text-shadow)',
-    textTransform: 'var(--button-hero-text-transform)' as any,
+    textTransform: 'var(--button-hero-text-transform)' as unknown as Property.TextTransform,
 
     padding: `var(--button-hero-${size}-padding)`,
 
@@ -199,7 +206,7 @@ const getOutlineStyles = (
 ): CSSObject => ({
   borderStyle: 'var(--button-outline-border-style)',
   borderWidth: 'var(--button-outline-border-width)',
-  textTransform: 'var(--button-outline-text-transform)' as any,
+  textTransform: 'var(--button-outline-text-transform)' as unknown as Property.TextTransform,
 
   padding: `var(--button-outline-${size}-padding)`,
 
@@ -278,7 +285,7 @@ export default createStyles(
 
       cursor: 'var(--button-cursor)',
       fontFamily: 'var(--button-text-font-family)',
-      fontWeight: 'var(--button-text-font-weight)' as any,
+      fontWeight: 'var(--button-text-font-weight)' as unknown as Property.FontWeight,
 
       fontSize: `var(--button-${size}-text-font-size)`,
       lineHeight: `var(--button-${size}-text-line-height)`,
@@ -315,6 +322,22 @@ export default createStyles(
 
     wrapperDisabled: {
       cursor: 'var(--button-disabled-cursor)'
+    },
+
+    loader: {
+      display: 'inline-block',
+      flex: '0 0 auto',
+      width: '1em',
+      height: '1em',
+      border: '2px solid currentColor',
+      borderRightColor: 'transparent',
+      borderRadius: '50%',
+      animation: `${spin} 600ms linear infinite`
+    },
+
+    loaderWithText: {
+      ...theme.fns.ltr({ marginRight: '0.4rem' }),
+      ...theme.fns.rtl({ marginLeft: '0.4rem' })
     }
   })
 );

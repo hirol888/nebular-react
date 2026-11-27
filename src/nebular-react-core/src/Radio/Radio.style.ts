@@ -1,10 +1,13 @@
 import { ComponentOrCustomStatus, createStyles } from '@nebular-react/styles';
 
+export type RadioGroupOrientation = 'vertical' | 'horizontal';
+
 export interface RadioStylesParams {
   status: ComponentOrCustomStatus;
+  orientation?: RadioGroupOrientation;
 }
 
-export default createStyles((theme, { status }: RadioStylesParams) => ({
+export default createStyles((theme, { status, orientation = 'vertical' }: RadioStylesParams) => ({
   root: {
     display: 'block',
     position: 'relative',
@@ -139,5 +142,46 @@ export default createStyles((theme, { status }: RadioStylesParams) => ({
     }
   },
 
-  group: {}
+  group: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--radio-group-gap, 0.375rem)',
+    width: '100%',
+    fontFamily: 'var(--radio-group-font-family, inherit)'
+  },
+
+  groupLabel: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.15rem',
+    color: 'var(--radio-group-label-color, var(--text-basic-color, #222b45))',
+    fontSize: 'var(--radio-group-label-font-size, 0.8125rem)',
+    fontWeight: 600,
+    lineHeight: 1.4
+  },
+
+  required: {
+    color: 'var(--radio-group-required-color, var(--color-danger-500, #ff3d71))'
+  },
+
+  description: {
+    color: 'var(--radio-group-description-color, var(--text-basic-color, #222b45))',
+    fontSize: 'var(--radio-group-description-font-size, 0.75rem)',
+    lineHeight: 1.4
+  },
+
+  items: {
+    display: 'flex',
+    flexDirection: orientation === 'horizontal' ? 'row' : 'column',
+    flexWrap: orientation === 'horizontal' ? 'wrap' : 'nowrap',
+    alignItems: orientation === 'horizontal' ? 'center' : 'flex-start',
+    gap: 'var(--radio-group-items-gap, 0.5rem)'
+  },
+
+  error: {
+    color:
+      'var(--radio-group-error-color, color-mix(in srgb, var(--color-danger-500, #ff3d71) 55%, var(--text-basic-color, #222b45)))',
+    fontSize: 'var(--radio-group-error-font-size, 0.75rem)',
+    lineHeight: 1.4
+  }
 }));

@@ -1,4 +1,5 @@
 import { createStyles } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 
 export interface AccordionItemHeaderStylesParams {
   collapsed: boolean;
@@ -16,12 +17,13 @@ export default createStyles((theme, { collapsed }: AccordionItemHeaderStylesPara
 
     position: 'relative',
     borderBottomWidth: 'var(--accordion-header-border-width)',
-    borderBottomStyle: 'var(--accordion-header-border-style)' as any,
+    borderBottomStyle:
+      'var(--accordion-header-border-style)' as unknown as Property.BorderBottomStyle,
     borderBottomColor: 'var(--accordion-header-border-color)',
     color: 'var(--accordion-header-text-color)',
     fontFamily: 'var(--accordion-header-text-font-family)',
     fontSize: 'var(--accordion-header-text-font-size)',
-    fontWeight: 'var(--accordion-header-text-font-weight)' as any,
+    fontWeight: 'var(--accordion-header-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--accordion-header-text-line-height)',
     padding: 'var(--accordion-padding)',
 
@@ -38,6 +40,6 @@ export default createStyles((theme, { collapsed }: AccordionItemHeaderStylesPara
     ...theme.fns.ltr({ right: '1rem' }),
     ...theme.fns.rtl({ left: '1rem' }),
 
-    transform: collapsed ? null : 'rotate(180deg)'
+    transform: collapsed ? undefined : 'rotate(180deg)'
   }
 }));

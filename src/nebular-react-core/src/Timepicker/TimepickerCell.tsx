@@ -7,17 +7,19 @@ export type TimepickerCellStylesNames = Selectors<typeof useStyles>;
 export interface TimepickerCellProps extends DefaultProps<TimepickerCellStylesNames> {
   value?: string;
   selected?: boolean;
+  disabled?: boolean;
   opened?: boolean;
   onSelect?: (value: string) => void;
 }
 
 const defaultProps: Partial<TimepickerCellProps> = {
   selected: false,
+  disabled: false,
   opened: false
 };
 
 function TimepickerCell(props: TimepickerCellProps) {
-  const { value, selected, opened, onSelect, className, classNames, styles, unstyled } =
+  const { value, selected, disabled, opened, onSelect, className, classNames, styles, unstyled } =
     useComponentDefaultProps(defaultProps, props);
   const { classes, cx } = useStyles(null, {
     name: 'timepicker-cell',
@@ -29,23 +31,36 @@ function TimepickerCell(props: TimepickerCellProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (selected && opened) {
-      containerRef.current?.scrollIntoView({ block: 'center' });
+    if (selected && opened && !disabled) {
+      containerRef.current?.scrollIntoView?.({ block: 'center' });
     }
-  }, [selected, opened]);
+  }, [selected, opened, disabled]);
 
   const handleClick = () => {
-    containerRef.current?.scrollIntoView({ block: 'center' });
+    if (disabled) {
+      return;
+    }
+
+    containerRef.current?.scrollIntoView?.({ block: 'center' });
     typeof onSelect === 'function' && onSelect(value);
   };
 
   return (
-    <div ref={containerRef} className={cx(classes.timepickerCell, className)} onClick={handleClick}>
+    <div
+      ref={containerRef}
+      className={cx(classes.timepickerCell, className, {
+        disabled
+      })}
+      aria-disabled={disabled || undefined}
+      // Keep input focus so choosing one column leaves the popup open for the next.
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={handleClick}
+    >
       {value}
     </div>
   );
 }
 
-TimepickerCell.displayName = '@nebular-react/core/TimepickerCell';
+TimepickerCell.displayName = 'TimepickerCell';
 
 export { TimepickerCell };

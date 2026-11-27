@@ -2,7 +2,7 @@
  * returns array with numbers from first argument to bound.
  * */
 export const rangeFromTo = <T>(from: number, to = 0, producer: (number: any) => T = (i) => i) => {
-  const arr = [];
+  const arr: T[] = [];
 
   for (let i = from; i < to; i++) {
     arr.push(producer(i));

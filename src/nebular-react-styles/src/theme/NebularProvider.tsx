@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { EmotionCache } from '@emotion/cache';
 import { DEFAULT_THEME } from './DefaultTheme';
 import {
@@ -7,6 +7,7 @@ import {
   NebularThemeBase,
   SvgIconPacks,
   defaultFontIconPacks,
+  defaultIconPack as packageDefaultIconPack,
   defaultSvgIconPacks,
   LayoutDimensions,
   Direction,
@@ -18,10 +19,20 @@ import { NormalizeCSS } from './NormalizeCSS';
 import { OverlayStyles } from './OverlayStyles';
 import { useNebularThemeEvents } from './events';
 import { ThemeVariables } from './ThemeVariables';
+import {
+  DEFAULT_UI_LOCALE,
+  formatNebularMessage,
+  getNebularLocaleMessages,
+  type NebularMessageParams,
+  type NebularMessages
+} from '../i18n';
 
 interface NebularProviderContextType<TTheme extends NebularTheme> {
   theme: TTheme;
   dir: Direction;
+  locale: string;
+  hasLocale: boolean;
+  messages: NebularMessages;
   emotionCache?: EmotionCache;
   svgIconPacks?: SvgIconPacks;
   fontIconPacks?: FontIconPacks;
@@ -32,12 +43,17 @@ interface NebularProviderContextType<TTheme extends NebularTheme> {
   scrollable: boolean;
 }
 
+const EMPTY_MESSAGES: NebularMessages = {};
+
 export const NebularProviderContext = createContext<NebularProviderContextType<any>>({
   theme: DEFAULT_THEME,
   dir: 'ltr',
+  locale: DEFAULT_UI_LOCALE,
+  hasLocale: false,
+  messages: {},
   svgIconPacks: defaultSvgIconPacks,
   fontIconPacks: defaultFontIconPacks,
-  defaultIconPack: 'eva',
+  defaultIconPack: packageDefaultIconPack,
   layoutClasses: [],
   scrollable: true
 });
@@ -48,6 +64,20 @@ export function useNebularTheme<TTheme extends NebularTheme>() {
 
 export function useNebularDir() {
   return useContext(NebularProviderContext)?.dir || 'ltr';
+}
+
+export function useNebularLocale() {
+  const context = useContext(NebularProviderContext);
+  const locale = context.locale || DEFAULT_UI_LOCALE;
+  const hasLocale = context.hasLocale ?? false;
+  const messages = context.messages || EMPTY_MESSAGES;
+  const t = useCallback(
+    (key: string, fallback: string, params?: NebularMessageParams) =>
+      formatNebularMessage(messages[key] ?? fallback, params),
+    [messages]
+  );
+
+  return { locale, hasLocale, messages, t };
 }
 
 export function useEmotionCacheContext() {
@@ -66,6 +96,10 @@ export function useNebularIconPacks() {
 export interface NebularProviderProps {
   theme?: NebularThemeBase;
   dir?: Direction;
+  /** BCP 47 locale used by components as the default for dates, numbers and messages. */
+  locale?: string;
+  /** Message overrides merged over the built-in locale catalog. */
+  messages?: NebularMessages;
   emotionCache?: EmotionCache;
   withNormalizeCSS?: boolean;
   withGlobalStyles?: boolean;
@@ -80,13 +114,15 @@ export interface NebularProviderProps {
 export function NebularProvider<TTheme extends NebularTheme>({
   theme = DEFAULT_THEME,
   dir = 'ltr',
+  locale = DEFAULT_UI_LOCALE,
+  messages,
   emotionCache,
   withNormalizeCSS = true,
   withGlobalStyles = true,
   withOverlayStyles = true,
   svgIconPacks = defaultSvgIconPacks,
   fontIconPacks = defaultFontIconPacks,
-  defaultIconPack = 'eva',
+  defaultIconPack = packageDefaultIconPack,
   scrollable = true,
   children
 }: NebularProviderProps) {
@@ -97,6 +133,10 @@ export function NebularProvider<TTheme extends NebularTheme>({
   const [scrollPosition, setScrollPosition] = useState<ScrollPosition>();
   const [layoutClasses, setLayoutClasses] = useState<string[]>([]);
   const [_scrollable, setScrollable] = useState<boolean>(scrollable);
+  const resolvedMessages = useMemo(
+    () => ({ ...getNebularLocaleMessages(locale), ...(messages ?? {}) }),
+    [locale, messages]
+  );
 
   useEffect(() => {
     setDir(dir);
@@ -104,7 +144,7 @@ export function NebularProvider<TTheme extends NebularTheme>({
 
   useEffect(() => {
     setTheme(themeWithFunctions);
-  }, [theme]);
+  }, [theme, themeWithFunctions]);
 
   const appendLayoutClass = (className: string) => {
     setLayoutClasses((classes) => [...classes, className]);
@@ -149,6 +189,9 @@ export function NebularProvider<TTheme extends NebularTheme>({
       value={{
         theme: _theme,
         dir: _dir,
+        locale,
+        hasLocale: true,
+        messages: resolvedMessages,
         emotionCache,
         svgIconPacks,
         fontIconPacks,

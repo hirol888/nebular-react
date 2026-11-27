@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["./src", "../../configuration/types", "../../tests"],
+  "include": ["./src", "../../configuration/types"],
   "exclude": [
     "./lib",
     "./esm",
@@ -14,7 +14,6 @@
   ],
   "compilerOptions": {
     "rootDir": "src",
-    "baseUrl": ".",
     "outDir": "lib",
     "declaration": true,
     "declarationMap": true,

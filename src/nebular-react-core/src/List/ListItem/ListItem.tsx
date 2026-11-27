@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './ListItem.style';
 
 export type ListItemStylesNames = Selectors<typeof useStyles>;
 
 export interface ListItemProps
-  extends DefaultProps<ListItemStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {}
+  extends DefaultProps<ListItemStylesNames>, React.ComponentPropsWithoutRef<'div'> {}
 
 const _ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) => {
   const { className, classNames, styles, unstyled, children, ...others } = props;
@@ -20,6 +18,6 @@ const _ListItem = React.forwardRef<HTMLDivElement, ListItemProps>((props, ref) =
   );
 });
 
-_ListItem.displayName = '@nebular-react/core/ListItem';
+_ListItem.displayName = 'ListItem';
 
 export const ListItem = createPolymorphicComponent<'div', ListItemProps>(_ListItem);

@@ -10,7 +10,8 @@ export {
   NebularProviderContext,
   useNebularTheme,
   useNebularIconPacks,
-  useNebularDir
+  useNebularDir,
+  useNebularLocale
 } from './NebularProvider';
 export { useComponentDefaultProps } from './utils/use-component-default-props/use-component-default-props';
 export { GlobalStyles } from './GlobalStyles';

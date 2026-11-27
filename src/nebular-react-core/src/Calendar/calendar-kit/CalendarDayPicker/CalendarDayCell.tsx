@@ -8,8 +8,18 @@ import { CalendarDayCellProps } from './CalendarDayCell.type';
 
 function CalendarDayCell<TDate extends Date | Moment = Date>(props: CalendarDayCellProps<TDate>) {
   const { date, onSelect, className, classNames, styles, unstyled, ...others } = props;
-  const { locale, selectedValue, visibleDate, min, max, size, filter, dateType } =
-    useCalendarPickerContext<TDate>();
+  const {
+    locale,
+    selectedValue,
+    visibleDate,
+    min,
+    max,
+    size,
+    filter,
+    disabledDates,
+    dateType,
+    today
+  } = useCalendarPickerContext<TDate>();
   const { classes, cx } = useStyles(
     { size },
     {
@@ -28,7 +38,18 @@ function CalendarDayCell<TDate extends Date | Moment = Date>(props: CalendarDayC
 
   const dontFitFilter = (): boolean => !!(date && filter && !filter(date));
 
-  const isDisabled = (): boolean => smallerThanMin() || greaterThanMax() || dontFitFilter();
+  const isDisabledByList = (): boolean => {
+    if (!date || !disabledDates) {
+      return false;
+    }
+
+    return Array.isArray(disabledDates)
+      ? disabledDates.some((disabledDate) => dateFns.isSameDay(date, disabledDate))
+      : disabledDates(date);
+  };
+
+  const isDisabled = (): boolean =>
+    smallerThanMin() || greaterThanMax() || dontFitFilter() || isDisabledByList();
 
   const handleClick = () => {
     if (isDisabled() || !date) {
@@ -44,7 +65,7 @@ function CalendarDayCell<TDate extends Date | Moment = Date>(props: CalendarDayC
   return (
     <div
       className={cx(classes.root, className, size, 'day-cell', {
-        today: dateFns.isSameDay(date, dateFns.today(dateType)),
+        today: dateFns.isSameDay(date, today ?? dateFns.today(dateType)),
         'bounding-month': !dateFns.isSameMonth(date, visibleDate),
         selected: dateFns.isSameDay(date, selectedValue as TDate),
         empty: !date,
@@ -60,6 +81,6 @@ function CalendarDayCell<TDate extends Date | Moment = Date>(props: CalendarDayC
   );
 }
 
-CalendarDayCell.displayName = '@nebular-react/core/CalendarDayCell';
+CalendarDayCell.displayName = 'CalendarDayCell';
 
 export { CalendarDayCell };

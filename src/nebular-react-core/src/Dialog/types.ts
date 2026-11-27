@@ -7,6 +7,7 @@ export class DialogConfig {
   closeOnEsc?: boolean = true;
   hasScroll?: boolean = false;
   autoFocus?: boolean = true;
+  ariaLabel?: string = 'Dialog';
   content?: React.ReactNode;
 
   constructor(config: Partial<DialogConfig>) {

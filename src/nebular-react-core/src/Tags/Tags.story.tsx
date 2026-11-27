@@ -1,10 +1,10 @@
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce.js';
 import React, { useState } from 'react';
 import { Card } from '../Card';
 import { Tags } from './Tags';
 import { TagType } from './types';
 
-export default { title: 'Tags' };
+export default { title: 'Tags', component: Tags };
 
 const trees: string[] = [
   'Prometheus',

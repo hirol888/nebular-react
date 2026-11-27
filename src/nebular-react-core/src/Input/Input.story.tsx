@@ -3,7 +3,7 @@ import { Icon } from '../Icon';
 import { ControlStatusExample, ExampleItemsCol, ExampleItemsRows } from '../Shared';
 import { Input } from './Input';
 
-export default { title: 'Input' };
+export default { title: 'Input', component: Input };
 
 export function Showcase() {
   return (

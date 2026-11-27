@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce.js';
 import { Direction } from '@nebular-react/styles';
 import { hasModifierKey, ModifierKey } from '../utils';
 
@@ -49,7 +49,7 @@ export function useListKeyManager<T extends ListOption>(
   typeAheadDebounce = 200
 ) {
   const pressedLetters = useRef<string[]>([]);
-  const defaultSkipPredicateFn = (item: T): boolean => item.disabled;
+  const defaultSkipPredicateFn = (item: T): boolean => !!item.disabled;
   const _skipPredicateFn = skipPredicate || defaultSkipPredicateFn;
   const [activeItemIndex, setActiveItemIndex] = useState<number>(defaultActiveItemIndex);
   // const activeItemIndexRef = useRef<number>(activeItemIndex);
@@ -75,7 +75,7 @@ export function useListKeyManager<T extends ListOption>(
       if (
         item &&
         !_skipPredicateFn(item) &&
-        item.label.toUpperCase().trim().indexOf(inputString) === 0
+        item.label?.toUpperCase().trim().indexOf(inputString) === 0
       ) {
         setActiveItemIndex(index);
         break;
@@ -115,7 +115,7 @@ export function useListKeyManager<T extends ListOption>(
         }
 
       case 'ArrowRight':
-        if (verticalEnabled && isModifierAllowed) {
+        if (dir && isModifierAllowed) {
           dir === 'rtl' ? setPreviousItemActive() : setNextItemActive();
           break;
         } else {

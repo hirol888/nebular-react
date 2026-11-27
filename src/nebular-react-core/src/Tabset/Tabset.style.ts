@@ -61,6 +61,28 @@ export default createStyles((theme) => ({
     }
   },
 
+  tabClose: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '1.15rem',
+    height: '1.15rem',
+    flex: '0 0 auto',
+    marginLeft: '0.35rem',
+    borderRadius: '0.2rem',
+    fontSize: '0.9rem',
+    lineHeight: 1,
+    opacity: 0.65,
+    cursor: 'pointer',
+
+    '&:hover': {
+      opacity: 1,
+      backgroundColor: 'var(--tabset-tab-close-hover-background-color, rgba(0, 0, 0, 0.08))'
+    },
+
+    ...theme.fns.rtl({ marginRight: '0.35rem', marginLeft: 0 })
+  },
+
   tab: {
     flex: 1,
     msFlex: '1 1 auto',

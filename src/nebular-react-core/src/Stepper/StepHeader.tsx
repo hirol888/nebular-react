@@ -1,4 +1,4 @@
-import { createPolymorphicComponent } from '@mantine/utils';
+import { createPolymorphicComponent } from '@nebular-react/styles';
 import React from 'react';
 
 const _StepHeader = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithoutRef<'span'>>(
@@ -12,7 +12,7 @@ const _StepHeader = React.forwardRef<HTMLSpanElement, React.ComponentPropsWithou
   }
 );
 
-_StepHeader.displayName = '@nebular-react/core/StepHeader';
+_StepHeader.displayName = 'StepHeader';
 
 export const StepHeader = createPolymorphicComponent<
   'span',

@@ -1,4 +1,5 @@
 import { ComponentSize, createStyles } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 
 export interface OptionGroupStylesParams {
   size: ComponentSize;
@@ -12,7 +13,7 @@ export default createStyles((theme, { size }: OptionGroupStylesParams) => ({
     fontFamily: 'var(--option-text-font-family)',
 
     fontSize: `var(--option-${size}-text-font-size)`,
-    fontWeight: `var(--option-${size}-text-font-weight)` as any,
+    fontWeight: `var(--option-${size}-text-font-weight)` as unknown as Property.FontWeight,
     lineHeight: `var(--option-${size}-text-line-height)`,
 
     userSelect: 'none',

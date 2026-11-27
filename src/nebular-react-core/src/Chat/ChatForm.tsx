@@ -6,6 +6,8 @@ import { Icon } from '../Icon';
 import { Input } from '../Input';
 import { ChatContext } from './Chat.context';
 import useStyles from './ChatForm.styles';
+import { ChatLabels } from './types';
+import { useChatLabels } from './Chat.labels';
 
 export interface FileExt extends File {
   src?: string;
@@ -22,15 +24,14 @@ export interface ChatFormProps extends DefaultProps<ChatFormStylesNames> {
   dropFiles?: boolean;
   dropFilesPlaceholder?: string;
   onSend?: (body: { message: string; files: FileExt[] }) => void;
+  /** Overrides the localized `chat.*` labels used by the form. */
+  labels?: Partial<ChatLabels>;
 }
 
 const defaultProps: Partial<ChatFormProps> = {
-  messagePlaceholder: 'Type a message',
   buttonTitle: '',
-  buttonIcon: <Icon icon="paper-plane-outline" pack="nebular-essentials" />,
   showButton: true,
-  dropFiles: false,
-  dropFilesPlaceholder: 'Drop file to send'
+  dropFiles: false
 };
 
 const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) => {
@@ -42,20 +43,27 @@ const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) =>
     dropFiles,
     dropFilesPlaceholder,
     onSend,
+    labels,
     className,
     classNames,
     styles,
     unstyled,
     ...others
   } = useComponentDefaultProps(defaultProps, props);
+  const resolvedButtonIcon = buttonIcon ?? (
+    <Icon icon="paper-plane-outline" pack="nebular-essentials" />
+  );
   const { classes, cx } = useStyles(null, { name: 'chat-form', classNames, styles, unstyled });
+  const { status, labels: contextLabels } = useContext(ChatContext);
+  const text = useChatLabels(labels ?? contextLabels);
+  const resolvedMessagePlaceholder = messagePlaceholder ?? text.messagePlaceholder;
+  const resolvedDropFilesPlaceholder = dropFilesPlaceholder ?? text.dropFilePlaceholder;
   const imgDropTypes = ['image/png', 'image/jpeg', 'image/gif'];
   const [droppedFiles, setDroppedFiles] = useState<FileExt[]>([]);
   const [fileOver, setFileOver] = useState<boolean>(false);
   const [inputFocus, setInputFocus] = useState<boolean>(false);
   const [inputHover, setInputHover] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
-  const { status } = useContext(ChatContext);
 
   const dropHandler = (event: React.DragEvent<HTMLDivElement>) => {
     if (dropFiles) {
@@ -69,9 +77,13 @@ const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) =>
 
           if (imgDropTypes.includes(file.type)) {
             const fr = new FileReader();
-            fr.onload = (e: any) => {
-              res.src = e.target.result;
-              res.urlStyle = `url(${res.src})`;
+            fr.onload = (loadEvent: ProgressEvent<FileReader>) => {
+              const result = loadEvent.target?.result;
+
+              if (typeof result === 'string') {
+                res.src = result;
+                res.urlStyle = `url(${result})`;
+              }
             };
 
             fr.readAsDataURL(file);
@@ -198,7 +210,7 @@ const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) =>
           onMouseEnter={() => setInputHover(true)}
           onMouseLeave={() => setInputHover(false)}
           onChange={(event) => setMessage(event.target.value)}
-          placeholder={fileOver ? dropFilesPlaceholder : messagePlaceholder}
+          placeholder={fileOver ? resolvedDropFilesPlaceholder : resolvedMessagePlaceholder}
           onKeyUp={keyupHandler}
           value={message}
         />
@@ -207,7 +219,8 @@ const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) =>
             className={cx(classes.sendButton)}
             status={getButtonStatus()}
             onClick={() => sendMessage()}
-            prefixIcon={!buttonTitle && <>{buttonIcon}</>}
+            aria-label={buttonTitle || text.sendMessage}
+            prefixIcon={!buttonTitle && <>{resolvedButtonIcon}</>}
           >
             {buttonTitle}
           </Button>
@@ -217,6 +230,6 @@ const ChatForm = React.forwardRef<HTMLDivElement, ChatFormProps>((props, ref) =>
   );
 });
 
-ChatForm.displayName = '@nebular-react/core/ChatForm';
+ChatForm.displayName = 'ChatForm';
 
 export { ChatForm };

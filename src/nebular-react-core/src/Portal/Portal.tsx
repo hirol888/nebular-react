@@ -8,7 +8,7 @@ export interface ProtalProps {
   target?: HTMLElement | string;
 }
 
-export function Portal(props: ProtalProps): ReactPortal {
+export function Portal(props: ProtalProps): ReactPortal | null {
   const { children, target } = useComponentDefaultProps({}, props);
 
   const [mounted, setMounted] = useState<boolean>(false);
@@ -28,16 +28,16 @@ export function Portal(props: ProtalProps): ReactPortal {
       ref.current = typeof target === 'string' ? document.querySelector(target) : target;
     }
 
-    if (!target) {
+    if (!target && ref.current) {
       document.body.appendChild(ref.current);
     }
   }, [target]);
 
-  if (!mounted) {
+  if (!mounted || !ref.current) {
     return null;
   }
 
   return createPortal(<>{children}</>, ref.current);
 }
 
-Portal.displayName = '@nebular-react/core/Portal';
+Portal.displayName = 'Portal';

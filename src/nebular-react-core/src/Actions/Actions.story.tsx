@@ -6,7 +6,7 @@ import { Action } from './Action';
 import { Actions } from './Actions';
 import { Badge } from '../Badge';
 
-export default { title: 'Actions' };
+export default { title: 'Actions', component: Actions };
 
 export function Showcase() {
   return (

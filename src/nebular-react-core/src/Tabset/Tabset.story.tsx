@@ -5,7 +5,7 @@ import { Card } from '../Card';
 import { Tabset } from './Tabset';
 import { Loader } from '../Loader';
 
-export default { title: 'Tabset' };
+export default { title: 'Tabset', component: Tabset };
 
 export function Showcase() {
   return (
@@ -223,6 +223,59 @@ export function LazyLoad() {
           </Tabset.Tab>
           <Tabset.Tab title="Transactions">
             <Tab3 loaderContainerRef={loaderRef} />
+          </Tabset.Tab>
+        </Tabset>
+      </Card.Body>
+    </Card>
+  );
+}
+
+export function Closable() {
+  const [tabs, setTabs] = useState(['Users', 'Orders', 'Transactions']);
+  const [active, setActive] = useState(0);
+
+  const closeTab = (index: number) => {
+    setTabs((current) => current.filter((_, tabIndex) => tabIndex !== index));
+    setActive((current) => {
+      if (current > index) return current - 1;
+      if (current === index) return Math.max(0, current - 1);
+      return current;
+    });
+  };
+
+  return (
+    <Card>
+      <Card.Body>
+        <Tabset activeTabIndex={active} onTabChange={setActive} onTabClose={closeTab}>
+          {tabs.map((title) => (
+            <Tabset.Tab key={title} title={title} closable>
+              <p>
+                Content for <strong>{title}</strong>
+              </p>
+            </Tabset.Tab>
+          ))}
+        </Tabset>
+      </Card.Body>
+    </Card>
+  );
+}
+
+export function KeepMounted() {
+  const [value, setValue] = useState('');
+
+  return (
+    <Card>
+      <Card.Body>
+        <Tabset keepMounted lazyLoad>
+          <Tabset.Tab title="Draft">
+            <input
+              aria-label="Draft title"
+              value={value}
+              onChange={(event) => setValue(event.currentTarget.value)}
+            />
+          </Tabset.Tab>
+          <Tabset.Tab title="Preview">
+            <p>Preview: {value || 'empty'}</p>
           </Tabset.Tab>
         </Tabset>
       </Card.Body>

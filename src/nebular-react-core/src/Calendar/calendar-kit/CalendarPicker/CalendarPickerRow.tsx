@@ -7,8 +7,9 @@ import useStyles from './CalendarPickerRow.style';
 
 export type CalendarPickerRowStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarPickerRowProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarPickerRowStylesNames> {
+export interface CalendarPickerRowProps<
+  TDate extends Date | Moment = Date
+> extends DefaultProps<CalendarPickerRowStylesNames> {
   rowDates: (TDate | null)[];
   cellComponent: React.FC<BaseCalendarCellProps<TDate>>;
   onSelect?: (date: TDate) => void;
@@ -27,18 +28,27 @@ function CalendarPickerRow<TDate extends Date | Moment = Date>(
   });
 
   const uuid = useId();
+  const CellComponent = cellComponent;
 
   return (
     <div className={cx(classes.root, className)} {...others}>
       {rowDates.map((date, index) => (
         <React.Fragment key={`${uuid}-cell-${index}`}>
-          {cellComponent({ date, onSelect, classNames, styles, unstyled })}
+          {date && (
+            <CellComponent
+              date={date}
+              onSelect={onSelect}
+              classNames={classNames}
+              styles={styles}
+              unstyled={unstyled}
+            />
+          )}
         </React.Fragment>
       ))}
     </div>
   );
 }
 
-CalendarPickerRow.displayName = '@nebular-react/core/CalendarPickerRow';
+CalendarPickerRow.displayName = 'CalendarPickerRow';
 
 export { CalendarPickerRow };

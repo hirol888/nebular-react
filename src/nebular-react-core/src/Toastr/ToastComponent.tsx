@@ -7,13 +7,15 @@ import useStyles, { ToastComponentStylesParams } from './ToastComponent.style';
 
 export type ToastComponentStylesNames = Selectors<typeof useStyles>;
 
-export interface ToastProps
-  extends DefaultProps<ToastComponentStylesNames, ToastComponentStylesParams> {
+export interface ToastProps extends DefaultProps<
+  ToastComponentStylesNames,
+  ToastComponentStylesParams
+> {
   toast: Toast;
   onClose?(): void;
   apply(): void;
-  paneRef: React.MutableRefObject<HTMLDivElement>;
-  globalWrapperRef: React.MutableRefObject<HTMLDivElement>;
+  paneRef: React.RefObject<HTMLDivElement | null>;
+  globalWrapperRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const ToastComponent = forwardRef<HTMLDivElement, ToastProps>((props, ref) => {
@@ -35,6 +37,7 @@ const ToastComponent = forwardRef<HTMLDivElement, ToastProps>((props, ref) => {
     },
     { name: 'toast', classNames, styles, unstyled }
   );
+  const isUrgent = toast.config.status === 'danger';
 
   useOverlay({
     apply,
@@ -48,7 +51,10 @@ const ToastComponent = forwardRef<HTMLDivElement, ToastProps>((props, ref) => {
       className={cx(classes.root, `status-${toast.config.status}`, {
         [classes.destroyByClick]: toast.config.destroyByClick
       })}
-      onClick={() => toast.config.destroyByClick && onClose()}
+      role={isUrgent ? 'alert' : 'status'}
+      aria-live={isUrgent ? 'assertive' : 'polite'}
+      aria-atomic="true"
+      onClick={() => toast.config.destroyByClick && onClose?.()}
       ref={ref}
       {...others}
     >

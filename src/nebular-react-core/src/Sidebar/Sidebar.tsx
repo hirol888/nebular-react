@@ -1,7 +1,8 @@
-import React, { useImperativeHandle, useMemo, useState } from 'react';
+import React, { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   BreakpointName,
   DefaultProps,
+  PolymorphicComponent,
   Selectors,
   useComponentDefaultProps
 } from '@nebular-react/styles';
@@ -10,12 +11,13 @@ import { SidebarResponsiveStatus, SidebarStatus } from './types';
 import useStyles from './Sidebar.style';
 import { SidebarHeader } from './SidebarHeader/SidebarHeader';
 import { SidebarFooter } from './SidebarFooter/SidebarFooter';
+import type { SidebarHeaderProps } from './SidebarHeader/SidebarHeader';
+import type { SidebarFooterProps } from './SidebarFooter/SidebarFooter';
 
 export type SidebarStylesNames = Selectors<typeof useStyles>;
 
 export interface SidebarProps
-  extends DefaultProps<SidebarStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<SidebarStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   containerFixed?: boolean;
   fixed?: boolean;
   right?: boolean;
@@ -54,7 +56,7 @@ const defaultProps: Partial<SidebarProps> = {
   collapsedBreakpoints: ['xs', 'is']
 };
 
-const Sidebar = React.forwardRef<SidebarRef, SidebarProps>((props: SidebarProps, ref) => {
+const SidebarBase = React.forwardRef<SidebarRef, SidebarProps>((props: SidebarProps, ref) => {
   const {
     containerFixed,
     fixed,
@@ -84,6 +86,28 @@ const Sidebar = React.forwardRef<SidebarRef, SidebarProps>((props: SidebarProps,
     fixed,
     sidebarStatus
   });
+  const previousSidebarStatus = useRef<SidebarStatus>(sidebarStatus);
+
+  useEffect(() => {
+    if (previousSidebarStatus.current === sidebarStatus) {
+      return;
+    }
+
+    previousSidebarStatus.current = sidebarStatus;
+    setSidebarState((state) =>
+      state.sidebarStatus === sidebarStatus ? state : { ...state, sidebarStatus }
+    );
+  }, [sidebarStatus]);
+
+  useEffect(() => {
+    if (sidebarState.responsiveStatus !== 'pc') {
+      return;
+    }
+
+    setSidebarState((state) =>
+      state.fixed === Boolean(fixed) ? state : { ...state, fixed: Boolean(fixed) }
+    );
+  }, [fixed, sidebarState.responsiveStatus]);
 
   const updateState = (newState: SidebarState) => {
     if (newState.sidebarStatus !== sidebarState.sidebarStatus) {
@@ -238,8 +262,14 @@ function getSidebarPosition(left?: boolean, right?: boolean, start?: boolean, en
   return result;
 }
 
-Sidebar.displayName = '@nebular-react/core/Sidebar';
-(Sidebar as any).Header = SidebarHeader;
-(Sidebar as any).Footer = SidebarFooter;
+SidebarBase.displayName = 'Sidebar';
+
+const Sidebar = Object.assign(SidebarBase, {
+  Header: SidebarHeader,
+  Footer: SidebarFooter
+}) as typeof SidebarBase & {
+  Header: PolymorphicComponent<'div', SidebarHeaderProps, Record<string, never>>;
+  Footer: PolymorphicComponent<'div', SidebarFooterProps, Record<string, never>>;
+};
 
 export { Sidebar };

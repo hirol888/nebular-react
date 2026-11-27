@@ -28,7 +28,7 @@ export function getTransitionStyles({
 
   if (typeof transition === 'string') {
     if (!(transition in transitions)) {
-      return null;
+      return {};
     }
 
     return {

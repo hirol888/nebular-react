@@ -5,7 +5,8 @@ import {
   Selectors,
   TransitionType,
   useComponentDefaultProps,
-  useNebularDir
+  useNebularDir,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
 import {
   Position,
@@ -14,7 +15,6 @@ import {
   useFlexibleConnectedPositionStrategy,
   useOverlay
 } from '@nebular-react/hooks';
-import { createPolymorphicComponent } from '@mantine/utils';
 import { Transition, TransitionState } from '../Transition';
 import { OptionalPortal } from '../OptionalPortal';
 import useStyles, { TooltipStylesParams } from './Tooltip.styles';
@@ -23,7 +23,8 @@ import { transitionEnterHandler, transitionExitedHandler } from '../Shared/Optio
 export type TooltipStylesNames = Selectors<typeof useStyles>;
 
 export interface TooltipProps
-  extends DefaultProps<TooltipStylesNames, TooltipStylesParams>,
+  extends
+    DefaultProps<TooltipStylesNames, TooltipStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   triggerRef: React.RefObject<HTMLElement>;
   content?: string;
@@ -107,7 +108,7 @@ const _Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>((props, ref) => 
     paneWrapperRef: boundingBoxRef,
     panelClass: tooltipClass,
     opened: tooltipState.mounted,
-    scrollStrategy: 'repositon'
+    scrollStrategy: 'reposition'
   });
   useOverlayTrigger(triggerRef, paneRef, boundingBoxRef, 'hint', show, hide);
 
@@ -156,6 +157,6 @@ const _Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>((props, ref) => 
   );
 });
 
-_Tooltip.displayName = '@nebular-react/core/Tooltip';
+_Tooltip.displayName = 'Tooltip';
 
 export const Tooltip = createPolymorphicComponent<'div', TooltipProps>(_Tooltip);

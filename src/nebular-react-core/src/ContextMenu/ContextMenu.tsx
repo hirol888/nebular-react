@@ -5,7 +5,9 @@ import {
   useOverlayTrigger,
   PositionAdjustment,
   TriggerType,
-  useOverlayClickOutside
+  useOverlayClickOutside,
+  useOverlayKeyboard,
+  useRefEventListener
 } from '@nebular-react/hooks';
 import {
   DefaultProps,
@@ -16,7 +18,7 @@ import {
 import React, { Children, isValidElement, useEffect, useState } from 'react';
 import { OptionalPortal } from '../OptionalPortal';
 import useStyles from './ContextMenu.styles';
-import { Menu } from '../Menu';
+import { Menu, MenuProps } from '../Menu';
 
 export type ContextMenuStylesNames = Selectors<typeof useStyles>;
 
@@ -91,21 +93,37 @@ function ContextMenu(props: ContextMenuProps) {
   useOverlayTrigger(triggerRef, paneRef, boundingBoxRef, triggerType, show, hide);
   useOverlayClickOutside([paneRef, triggerRef], hide);
 
-  const menu = Children.toArray(children).find(
+  const keydownHandler = useRefEventListener((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      hide();
+    }
+  });
+  useOverlayKeyboard(keydownHandler, opened);
+
+  const menuElement = Children.toArray(children).find(
     (child) => isValidElement(child) && child.type === Menu
-  );
+  ) as React.ReactElement<MenuProps> | undefined;
+
+  const menu = menuElement
+    ? React.cloneElement(menuElement, {
+        onSelect: (selected: string) => {
+          menuElement.props.onSelect?.(selected);
+          hide();
+        }
+      })
+    : null;
 
   useEffect(() => {
     if (triggerRef.current) {
       triggerRef.current.style.cursor = 'pointer';
     }
-  }, [triggerRef.current]);
+  }, [triggerRef]);
 
   return (
     <OptionalPortal withinPortal>
       <div ref={boundingBoxRef} style={{ display: opened ? 'flex' : 'none' }}>
         <div ref={paneRef} className="overlay-pane">
-          <div className={cx(classes.root)} {...others}>
+          <div className={cx(classes.root, className)} {...others}>
             {menu}
           </div>
         </div>
@@ -114,6 +132,6 @@ function ContextMenu(props: ContextMenuProps) {
   );
 }
 
-ContextMenu.displayName = '@nebular-react/core/ContextMenu';
+ContextMenu.displayName = 'ContextMenu';
 
 export { ContextMenu };

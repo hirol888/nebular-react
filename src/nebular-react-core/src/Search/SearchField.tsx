@@ -11,6 +11,7 @@ export interface SearchFieldProps extends DefaultProps<SearchFieldStylesNames> {
   type?: SearchType;
   placeholder?: string;
   hint?: string;
+  value?: string;
   onClose?: () => void;
   onSearch?: (term: string) => void;
   onInputChange?: (value: string) => void;
@@ -21,6 +22,7 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>((props, ref) 
     type,
     placeholder,
     hint,
+    value,
     onClose,
     onSearch,
     onInputChange,
@@ -33,32 +35,43 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>((props, ref) 
   const { classes, cx } = useStyles(null, { name: 'search', classNames, styles, unstyled });
   const inputRef = useRef<HTMLInputElement>(null);
   const [show, setShow] = useState<boolean>(false);
-
-  const escapeClose = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      typeof onClose === 'function' && onClose();
-    }
-  };
+  const [internalValue, setInternalValue] = useState<string>('');
+  const isControlled = value !== undefined;
+  const currentValue = isControlled ? value : internalValue;
 
   const handleKeyup = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
-      typeof onSearch === 'function' && onSearch(inputRef.current.value);
+      typeof onSearch === 'function' && onSearch(currentValue);
     }
   };
 
-  const handleInputChange = () => {
-    typeof onInputChange === 'function' && onInputChange(inputRef.current?.value);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+
+    if (!isControlled) {
+      setInternalValue(nextValue);
+    }
+    typeof onInputChange === 'function' && onInputChange(nextValue);
   };
 
   useEffect(() => {
     inputRef.current?.focus();
-    document.body.addEventListener('keyup', escapeClose);
     setShow(true);
+  }, []);
+
+  useEffect(() => {
+    const escapeClose = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        typeof onClose === 'function' && onClose();
+      }
+    };
+
+    document.body.addEventListener('keyup', escapeClose);
 
     return () => {
       document.body.removeEventListener('keyup', escapeClose);
     };
-  }, []);
+  }, [onClose]);
 
   return (
     <div
@@ -78,6 +91,7 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>((props, ref) 
       <div className={cx(classes.search)} onKeyUp={handleKeyup}>
         <Button
           appearance="ghost"
+          aria-label="Close search"
           className={cx(classes.closeButton)}
           prefixIcon={<Icon icon="close-outline" pack="nebular-essentials" />}
           onClick={() => typeof onClose === 'function' && onClose()}
@@ -90,7 +104,8 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>((props, ref) 
                 autoComplete="off"
                 placeholder={placeholder}
                 tabIndex={-1}
-                onInput={handleInputChange}
+                value={currentValue}
+                onChange={handleInputChange}
               />
             </div>
             <span className={cx(classes.info)}>{hint}</span>
@@ -101,6 +116,6 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>((props, ref) 
   );
 });
 
-SearchField.displayName = '@nebular-react/core/SearchField';
+SearchField.displayName = 'SearchField';
 
 export { SearchField };

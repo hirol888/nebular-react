@@ -7,7 +7,7 @@ import useStyles from '../CalendarDayPicker/CalendarDayCell.style';
 
 function CalendarCustomDayCell<TDate extends Date | Moment>(props: BaseCalendarCellProps<TDate>) {
   const { date, onSelect } = props;
-  const { locale, selectedValue, visibleDate, min, max, size, filter } =
+  const { locale, selectedValue, visibleDate, min, max, size, filter, today } =
     useCalendarPickerContext<TDate>();
   const dateFns = useDateFns<TDate>(locale);
   const day = date && dateFns.getDate(date);
@@ -32,7 +32,7 @@ function CalendarCustomDayCell<TDate extends Date | Moment>(props: BaseCalendarC
   return (
     <div
       className={cx(classes.root, size, 'day-cell', {
-        today: dateFns.isSameDay(date, dateFns.today()),
+        today: dateFns.isSameDay(date, today ?? dateFns.today()),
         'bounding-month': !dateFns.isSameMonth(date, visibleDate),
         selected: dateFns.isSameDay(date, selectedValue as TDate),
         empty: !date,

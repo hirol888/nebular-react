@@ -15,8 +15,9 @@ import { CalendarMonthCell } from './CalendarMonthCell';
 
 export type CalendarMonthPickerStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarMonthPickerProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarMonthPickerStylesNames> {
+export interface CalendarMonthPickerProps<
+  TDate extends Date | Moment = Date
+> extends DefaultProps<CalendarMonthPickerStylesNames> {
   month: TDate;
 }
 
@@ -33,7 +34,7 @@ function CalendarMonthPicker<TDate extends Date | Moment = Date>(
     unstyled
   });
   const dateFns = useDateFns<TDate>(locale);
-  const [monthsValue, setMonthsValue] = useState<TDate[][]>();
+  const [monthsValue, setMonthsValue] = useState<TDate[][]>([]);
 
   useIsomorphicEffect(() => {
     const _date = dateFns.getDate(month);
@@ -63,6 +64,6 @@ function CalendarMonthPicker<TDate extends Date | Moment = Date>(
   );
 }
 
-CalendarMonthPicker.displayName = '@nebular-react/core/CalendarMonthPicker';
+CalendarMonthPicker.displayName = 'CalendarMonthPicker';
 
 export { CalendarMonthPicker };

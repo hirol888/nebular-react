@@ -26,7 +26,7 @@ function createPositions(position: Position, adjustment: PositionAdjustment) {
     case 'vertical':
       return reorderPreferredPositions(position, VERTICAL_POSITIONS);
     default:
-      return null;
+      return [];
   }
 }
 

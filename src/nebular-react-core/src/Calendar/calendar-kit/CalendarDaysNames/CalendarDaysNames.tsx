@@ -8,8 +8,10 @@ import useStyles, { CalendarDaysNamesStylesParams } from './CalendarDaysNames.st
 
 export type CalendarDaysNamesStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarDaysNamesProps
-  extends DefaultProps<CalendarDaysNamesStylesNames, CalendarDaysNamesStylesParams> {}
+export type CalendarDaysNamesProps = DefaultProps<
+  CalendarDaysNamesStylesNames,
+  CalendarDaysNamesStylesParams
+>;
 
 function CalendarDaysNames<TDate extends Date | Moment = Date>(props: CalendarDaysNamesProps) {
   const { className, classNames, styles, unstyled, ...others } = props;
@@ -42,6 +44,6 @@ function CalendarDaysNames<TDate extends Date | Moment = Date>(props: CalendarDa
   );
 }
 
-CalendarDaysNames.displayName = '@nebular-react/core/CalendarDaysNames';
+CalendarDaysNames.displayName = 'CalendarDaysNames';
 
 export { CalendarDaysNames };

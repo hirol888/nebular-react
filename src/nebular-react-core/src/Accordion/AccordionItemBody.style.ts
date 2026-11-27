@@ -4,14 +4,13 @@ export interface AccordionItemBodyStylesParams {
   collapsed: boolean;
 }
 
-export default createStyles((theme, { collapsed }: AccordionItemBodyStylesParams) => ({
+export default createStyles((_theme, _params: AccordionItemBodyStylesParams) => ({
   root: {
     overflow: 'hidden',
     visibility: 'visible'
   },
 
   itemBody: {
-    display: collapsed ? 'none' : 'block',
     flex: 1,
     msFlex: '1 1 auto',
     overflow: 'auto',

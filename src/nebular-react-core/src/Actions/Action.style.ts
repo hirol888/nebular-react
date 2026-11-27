@@ -19,13 +19,13 @@ export default createStyles((theme, { disabled, iconOnly }: ActionStylesParams) 
 
       '.nebular-icon-root': {
         color: disabled ? 'var(--actions-disabled-icon-color)' : 'var(--actions-icon-color)',
-        cursor: disabled ? 'not-allowed' : null,
-        marginRight: iconOnly ? null : '0.5rem'
+        cursor: disabled ? 'not-allowed' : undefined,
+        marginRight: iconOnly ? undefined : '0.5rem'
       },
 
-      color: disabled ? 'var(--actions-disabled-text-color)' : null,
+      color: disabled ? 'var(--actions-disabled-text-color)' : undefined,
       cursor: disabled ? 'not-allowed' : 'pointer',
-      pointerEvents: disabled ? 'none' : null,
+      pointerEvents: disabled ? 'none' : undefined,
 
       display: 'flex',
       alignItems: 'center',

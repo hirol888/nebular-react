@@ -8,7 +8,8 @@ import useStyles, { AccordionItemHeaderStylesParams } from './AccordionItemHeade
 export type AccordionItemHeaderStylesNames = Selectors<typeof useStyles>;
 
 export interface AccordionItemHeaderProps
-  extends DefaultProps<AccordionItemHeaderStylesNames, AccordionItemHeaderStylesParams>,
+  extends
+    DefaultProps<AccordionItemHeaderStylesNames, AccordionItemHeaderStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {}
 
 const AccordionItemHeader: React.FC<AccordionItemHeaderProps> = (props) => {
@@ -35,6 +36,7 @@ const AccordionItemHeader: React.FC<AccordionItemHeaderProps> = (props) => {
   return (
     <div
       className={cx(classes.root, className)}
+      role="button"
       aria-expanded={!collapsed}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : 0}
@@ -54,6 +56,6 @@ const AccordionItemHeader: React.FC<AccordionItemHeaderProps> = (props) => {
   );
 };
 
-AccordionItemHeader.displayName = '@nebular-react/core/AccordionItemHeader';
+AccordionItemHeader.displayName = 'AccordionItemHeader';
 
 export { AccordionItemHeader };

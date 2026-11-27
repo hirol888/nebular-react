@@ -11,7 +11,8 @@ import { ItemValue, useGroupItems } from '../Shared';
 export type AccordionStylesNames = Selectors<typeof useStyles>;
 
 export interface AccordionProps<Multiple extends boolean = false>
-  extends DefaultProps<AccordionStylesNames>,
+  extends
+    DefaultProps<AccordionStylesNames>,
     Omit<React.ComponentPropsWithoutRef<'div'>, 'onChange'> {
   multiple?: boolean;
   expanded?: ItemValue<Multiple>;
@@ -42,8 +43,8 @@ function Accordion<Multiple extends boolean = false>(props: AccordionProps<Multi
 
   const [_expanded, setExpanded] = useUncontrolled<ItemValue<Multiple>>({
     value: expanded,
-    defaultValue: multiple ? ([] as any) : null,
-    finalValue: multiple ? ([] as any) : null,
+    defaultValue: (multiple ? [] : null) as ItemValue<Multiple>,
+    finalValue: (multiple ? [] : null) as ItemValue<Multiple>,
     onChange
   });
 
@@ -58,7 +59,7 @@ function Accordion<Multiple extends boolean = false>(props: AccordionProps<Multi
   );
 }
 
-Accordion.displayName = '@nebular-react/core/Accordion';
+Accordion.displayName = 'Accordion';
 Accordion.Item = AccordionItem;
 Accordion.Item.Header = AccordionItemHeader;
 Accordion.Item.Body = AccordionItemBody;

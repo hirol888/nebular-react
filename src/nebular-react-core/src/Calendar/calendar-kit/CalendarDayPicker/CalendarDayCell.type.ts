@@ -6,5 +6,6 @@ import useStyles, { CalendarDayCellStylesParams } from './CalendarDayCell.style'
 export type CalendarDayCellStylesNames = Selectors<typeof useStyles>;
 
 export interface CalendarDayCellProps<TDate extends Date | Moment = Date>
-  extends DefaultProps<CalendarDayCellStylesNames, CalendarDayCellStylesParams>,
+  extends
+    DefaultProps<CalendarDayCellStylesNames, CalendarDayCellStylesParams>,
     Omit<BaseCalendarCellProps<TDate>, 'classNames' | 'styles' | 'unstyled'> {}

@@ -1,4 +1,5 @@
 import { createStyles } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 
 export default createStyles(() => ({
   root: {
@@ -8,7 +9,7 @@ export default createStyles(() => ({
     color: 'var(--accordion-item-text-color)',
     fontFamily: 'var(--accordion-item-text-font-family)',
     fontSize: 'var(--accordion-item-text-font-size)',
-    fontWeight: 'var(--accordion-item-text-font-weight)' as any,
+    fontWeight: 'var(--accordion-item-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--accordion-item-text-line-height)',
 
     '&.disabled .nebular-accordion-item-header-root': {
@@ -32,7 +33,7 @@ export default createStyles(() => ({
 
     '&:not(.collapsed) + & .nebular-accordion-item-header-root': {
       borderTopColor: 'var(--accordion-header-border-color)',
-      borderTopStyle: 'var(--accordion-header-border-style)' as any,
+      borderTopStyle: 'var(--accordion-header-border-style)' as unknown as Property.BorderTopStyle,
       borderTopWidth: 'var(--accordion-header-border-width)'
     }
   }

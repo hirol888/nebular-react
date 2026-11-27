@@ -12,7 +12,8 @@ import { Icon } from '../Icon';
 export type CheckboxStylesNames = Selectors<typeof useStyles>;
 
 export interface CheckboxProps
-  extends DefaultProps<CheckboxStylesNames, CheckboxStylesParams>,
+  extends
+    DefaultProps<CheckboxStylesNames, CheckboxStylesParams>,
     Omit<React.ComponentPropsWithoutRef<'input'>, 'type' | 'size'> {
   checked?: boolean;
   disabled?: boolean;
@@ -71,6 +72,7 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>((props, ref) => {
     <div className={cx(classes.root, className, status)}>
       <label className={cx(classes.label)}>
         <input
+          {...others}
           type="checkbox"
           className={cx(classes.nativeInput)}
           ref={useMergedRef(ref, inputRef)}
@@ -78,7 +80,6 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>((props, ref) => {
           checked={_checked}
           onChange={(event) => handleChange(event)}
           onClick={(event) => event.stopPropagation()}
-          {...others}
         />
         <span className={cx(classes.custom)}>
           {indeterminate && (
@@ -102,6 +103,6 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>((props, ref) => {
   );
 });
 
-Checkbox.displayName = '@nebular-react/core/Checkbox';
+Checkbox.displayName = 'Checkbox';
 
 export { Checkbox };

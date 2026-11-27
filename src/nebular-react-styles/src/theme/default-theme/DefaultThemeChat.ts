@@ -46,14 +46,14 @@ export const DefaultThemeChat: NebularThemeChat = {
   chat_divider_style: 'var(--divider-style)',
   chat_divider_width: 'var(--divider-width)',
 
-  chat_message_background: 'var(--color-primary-default)',
+  chat_message_background: 'var(--color-primary-600)',
   chat_message_text_color: 'var(--text-control-color)',
   chat_message_reply_background_color: 'var(--background-basic-color-2)',
   chat_message_reply_text_color: 'var(--text-basic-color)',
   chat_message_avatar_background_color: 'var(--color-basic-500)',
-  chat_message_sender_text_color: 'var(--text-hint-color)',
+  chat_message_sender_text_color: 'var(--text-basic-color)',
   chat_message_quote_background_color: 'var(--background-basic-color-2)',
-  chat_message_quote_text_color: 'var(--text-hint-color)',
+  chat_message_quote_text_color: 'var(--text-basic-color)',
   chat_message_file_text_color: 'var(--text-hint-color)',
   chat_message_file_background_color: 'transparent'
 };

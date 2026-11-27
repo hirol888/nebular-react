@@ -8,8 +8,8 @@ export interface ToastContainerProps extends DefaultProps {
   onHide(id: string): void;
   innerRef: React.ForwardedRef<HTMLDivElement>;
   apply(): void;
-  paneRef: React.MutableRefObject<HTMLDivElement>;
-  globalWrapperRef: React.MutableRefObject<HTMLDivElement>;
+  paneRef: React.RefObject<HTMLDivElement | null>;
+  globalWrapperRef: React.RefObject<HTMLDivElement | null>;
 }
 
 function ToastContainer({
@@ -21,7 +21,7 @@ function ToastContainer({
   globalWrapperRef,
   ...others
 }: ToastContainerProps) {
-  const hideTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const hideTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleHide = () => {
     onHide(toast.config.id);
@@ -42,11 +42,15 @@ function ToastContainer({
     if (typeof toast.onOpen === 'function') {
       toast.onOpen(toast);
     }
+    // onOpen must run once per toast mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     handleDelayedHide();
     return calcelDelayedHide;
+    // Restart the timer only when the auto-close delay changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast.config.autoClose]);
 
   return (

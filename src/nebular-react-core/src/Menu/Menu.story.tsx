@@ -5,7 +5,7 @@ import { Icon } from '../Icon';
 import { Menu } from './Menu';
 import { MenuItem } from './MenuItem';
 
-export default { title: 'Menu' };
+export default { title: 'Menu', component: Menu };
 
 export function Showcase() {
   return (

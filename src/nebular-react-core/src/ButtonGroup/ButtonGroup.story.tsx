@@ -4,7 +4,7 @@ import { ControlStatusExample, ExampleItemsCol } from '../Shared';
 import { Button } from '../Button';
 import { ButtonGroup } from './ButtonGroup';
 
-export default { title: 'ButtonGroup' };
+export default { title: 'ButtonGroup', component: ButtonGroup };
 
 const createStoryStyles = createStyles(() => ({
   text: {

@@ -3,7 +3,7 @@ import { ComponentStatus } from '@nebular-react/styles';
 import { Icon } from './Icon';
 import { ControlStatusExample, ExampleItemsRows } from '../Shared';
 
-export default { title: 'Icon' };
+export default { title: 'Icon', component: Icon };
 
 export function Status() {
   const statuses: ComponentStatus[] = ['primary', 'success', 'info', 'warning', 'danger'];

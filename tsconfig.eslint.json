@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+        "src/nebular-react-*/src/**/*.ts",
+        "src/nebular-react-*/src/**/*.tsx"
+    ],
+    "exclude": [
+        "**/*.d.ts",
+        "**/lib/**",
+        "**/dist/**",
+        "**/cjs/**",
+        "**/esm/**",
+        "node_modules"
+    ]
+}

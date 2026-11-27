@@ -3,15 +3,15 @@
   "include": ["./src", "./types", "../../configuration/types"],
   "compilerOptions": {
     "rootDir": "src",
-    "baseUrl": ".",
     "outDir": "lib",
     "declaration": true,
     "declarationMap": true,
     "declarationDir": "lib",
     "composite": true,
     "paths": {
-      "@nebular-react/ssr": ["../nebular-react-ssr/src"]
+      "@nebular-react/ssr": ["../nebular-react-ssr/src"],
+      "@nebular-react/styles": ["../nebular-react-styles/src"]
     }
   },
-  "references": [{ "path": "../nebular-react-ssr" }]
+  "references": [{ "path": "../nebular-react-ssr" }, { "path": "../nebular-react-styles" }]
 }

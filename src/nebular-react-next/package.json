@@ -1,16 +1,41 @@
 {
   "name": "@nebular-react/next",
   "description": "Nebular integration for Next.js",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "main": "cjs/index.js",
   "module": "esm/index.js",
   "types": "lib/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./lib-cjs/index.d.cts",
+        "default": "./cjs/index.js"
+      },
+      "default": "./cjs/index.js"
+    },
+    "./lib/*": "./lib/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cjs",
+    "esm",
+    "lib",
+    "lib-cjs"
+  ],
   "license": "MIT",
   "author": "Huining Li <hiro.l.dragon@gmail.com>",
   "sideEffects": false,
   "homepage": "https://github.com/hirol888/nebular-react",
   "repository": {
-    "url": "https://github.com/hirol888/nebular-react.git",
+    "url": "git+https://github.com/hirol888/nebular-react.git",
     "type": "git",
     "directory": "src/nebular-react-next"
   },
@@ -20,13 +45,17 @@
     "nextjs"
   ],
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0",
-    "next": "*"
+    "react": ">=19.2.0",
+    "react-dom": ">=19.2.0",
+    "next": ">=15.5.0 <17"
   },
   "dependencies": {
-    "@nebular-react/ssr": "0.1.0",
-    "@nebular-react/styles": "0.1.0"
+    "@nebular-react/ssr": "1.0.0",
+    "@nebular-react/styles": "1.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

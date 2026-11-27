@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["./src"],
+  "exclude": [
+    "./lib",
+    "./lib-cjs",
+    "./esm",
+    "./cjs",
+    "**/*.story.tsx",
+    "**/*.test.tsx",
+    "**/*.test.ts"
+  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "strictNullChecks": true,
+    "paths": {
+      "@nebular-react/hooks": ["./../nebular-react-hooks/src"],
+      "@nebular-react/styles": ["./../nebular-react-styles/src"]
+    }
+  }
+}

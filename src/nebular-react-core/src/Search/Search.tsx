@@ -3,9 +3,9 @@ import {
   DefaultProps,
   Selectors,
   useComponentDefaultProps,
-  useNebularDir
+  useNebularDir,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import { SearchType } from './types';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
@@ -16,11 +16,12 @@ import useStyles from './Search.style';
 export type SearchStylesNames = Selectors<typeof useStyles>;
 
 export interface SearchProps
-  extends DefaultProps<SearchStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<SearchStylesNames>, Omit<React.ComponentPropsWithoutRef<'div'>, 'onChange'> {
   placeholder?: string;
   hint?: string;
   type?: SearchType;
+  value?: string;
+  onChange?: (value: string) => void;
   onSearch?: (term: string) => void;
   onSearchOpen?: () => void;
   onSearchClose?: () => void;
@@ -37,6 +38,8 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
     placeholder,
     hint,
     type,
+    value,
+    onChange,
     onSearch,
     onSearchOpen,
     onSearchClose,
@@ -52,7 +55,7 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
   const { classes, cx } = useStyles(null, { name: 'search', classNames, styles, unstyled });
   const paneRef = useRef<HTMLDivElement>(null);
   const boundingBoxRef = useRef<HTMLDivElement>(null);
-  const layoutNodeRef = useRef<HTMLElement>();
+  const layoutNodeRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     layoutNodeRef.current = document.querySelector<HTMLElement>('.nebular-layout-root');
@@ -60,18 +63,24 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
 
   const openSearch = () => {
     setMounted(true);
-    layoutNodeRef.current.classList.add(type);
+    if (type) {
+      layoutNodeRef.current?.classList.add(type);
+    }
     setTimeout(() => {
-      layoutNodeRef.current.classList.add('with-search');
+      layoutNodeRef.current?.classList.add('with-search');
     });
+    typeof onSearchOpen === 'function' && onSearchOpen();
   };
 
   const hideSearch = () => {
     setMounted(false);
-    layoutNodeRef.current.classList.remove('with-search');
+    layoutNodeRef.current?.classList.remove('with-search');
     setTimeout(() => {
-      layoutNodeRef.current.classList.remove(type);
+      if (type) {
+        layoutNodeRef.current?.classList.remove(type);
+      }
     }, 300);
+    typeof onSearchClose === 'function' && onSearchClose();
   };
 
   const handleSearch = (term: string) => {
@@ -83,6 +92,7 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
     <div className={cx(classes.root, className)} ref={ref} {...others}>
       <Button
         appearance="ghost"
+        aria-label="Open search"
         onClick={openSearch}
         prefixIcon={<Icon icon="search-outline" pack="nebular-essentials" />}
       />
@@ -99,11 +109,13 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
                 type={type}
                 placeholder={placeholder}
                 hint={hint}
+                value={value}
                 onSearch={(term) => handleSearch(term)}
                 onClose={hideSearch}
-                onInputChange={(value) =>
-                  typeof onInputChange === 'function' && onInputChange(value)
-                }
+                onInputChange={(inputValue) => {
+                  typeof onChange === 'function' && onChange(inputValue);
+                  typeof onInputChange === 'function' && onInputChange(inputValue);
+                }}
               />
             </div>
           </div>
@@ -113,6 +125,6 @@ const _Search = forwardRef<HTMLDivElement, SearchProps>((props, ref) => {
   );
 });
 
-_Search.displayName = '@nebular-react/core/Search';
+_Search.displayName = 'Search';
 
 export const Search = createPolymorphicComponent<'div', SearchProps>(_Search);

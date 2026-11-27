@@ -1,9 +1,12 @@
-import { DefaultProps, useNebularDir, Selectors } from '@nebular-react/styles';
-import React, { ReactElement, useMemo, useRef } from 'react';
-import { easings, useSpring, animated } from '@react-spring/web';
-import { useMeasure } from '@nebular-react/hooks';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  useNebularDir,
+  Selectors,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
+import React, { ReactElement, useMemo } from 'react';
 import { Icon } from '../Icon';
+import { Collapse } from '../Shared/Collapse/Collapse';
 import { useMenuContext } from './Menu.context';
 import useStyles from './Menu.style';
 
@@ -18,7 +21,7 @@ export interface MenuItemProps extends DefaultProps, React.ComponentPropsWithout
   children?: React.ReactNode;
 }
 
-const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: any }>(
+const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: React.ElementType }>(
   (props, ref) => {
     const {
       id,
@@ -31,13 +34,14 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
       classNames,
       styles,
       unstyled,
+      component,
+      onClick,
       ...others
     } = props;
     const { classes, cx } = useStyles(null, { name: 'menu', classNames, styles, unstyled });
     const { isItemExpanded, isItemSelected, handleSelectItemChange, handleExpandItemChange } =
       useMenuContext();
     const isExpanded = isItemExpanded(id);
-    const previousExpanded = useRef<boolean>(isExpanded);
 
     const dir = useNebularDir();
     const expandedStateIcon = useMemo(
@@ -45,25 +49,11 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
       [dir]
     );
 
-    const Element = props.component || 'a';
-
-    const [ulMeasureRef, { height }] = useMeasure<HTMLUListElement>();
-
-    const shouldAnimate = useRef<boolean>(false);
-    if (isExpanded !== previousExpanded.current) {
-      shouldAnimate.current = true;
-    }
-    previousExpanded.current = isExpanded;
-
-    const openAnimation = useSpring({
-      height: isExpanded ? `${height}px` : '0px',
-      overflow: 'hidden',
-      config: { duration: 300, easing: easings.easeOutExpo }
-    });
+    const Element = component || 'a';
+    const hasComponent = !!component;
 
     const itemIcon = icon
-      ? React.cloneElement(icon as ReactElement, {
-          ...(icon as ReactElement).props,
+      ? React.cloneElement(icon as ReactElement<{ className?: string }>, {
           className: cx(classes.menuIcon)
         })
       : null;
@@ -71,13 +61,19 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
     const hasLink = Object.keys(others).includes('href') || Object.keys(others).includes('to');
     const hasChildren = React.Children.toArray(children).length > 0;
 
+    const handleClick: React.MouseEventHandler<HTMLElement> = (event) => {
+      handleSelectItemChange(id);
+      (onClick as React.MouseEventHandler<HTMLElement> | undefined)?.(event);
+    };
+
     return (
       <li className={cx(classes.menuItem, className)} ref={ref}>
-        {hasLink && !hasChildren && (
+        {(hasLink || hasComponent) && !hasChildren && (
           <Element
             title={title}
+            type={Element === 'button' ? 'button' : undefined}
             className={cx({ active: isItemSelected(id) })}
-            onClick={() => handleSelectItemChange(id)}
+            onClick={handleClick}
             {...others}
           >
             {itemIcon}
@@ -85,13 +81,13 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
             {badge && <>{badge}</>}
           </Element>
         )}
-        {!hasLink && !hasChildren && (
+        {!hasLink && !hasComponent && !hasChildren && (
           <a
             title={title}
             className={cx({ active: isItemSelected(id) })}
             onClick={(event) => {
               event.preventDefault();
-              handleSelectItemChange(id);
+              handleClick(event);
             }}
           >
             <>{itemIcon}</>
@@ -104,6 +100,7 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
             <a
               href="#"
               title={title}
+              aria-expanded={isExpanded}
               className={cx({ active: isItemSelected(id) })}
               onClick={(event) => {
                 event.preventDefault();
@@ -122,11 +119,8 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
                 pack="nebular-essentials"
               />
             </a>
-            <animated.div
-              style={shouldAnimate.current || !isItemExpanded(id) ? openAnimation : null}
-            >
+            <Collapse expanded={isExpanded}>
               <ul
-                ref={ulMeasureRef}
                 className={cx(classes.menuItems, {
                   collapsed: !(children && isItemExpanded(id)),
                   expanded: isItemExpanded(id)
@@ -134,7 +128,7 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
               >
                 {children}
               </ul>
-            </animated.div>
+            </Collapse>
           </>
         )}
         {hasChildren && !!group && (
@@ -144,7 +138,6 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
               {title}
             </div>
             <ul
-              ref={ulMeasureRef}
               className={cx(classes.menuItems, {
                 collapsed: !(children && isItemExpanded(id)),
                 expanded: isItemExpanded(id)
@@ -159,6 +152,6 @@ const _MenuItem = React.forwardRef<HTMLLIElement, MenuItemProps & { component: a
   }
 );
 
-_MenuItem.displayName = '@nebular-react/core/MenuItem';
+_MenuItem.displayName = 'MenuItem';
 
 export const MenuItem = createPolymorphicComponent<'a', MenuItemProps>(_MenuItem);

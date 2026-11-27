@@ -1,4 +1,4 @@
-import { createUseExternalEvents } from '@mantine/utils';
+import { createUseExternalEvents } from '@nebular-react/styles';
 import { WindowConfig } from './types';
 
 export type WindowEvents = {

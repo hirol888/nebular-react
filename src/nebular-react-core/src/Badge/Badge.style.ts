@@ -4,6 +4,7 @@ import {
   createStyles,
   NebularTheme
 } from '@nebular-react/styles';
+import type { Property } from 'csstype';
 import { BadgePosition } from './types';
 
 export interface BadgeStylesParams {
@@ -46,7 +47,7 @@ export default createStyles((theme, { position, status }: BadgeStylesParams) => 
     borderRadius: 'var(--badge-border-radius)',
     fontFamily: 'var(--badge-text-font-family)',
     fontSize: 'var(--badge-text-font-size)',
-    fontWeight: 'var(--badge-text-font-weight)' as any,
+    fontWeight: 'var(--badge-text-font-weight)' as unknown as Property.FontWeight,
     lineHeight: 'var(--badge-text-line-height)',
     padding: 'var(--badge-padding)',
 

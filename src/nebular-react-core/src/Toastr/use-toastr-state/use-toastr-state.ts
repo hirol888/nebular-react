@@ -28,7 +28,7 @@ export default function useToastrState({ limit }: { limit: number }) {
       }
 
       const newToasts = [...toasts];
-      toasts[index] = toast;
+      newToasts[index] = toast;
 
       return newToasts;
     });

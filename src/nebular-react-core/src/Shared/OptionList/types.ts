@@ -3,7 +3,8 @@ import { ListOption } from '@nebular-react/hooks';
 export interface OptionInternal extends Omit<ListOption, 'label'> {
   type: 'option';
   label?: string;
-  value?: any;
+  /** Identity of the option; consumed as a plain string by Select/Autocomplete. */
+  value: string;
   selected?: boolean;
   active?: boolean;
 }

@@ -4,14 +4,20 @@ import useStyles, { OptionGroupStylesParams } from './OptionGroupComponent.style
 import { useOptionListContext } from '../OptionList.context';
 import { OptionGroupComponentContext } from './OptionGroupComponent.context';
 import { OptionComponent } from '../Option/OptionComponent';
-import { OptionGroup } from '../types';
+import { OptionGroup, OptionInternal } from '../types';
 
 export type OptionGroupStylesNames = Selectors<typeof useStyles>;
 
 export interface OptionGroupComponentProps
-  extends Omit<OptionGroup, 'type'>,
+  extends
+    Omit<OptionGroup, 'type'>,
     React.ComponentPropsWithoutRef<'div'>,
-    DefaultProps<OptionGroupStylesNames, OptionGroupStylesParams> {}
+    DefaultProps<OptionGroupStylesNames, OptionGroupStylesParams> {
+  getOptionProps?: (
+    option: OptionInternal
+  ) => Pick<React.ComponentPropsWithoutRef<'div'>, 'id' | 'aria-label' | 'children'>;
+  renderOption?: (option: OptionInternal) => React.ReactNode;
+}
 
 const defaultProps: Partial<OptionGroupComponentProps> = {
   disabled: false,
@@ -19,8 +25,18 @@ const defaultProps: Partial<OptionGroupComponentProps> = {
 };
 
 const OptionGroupComponent: React.FC<OptionGroupComponentProps> = (props) => {
-  const { className, label, disabled, classNames, styles, unstyled, options, ...others } =
-    useComponentDefaultProps(defaultProps, props);
+  const {
+    className,
+    label,
+    disabled,
+    classNames,
+    styles,
+    unstyled,
+    options,
+    getOptionProps,
+    renderOption,
+    ...others
+  } = useComponentDefaultProps(defaultProps, props);
   const { size } = useOptionListContext();
   const { classes, cx } = useStyles(
     { size },
@@ -40,12 +56,17 @@ const OptionGroupComponent: React.FC<OptionGroupComponentProps> = (props) => {
         <span className={cx(classes.groupTitle)}>{label}</span>
         {options.map((item, index) => (
           <OptionComponent
+            {...getOptionProps?.(item)}
+            {...(renderOption
+              ? { children: renderOption(item), 'aria-label': item.label ?? item.value }
+              : undefined)}
             label={item.label}
             value={item.value}
             disabled={item.disabled}
             selected={item.selected}
             key={`${uuid}-group-option-${index}`}
             active={item.active}
+            role="option"
           />
         ))}
       </div>
@@ -53,6 +74,6 @@ const OptionGroupComponent: React.FC<OptionGroupComponentProps> = (props) => {
   );
 };
 
-OptionGroupComponent.displayName = '@nebular-react/core/OptionGroup';
+OptionGroupComponent.displayName = 'OptionGroup';
 
 export { OptionGroupComponent };

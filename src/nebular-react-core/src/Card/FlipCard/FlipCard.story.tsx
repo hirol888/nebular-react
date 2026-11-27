@@ -3,7 +3,7 @@ import { Icon } from '../../Icon';
 import { Card } from '../Card';
 import { FlipCard } from './FlipCard';
 
-export default { title: 'FlipCard' };
+export default { title: 'FlipCard', component: FlipCard };
 
 export function Showcase() {
   return (

@@ -1,4 +1,6 @@
-/* eslint-disable no-await-in-loop, no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+import path from 'path';
+import fs from 'fs-extra';
 import chalk from 'chalk';
 import createPackageConfig from '../../configuration/rollup/create-package-config';
 import locatePackage from './locate-package';
@@ -41,6 +43,28 @@ export async function buildPackage(_packageName: string, options?: BuildOptions)
 
       logger.info(`Building to ${chalk.cyan(format)} format...`);
       await compile(config);
+
+      if (format === 'cjs') {
+        await fs.outputJSON(path.join(packagePath, 'cjs', 'package.json'), { type: 'commonjs' });
+      }
+
+      if (format === 'es') {
+        await fs.outputJSON(path.join(packagePath, 'esm', 'package.json'), { type: 'module' });
+      }
+    }
+
+    if (packageName === '@nebular-react/core') {
+      for (const file of ['esm/client.js', 'cjs/client.js']) {
+        const clientPath = path.join(packagePath, file);
+
+        if (await fs.pathExists(clientPath)) {
+          const content = await fs.readFile(clientPath, 'utf-8');
+
+          if (!content.startsWith("'use client'")) {
+            await fs.writeFile(clientPath, `'use client';\n${content}`);
+          }
+        }
+      }
     }
 
     logger.info(

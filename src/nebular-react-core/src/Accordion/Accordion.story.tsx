@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Accordion } from './Accordion';
 
-export default { title: 'Accrodion' };
+export default { title: 'Accrodion', component: Accordion };
 
 export function Showcase() {
   return (

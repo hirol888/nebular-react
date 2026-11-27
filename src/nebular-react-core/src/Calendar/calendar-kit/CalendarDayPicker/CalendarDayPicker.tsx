@@ -79,6 +79,6 @@ function CalendarDayPicker<TDate extends Date | Moment = Date>(props: CalendarDa
   );
 }
 
-CalendarDayPicker.displayName = '@nebular-react/core/CalendarDayPicker';
+CalendarDayPicker.displayName = 'CalendarDayPicker';
 
 export { CalendarDayPicker };

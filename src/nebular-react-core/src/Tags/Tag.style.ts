@@ -35,20 +35,20 @@ export default createStyles((theme, { size, status, appearance }: TagStylesParam
     '&:hover': {
       backgroundColor: `var(--tag-${appearance}-${status}-hover-background-color)`,
       borderColor: `var(--tag-${appearance}-${status}-hover-border-color)`,
-      color: appearance === 'outline' ? `var(--tag-outline-${status}-hover-text-color)` : null
+      color: appearance === 'outline' ? `var(--tag-outline-${status}-hover-text-color)` : undefined
     }
   },
 
   selected: {
     backgroundColor: `var(--tag-${appearance}-${status}-selected-background-color)`,
     borderColor: `var(--tag-${appearance}-${status}-selected-border-color)`,
-    color: appearance === 'outline' ? `var(--tag-outline-${status}-selected-text-color)` : null
+    color: appearance === 'outline' ? `var(--tag-outline-${status}-selected-text-color)` : undefined
   },
 
   active: {
     backgroundColor: `var(--tag-${appearance}-${status}-active-background-color)`,
     borderColor: `var(--tag-${appearance}-${status}-active-border-color)`,
-    color: appearance === 'outline' ? `var(--tag-outline-${status}-active-text-color)` : null
+    color: appearance === 'outline' ? `var(--tag-outline-${status}-active-text-color)` : undefined
   },
 
   tagRemove: {

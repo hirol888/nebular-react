@@ -2,7 +2,7 @@ import React from 'react';
 import { createStyles } from '@nebular-react/styles';
 import { Card } from './Card';
 
-export default { title: 'Card' };
+export default { title: 'Card', component: Card };
 
 function CardsContainer(props) {
   const { classes, cx } = createStyles(() => ({

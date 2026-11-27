@@ -1,6 +1,10 @@
 import React, { forwardRef, Children, isValidElement, ReactElement } from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import { useUncontrolled } from '@mantine/hooks';
 import { useId } from '@nebular-react/hooks';
 import { Step } from './Step';
@@ -10,11 +14,12 @@ import { Icon } from '../Icon';
 
 export type StepperOrientation = 'vertical' | 'horizontal';
 
+type StepElement = ReactElement<{ children?: React.ReactNode; hidden?: boolean }>;
+
 export type StepperStylesNames = Selectors<typeof useStyles>;
 
 export interface StepperProps
-  extends DefaultProps<StepperStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<StepperStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   activeStepIndex?: number;
   disableStepNavigation?: boolean;
   orientation?: StepperOrientation;
@@ -55,7 +60,7 @@ const _Stepper = forwardRef<HTMLDivElement, StepperProps>((props, ref) => {
 
   const steps = Children.toArray(children).filter(
     (child) => isValidElement(child) && child.type === Step
-  );
+  ) as StepElement[];
 
   const handleStepClick = (index: number) => {
     !disableStepNavigation && setActiveStepIndex(index);
@@ -63,7 +68,7 @@ const _Stepper = forwardRef<HTMLDivElement, StepperProps>((props, ref) => {
 
   const uuid = useId();
 
-  const stepHeader = (step: ReactElement, index: number) => {
+  const stepHeader = (step: StepElement, index: number) => {
     const header = Children.toArray(step.props.children).find(
       (child) => isValidElement(child) && child.type === StepHeader
     );
@@ -84,7 +89,17 @@ const _Stepper = forwardRef<HTMLDivElement, StepperProps>((props, ref) => {
               [classes.completed]: _activeStepIndex > index,
               [classes.notInteractive]: disableStepNavigation
             })}
+            role="button"
+            tabIndex={disableStepNavigation ? -1 : 0}
+            aria-current={_activeStepIndex === index ? 'step' : undefined}
+            aria-disabled={disableStepNavigation || undefined}
             onClick={() => handleStepClick(index)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleStepClick(index);
+              }
+            }}
           >
             <div className={cx(classes.labelIndex)}>
               {_activeStepIndex <= index && <span>{index + 1}</span>}
@@ -109,7 +124,7 @@ const _Stepper = forwardRef<HTMLDivElement, StepperProps>((props, ref) => {
       {...others}
     >
       <div className={cx(classes.header)}>
-        {steps?.map((step, index) => stepHeader(step as ReactElement, index))}
+        {steps?.map((step, index) => stepHeader(step, index))}
       </div>
       {steps &&
         steps.map((step, index) => (
@@ -123,12 +138,12 @@ const _Stepper = forwardRef<HTMLDivElement, StepperProps>((props, ref) => {
             {buttons && index === _activeStepIndex && <>{buttons}</>}
           </div>
         ))}
-      {_activeStepIndex === steps.length && <>{completedContent}</>}
+      {steps.length > 0 && _activeStepIndex === steps.length && <>{completedContent}</>}
     </div>
   );
 }) as any;
 
-_Stepper.displayName = '@nebular-react/core/Stepper';
+_Stepper.displayName = 'Stepper';
 _Stepper.Step = Step;
 _Stepper.Header = StepHeader;
 

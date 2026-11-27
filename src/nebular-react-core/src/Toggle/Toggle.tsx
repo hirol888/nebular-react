@@ -3,9 +3,9 @@ import {
   ComponentOrCustomStatus,
   DefaultProps,
   useComponentDefaultProps,
-  Selectors
+  Selectors,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
 import { useUncontrolled } from '@mantine/hooks';
 import { Icon } from '../Icon';
 import useStyles, { ToggleStylesParams } from './Toggle.styles';
@@ -13,7 +13,8 @@ import useStyles, { ToggleStylesParams } from './Toggle.styles';
 export type ToggleStylesNames = Selectors<typeof useStyles>;
 
 export interface ToggleProps
-  extends DefaultProps<ToggleStylesNames, ToggleStylesParams>,
+  extends
+    DefaultProps<ToggleStylesNames, ToggleStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   checked?: boolean;
   disabled?: boolean;
@@ -89,6 +90,6 @@ const _Toggle = React.forwardRef<HTMLDivElement, ToggleProps>((props, ref) => {
   );
 });
 
-_Toggle.displayName = '@nebular-react/core/Toggle';
+_Toggle.displayName = 'Toggle';
 
 export const Toggle = createPolymorphicComponent<'div', ToggleProps>(_Toggle);

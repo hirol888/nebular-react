@@ -6,7 +6,7 @@ import { Action, Actions } from '../Actions';
 import { Icon } from '../Icon';
 import { ControlStatusExample } from '../Shared';
 
-export default { title: 'Progress Bar' };
+export default { title: 'Progress Bar', component: ProgressBar };
 
 const createProgressBarStyles = createStyles(() => ({
   interactiveContainer: {
@@ -66,7 +66,7 @@ export function Interactive() {
 
   useEffect(() => {
     setStatus(getStatus);
-  }, [value]);
+  }, [getStatus]);
 
   return (
     <Card>

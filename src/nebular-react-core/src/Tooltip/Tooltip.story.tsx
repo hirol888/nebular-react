@@ -4,7 +4,7 @@ import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { Tooltip } from './Tooltip';
 
-export default { title: 'Tooltip' };
+export default { title: 'Tooltip', component: Tooltip };
 
 const createStoryStyles = createStyles(() => ({
   tooltipContainer: {

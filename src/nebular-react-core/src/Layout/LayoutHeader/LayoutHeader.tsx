@@ -1,13 +1,11 @@
 import React from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import { DefaultProps, Selectors, createPolymorphicComponent } from '@nebular-react/styles';
 import useStyles from './LayoutHeader.style';
 
 export type LayoutHeaderStylesNames = Selectors<typeof useStyles>;
 
 export interface LayoutHeaderProps
-  extends DefaultProps<LayoutHeaderStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<LayoutHeaderStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   fixed?: boolean;
   subheader?: boolean;
   children?: React.ReactNode;
@@ -39,6 +37,6 @@ const _LayoutHeader = React.forwardRef<HTMLDivElement, LayoutHeaderProps>(
   }
 );
 
-_LayoutHeader.displayName = '@nebular-react/core/LayoutHeader';
+_LayoutHeader.displayName = 'LayoutHeader';
 
 export const LayoutHeader = createPolymorphicComponent<'div', LayoutHeaderProps>(_LayoutHeader);

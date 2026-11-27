@@ -8,7 +8,8 @@ import { CalendarYearCellProps } from './CalendarYearCell.type';
 
 function CalendarYearCell<TDate extends Date | Moment = Date>(props: CalendarYearCellProps<TDate>) {
   const { date, onSelect, className, classNames, styles, unstyled, ...others } = props;
-  const { locale, selectedValue, min, max, size, dateType } = useCalendarPickerContext<TDate>();
+  const { locale, selectedValue, min, max, size, dateType, today } =
+    useCalendarPickerContext<TDate>();
   const { classes, cx } = useStyles(
     { size },
     {
@@ -45,7 +46,7 @@ function CalendarYearCell<TDate extends Date | Moment = Date>(props: CalendarYea
     <div
       className={cx(classes.root, className, size, 'year-cell', {
         selected: dateFns.isSameYear(date, selectedValue as TDate),
-        today: dateFns.isSameYear(date, dateFns.today(dateType)),
+        today: dateFns.isSameYear(date, today ?? dateFns.today(dateType)),
         disabled: isDisabled()
       })}
       onClick={handleClick}
@@ -58,6 +59,6 @@ function CalendarYearCell<TDate extends Date | Moment = Date>(props: CalendarYea
   );
 }
 
-CalendarYearCell.displayName = '@nebular-react/core/CalendarYearCell';
+CalendarYearCell.displayName = 'CalendarYearCell';
 
 export { CalendarYearCell };

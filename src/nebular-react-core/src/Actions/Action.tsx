@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { DefaultProps, Selectors, useComponentDefaultProps } from '@nebular-react/styles';
-import { createPolymorphicComponent } from '@mantine/utils';
+import {
+  DefaultProps,
+  Selectors,
+  useComponentDefaultProps,
+  createPolymorphicComponent
+} from '@nebular-react/styles';
 import useStyles, { ActionStylesParams } from './Action.style';
 import { BadgeProps } from '../Badge';
 
 export type ActionStylesNames = Selectors<typeof useStyles>;
 
 export interface ActionProps
-  extends DefaultProps<ActionStylesNames, ActionStylesParams>,
+  extends
+    DefaultProps<ActionStylesNames, ActionStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   icon?: React.ReactNode;
   disabled?: boolean;
@@ -21,7 +26,7 @@ const defaultProps: Partial<ActionProps> = {
   disabled: false
 };
 
-const _Action = React.forwardRef<HTMLButtonElement, ActionProps & { component: any }>(
+const _Action = React.forwardRef<HTMLButtonElement, ActionProps & { component: React.ElementType }>(
   (props, ref) => {
     const {
       icon,
@@ -47,25 +52,25 @@ const _Action = React.forwardRef<HTMLButtonElement, ActionProps & { component: a
     useEffect(() => {
       if (disabled) setTabIndexValue(-1);
       else setTabIndexValue(tabIndex ?? 0);
-    }, [disabled]);
+    }, [disabled, tabIndex]);
 
-    const handleFocus = (event: any) => {
+    const handleFocus = (event: React.FocusEvent<HTMLElement>) => {
       if (disabled) {
         event.preventDefault();
-        event.stopProgagation();
+        event.stopPropagation();
       }
     };
 
     return (
       <div className={cx(classes.wrapper, className)}>
         <Element
+          {...others}
           className={cx(classes.root)}
           disabled={disabled}
           aria-disabled={disabled}
           tabIndex={tabIndexValue}
           ref={ref}
           onFocus={handleFocus}
-          {...others}
         >
           {icon && <>{icon}</>}
           {children && <>{children}</>}
@@ -76,6 +81,6 @@ const _Action = React.forwardRef<HTMLButtonElement, ActionProps & { component: a
   }
 );
 
-_Action.displayName = '@nebular-react/core/Action';
+_Action.displayName = 'Action';
 
 export const Action = createPolymorphicComponent<'button', ActionProps>(_Action);

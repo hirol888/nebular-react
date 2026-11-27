@@ -1,0 +1,112 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Migration" />
+
+# Guia de migração
+
+Mudanças acumuladas na linha `0.4.x` e como migrar.
+
+## Resumo
+
+| Área | Mudança | Ação necessária |
+|---|---|---|
+| TypeScript | `strictNullChecks` em todos os pacotes | Nenhuma no consumidor |
+| Datas | Adapter plugável + `useDateFns` virou hook | Use `createDateFns` fora de componentes |
+| Select | `searchable`, `clearable`, `loading`, virtualização | Opcional |
+| Autocomplete | Filtro local, async, loading/empty | Opcional |
+| OptionList | Virtualização opt-in, inclusive grupos | Opcional |
+| Novos componentes | Skeleton, EmptyState, Pagination, Table, DataGrid | Opcional |
+| displayName | Prefixo `@nebular-react/core/` removido | Ajustar apenas se você comparava o valor |
+| Pacotes | Declarações CJS em `lib-cjs/*.d.cts` | Nenhuma |
+
+## Datas
+
+`useDateFns` continua funcionando, mas deve ser chamado dentro de um componente React:
+
+```tsx
+import { useDateFns } from '@nebular-react/hooks';
+
+function MyComponent() {
+  const dateFns = useDateFns<Date>();
+}
+```
+
+Fora de componentes, use a versão pura:
+
+```tsx
+import { createDateFns } from '@nebular-react/hooks';
+
+const dateFns = createDateFns<Date>('en-US');
+```
+
+O mesmo vale para `useCalendar` e `createCalendar`.
+
+### Adaptadores
+
+```tsx
+import dayjs from 'dayjs';
+import * as dateFns from 'date-fns';
+import { Temporal } from '@js-temporal/polyfill';
+import {
+  DateAdapterProvider,
+  createDayjsDateAdapter,
+  createDateFnsDateAdapter,
+  createTemporalDateAdapter
+} from '@nebular-react/hooks';
+
+<DateAdapterProvider adapter={createDayjsDateAdapter(dayjs)}>
+  <App />
+</DateAdapterProvider>;
+```
+
+## Select e Autocomplete
+
+### Filtro local
+
+```tsx
+<Select options={options} searchable />
+```
+
+### Busca assíncrona
+
+```tsx
+<Select
+  options={options}
+  searchable
+  loading={loading}
+  onSearchChange={fetchOptions}
+/>
+```
+
+Com `onSearchChange`, o componente não filtra localmente; atualize `options`/`data` no
+consumidor.
+
+### Virtualização
+
+```tsx
+<Select options={manyOptions} virtualized virtualizedMaxHeight={320} />
+<Autocomplete data={manyOptions} virtualized virtualizedMaxHeight={320} />
+```
+
+## displayName
+
+```ts
+// antes
+Button.displayName === '@nebular-react/core/Button';
+
+// agora
+Button.displayName === 'Button';
+```
+
+A mudança foi necessária para o `react-docgen-typescript` gerar as props tables do
+Autodocs. Ajuste snapshots/DevTools se necessário.
+
+## Checklist
+
+- [ ] Atualizar React para 19.2+ e Node para 22.20+.
+- [ ] Trocar `useDateFns` por `createDateFns` fora de componentes.
+- [ ] Remover filtro local duplicado ao usar busca assíncrona.
+- [ ] Revisar snapshots que comparam `displayName`.
+- [ ] Rodar `yarn lint:package` e `yarn lint:types` no app consumidor.
+
+Veja também `docs/guides/migration.md` no repositório.

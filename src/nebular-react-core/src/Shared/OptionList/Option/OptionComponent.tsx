@@ -10,7 +10,8 @@ import { OptionInternal } from '../types';
 export type OptionStylesNames = Selectors<typeof useStyles>;
 
 export interface OptionComponentProps
-  extends Omit<OptionInternal, 'type'>,
+  extends
+    Omit<OptionInternal, 'type'>,
     React.ComponentPropsWithoutRef<'div'>,
     DefaultProps<OptionStylesNames> {}
 
@@ -31,9 +32,11 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
     classNames,
     styles,
     unstyled,
+    children,
     ...others
   } = useComponentDefaultProps(defaultProps, props);
-  const _disabled = disabled || useOptionGroupComponentContext().disabled;
+  const groupContext = useOptionGroupComponentContext();
+  const _disabled = disabled || groupContext.disabled;
   const { size, multiple, keyManagerType, onOptionSelected } = useOptionListContext();
   const { classes, cx } = useStyles({ size }, { name: 'option', unstyled, classNames, styles });
 
@@ -51,6 +54,7 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
 
   return (
     <div
+      {...others}
       className={cx(classes.root, className, size, {
         [classes.selected]: selected,
         [classes.disabled]: _disabled,
@@ -58,10 +62,17 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
         [classes.multiple]: multiple
       })}
       onClick={handleClick}
-      onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && handleClick()}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleClick();
+        }
+      }}
+      aria-selected={!!selected}
+      aria-disabled={_disabled || undefined}
+      data-active={active || undefined}
       tabIndex={-1}
       ref={optionRef}
-      {...others}
     >
       {multiple && (
         <Checkbox
@@ -71,11 +82,11 @@ const OptionComponent: React.FC<OptionComponentProps> = (props) => {
           aria-hidden="true"
         />
       )}
-      {label}
+      {children ?? label}
     </div>
   );
 };
 
-OptionComponent.displayName = '@nebular-react/core/Option';
+OptionComponent.displayName = 'Option';
 
 export { OptionComponent };

@@ -5,7 +5,7 @@ import { Card } from '../Card';
 import { ContextMenu } from './ContextMenu';
 import { ExampleItemsRows } from '../Shared';
 
-export default { title: 'ContextMenu' };
+export default { title: 'ContextMenu', component: ContextMenu };
 
 export function Showcase() {
   const triggerRef = useRef<HTMLButtonElement>(null);

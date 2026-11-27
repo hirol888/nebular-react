@@ -1,14 +1,17 @@
-import { createPolymorphicComponent, ForwardRefWithStaticComponents } from '@mantine/utils';
+import {
+  createPolymorphicComponent,
+  ForwardRefWithStaticComponents,
+  DefaultProps,
+  Selectors
+} from '@nebular-react/styles';
 import React, { forwardRef } from 'react';
-import { DefaultProps, Selectors } from '@nebular-react/styles';
 import useStyles from './List.style';
 import { ListItem } from './ListItem/ListItem';
 
 export type ListStylesNames = Selectors<typeof useStyles>;
 
 export interface ListProps
-  extends DefaultProps<ListStylesNames>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps<ListStylesNames>, React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
@@ -26,7 +29,7 @@ const _List: ListComponent = forwardRef<HTMLDivElement, ListProps>(
   }
 ) as any;
 
-_List.displayName = '@nebular-react/core/List';
+_List.displayName = 'List';
 _List.Item = ListItem;
 
 export const List = createPolymorphicComponent<

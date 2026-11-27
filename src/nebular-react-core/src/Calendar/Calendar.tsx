@@ -5,11 +5,10 @@ import { DefaultProps, useComponentDefaultProps } from '@nebular-react/styles';
 import { BaseCalendar } from './BaseCalendar';
 import { BaseCalendarProps } from './types';
 import { CalendarViewModeType } from './calendar-kit';
+import { useDefaultLocale } from '../Shared/hooks';
 
 export interface CalendarProps<TDate extends Date | Moment = Date>
-  extends DefaultProps,
-    BaseCalendarProps<TDate>,
-    React.ComponentPropsWithoutRef<'div'> {
+  extends DefaultProps, BaseCalendarProps<TDate>, React.ComponentPropsWithoutRef<'div'> {
   date?: TDate;
   startView?: CalendarViewModeType;
   onDateChange?: (date: TDate) => void;
@@ -27,13 +26,16 @@ const defaultProps: Partial<CalendarProps> = {
 };
 
 function Calendar<TDate extends Date | Moment = Date>(props: CalendarProps<TDate>) {
+  const defaultLocale = useDefaultLocale(props.locale);
   const {
     locale,
     boundingMonth,
     startView,
+    timeZone,
     min,
     max,
     filter,
+    disabledDates,
     size,
     visibleDate,
     showNavigation,
@@ -50,17 +52,22 @@ function Calendar<TDate extends Date | Moment = Date>(props: CalendarProps<TDate
     styles,
     unstyled,
     ...others
-  } = useComponentDefaultProps<CalendarProps<TDate>>(defaultProps as CalendarProps<TDate>, props);
+  } = useComponentDefaultProps<CalendarProps<TDate>>(
+    { ...(defaultProps as CalendarProps<TDate>), locale: defaultLocale },
+    props
+  );
 
   return (
     <BaseCalendar<TDate>
       locale={locale}
       boundingMonth={boundingMonth}
       activeViewMode={startView}
+      timeZone={timeZone}
       min={min}
       max={max}
       date={date}
       filter={filter}
+      disabledDates={disabledDates}
       size={size}
       visibleDate={visibleDate}
       showNavigation={showNavigation}
@@ -80,6 +87,6 @@ function Calendar<TDate extends Date | Moment = Date>(props: CalendarProps<TDate
   );
 }
 
-Calendar.displayName = '@nebular-react/core/Calendar';
+Calendar.displayName = 'Calendar';
 
 export { Calendar };

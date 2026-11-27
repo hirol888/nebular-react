@@ -10,7 +10,8 @@ import useStyles, { ActionsStylesParams } from './Actions.style';
 export type ActionsStylesNames = Selectors<typeof useStyles>;
 
 export interface ActionsProps
-  extends DefaultProps<ActionsStylesNames, ActionsStylesParams>,
+  extends
+    DefaultProps<ActionsStylesNames, ActionsStylesParams>,
     React.ComponentPropsWithoutRef<'div'> {
   size?: ComponentSize;
   fullWidth?: boolean;
@@ -38,6 +39,6 @@ const Actions = React.forwardRef<HTMLDivElement, ActionsProps>((props, ref) => {
   );
 });
 
-Actions.displayName = '@nebular-react/core/Actions';
+Actions.displayName = 'Actions';
 
 export { Actions };

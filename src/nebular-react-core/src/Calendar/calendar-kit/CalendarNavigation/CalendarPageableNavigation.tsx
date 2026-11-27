@@ -6,14 +6,27 @@ import useStyles from './CalendarNavigation.style';
 
 export type CalendarPageableNavigationStylesNames = Selectors<typeof useStyles>;
 
-export interface CalendarPageableNavigationProps
-  extends DefaultProps<CalendarPageableNavigationStylesNames> {
+type NavigationDefaultProps = DefaultProps<CalendarPageableNavigationStylesNames>;
+
+export interface CalendarPageableNavigationProps extends NavigationDefaultProps {
   next?: () => void;
   prev?: () => void;
+  prevAriaLabel?: string;
+  nextAriaLabel?: string;
 }
 
 function CalendarPageableNavigation(props: CalendarPageableNavigationProps) {
-  const { next, prev, className, classNames, styles, unstyled, ...others } = props;
+  const {
+    next,
+    prev,
+    prevAriaLabel = 'Previous',
+    nextAriaLabel = 'Next',
+    className,
+    classNames,
+    styles,
+    unstyled,
+    ...others
+  } = props;
   const { classes, cx } = useStyles(null, {
     name: 'calendar-pageable-navigation',
     classNames,
@@ -29,6 +42,7 @@ function CalendarPageableNavigation(props: CalendarPageableNavigationProps) {
         onClick={() => typeof prev === 'function' && prev()}
         appearance="ghost"
         status="basic"
+        aria-label={prevAriaLabel}
         prefixIcon={
           <Icon
             icon={dir === 'ltr' ? 'chevron-left-outline' : 'chevron-right-outline'}
@@ -40,6 +54,7 @@ function CalendarPageableNavigation(props: CalendarPageableNavigationProps) {
         onClick={() => typeof next === 'function' && next()}
         appearance="ghost"
         status="basic"
+        aria-label={nextAriaLabel}
         prefixIcon={
           <Icon
             icon={dir === 'ltr' ? 'chevron-right-outline' : 'chevron-left-outline'}
@@ -51,6 +66,6 @@ function CalendarPageableNavigation(props: CalendarPageableNavigationProps) {
   );
 }
 
-CalendarPageableNavigation.displayName = '@nebular-react/core/CalendarPageableNavigation';
+CalendarPageableNavigation.displayName = 'CalendarPageableNavigation';
 
 export { CalendarPageableNavigation };

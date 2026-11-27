@@ -4,10 +4,10 @@ import {
   ComponentSize,
   DefaultProps,
   Selectors,
-  useComponentDefaultProps
+  useComponentDefaultProps,
+  createPolymorphicComponent
 } from '@nebular-react/styles';
 import ReactDOM from 'react-dom';
-import { createPolymorphicComponent } from '@mantine/utils';
 import useStyles, { LoaderStylesParams } from './Loader.style';
 
 export type LoaderStylesNames = Selectors<typeof useStyles>;
@@ -69,11 +69,14 @@ const _Loader = forwardRef<HTMLDivElement, LoaderProps>((props, ref) => {
         loaderContainerRef.current
       );
     setContent(_content);
+    // The portal content is rebuilt only when loading state changes. Adding the
+    // mutable ref or the full prop set here would recreate the portal endlessly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, loaderContainerRef.current]);
 
   return content;
 });
 
-_Loader.displayName = '@nebular-react/core/Loader';
+_Loader.displayName = 'Loader';
 
 export const Loader = createPolymorphicComponent<'div', LoaderProps>(_Loader);
