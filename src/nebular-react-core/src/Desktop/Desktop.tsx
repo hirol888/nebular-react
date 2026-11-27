@@ -7,6 +7,10 @@ import type { CommandPaletteAction } from '../CommandPalette';
 import { DesktopContextMenu, type DesktopContextMenuEntry } from './DesktopContextMenu';
 import { DesktopTaskbar, type DesktopTaskbarGroup } from './DesktopTaskbar';
 import { DesktopWindowFrame } from './DesktopWindow';
+import { DesktopWidgets } from '../DesktopWidgets';
+import { DesktopCalendarFlyout } from '../DesktopCalendar';
+import { DesktopOfflineBanner } from './DesktopOfflineBanner';
+import { DesktopConnectionStatus } from './DesktopConnectionStatus';
 import { DesktopContext } from './Desktop.context';
 import {
   createLocalStorageLayoutAdapter,
@@ -128,6 +132,17 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     onDisplayChange,
     icons,
     onIconOpen,
+    selectedIconIds,
+    defaultSelectedIconIds,
+    onIconSelectionChange,
+    iconSelection = true,
+    widgets,
+    widgetsTitle,
+    onWidgetsClose,
+    calendar,
+    onCalendarDateChange,
+    offlineBanner,
+    connectionStatus,
     commandPalette,
     commands,
     showOverview,
@@ -228,6 +243,12 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
         'desktop.windowSwitcherHint',
         'Hold Alt and press Tab to cycle, release Alt to switch.'
       ),
+      icons: t('desktop.icons', 'Desktop icons'),
+      selectedIcons: (count) =>
+        t('desktop.selectedIcons', '{count} selected', { count: String(count) }),
+      clearIconSelection: t('desktop.clearIconSelection', 'Clear icon selection'),
+      calendar: t('desktop.calendar', 'Calendar'),
+      closeCalendar: t('desktop.closeCalendar', 'Close calendar'),
       ...labelsProp
     }),
     [t, labelsProp]
@@ -281,6 +302,9 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   const [announcement, setAnnouncement] = useState('');
   const announcementCounterRef = useRef(0);
   const [snapPreview, setSnapPreview] = useState<DesktopWindowBounds | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarAnchor, setCalendarAnchor] = useState<DOMRect | null>(null);
+  const [calendarDate, setCalendarDate] = useState<Date>(() => new Date());
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -299,6 +323,130 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   } | null>(null);
   const focusTokenRef = useRef(0);
   const [measuredWidth, setMeasuredWidth] = useState(0);
+  const [internalSelectedIconIds, setInternalSelectedIconIds] = useState<string[]>(
+    () => defaultSelectedIconIds ?? []
+  );
+  const activeSelectedIconIds = selectedIconIds ?? internalSelectedIconIds;
+  const selectedIconIdSet = useMemo(() => new Set(activeSelectedIconIds), [activeSelectedIconIds]);
+  const [iconSelectionBox, setIconSelectionBox] = useState<DesktopWindowBounds | null>(null);
+  const iconSelectionDragRef = useRef<{
+    startX: number;
+    startY: number;
+    base: string[];
+    moved: boolean;
+  } | null>(null);
+  const iconSelectionCleanupRef = useRef<(() => void) | null>(null);
+  const commitIconSelection = useCallback(
+    (ids: string[]) => {
+      if (selectedIconIds === undefined) {
+        setInternalSelectedIconIds(ids);
+      }
+
+      onIconSelectionChange?.(icons.filter((icon) => ids.includes(icon.id)));
+    },
+    [icons, onIconSelectionChange, selectedIconIds]
+  );
+
+  useEffect(
+    () => () => {
+      iconSelectionCleanupRef.current?.();
+      iconSelectionCleanupRef.current = null;
+    },
+    []
+  );
+
+  const startIconSelection = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (
+        !iconSelection ||
+        !icons.length ||
+        event.button !== 0 ||
+        event.target !== event.currentTarget
+      ) {
+        return;
+      }
+
+      const area = event.currentTarget;
+      const areaRect = area.getBoundingClientRect();
+      const drag = {
+        startX: event.clientX - areaRect.left,
+        startY: event.clientY - areaRect.top,
+        base: event.ctrlKey || event.metaKey || event.shiftKey ? activeSelectedIconIds : [],
+        moved: false
+      };
+
+      iconSelectionDragRef.current = drag;
+      iconSelectionCleanupRef.current?.();
+
+      const handleMove = (moveEvent: PointerEvent) => {
+        const currentArea = desktopAreaRef.current;
+
+        if (!currentArea) {
+          return;
+        }
+
+        const rect = currentArea.getBoundingClientRect();
+        const x = moveEvent.clientX - rect.left;
+        const y = moveEvent.clientY - rect.top;
+
+        if (Math.abs(x - drag.startX) > 4 || Math.abs(y - drag.startY) > 4) {
+          drag.moved = true;
+        }
+
+        const box: DesktopWindowBounds = {
+          x: Math.min(drag.startX, x),
+          y: Math.min(drag.startY, y),
+          width: Math.abs(x - drag.startX),
+          height: Math.abs(y - drag.startY)
+        };
+        setIconSelectionBox(box);
+
+        const boxRight = rect.left + box.x + box.width;
+        const boxBottom = rect.top + box.y + box.height;
+        const hits = Array.from(currentArea.querySelectorAll<HTMLElement>('[data-desktop-icon-id]'))
+          .filter((element) => {
+            const elementRect = element.getBoundingClientRect();
+
+            return (
+              elementRect.left < boxRight &&
+              elementRect.right > rect.left + box.x &&
+              elementRect.top < boxBottom &&
+              elementRect.bottom > rect.top + box.y
+            );
+          })
+          .map((element) => element.dataset.desktopIconId)
+          .filter((id): id is string => Boolean(id));
+
+        commitIconSelection(Array.from(new Set([...drag.base, ...hits])));
+      };
+
+      const cleanup = () => {
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleEnd);
+        window.removeEventListener('pointercancel', handleEnd);
+
+        if (iconSelectionCleanupRef.current === cleanup) {
+          iconSelectionCleanupRef.current = null;
+        }
+      };
+
+      const handleEnd = () => {
+        cleanup();
+        iconSelectionDragRef.current = null;
+        setIconSelectionBox(null);
+
+        if (!drag.moved) {
+          commitIconSelection([]);
+        }
+      };
+
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', handleEnd);
+      window.addEventListener('pointercancel', handleEnd);
+      iconSelectionCleanupRef.current = cleanup;
+    },
+    [activeSelectedIconIds, commitIconSelection, iconSelection, icons.length]
+  );
   const [internalWorkspace, setInternalWorkspace] = useState<string | undefined>(
     defaultWorkspace ?? workspaces[0]?.id
   );
@@ -1702,7 +1850,10 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
     });
 
   const eventPoint = (
-    event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+    event:
+      | React.MouseEvent<HTMLElement>
+      | React.PointerEvent<HTMLElement>
+      | React.KeyboardEvent<HTMLElement>
   ): { x: number; y: number } => {
     const rootRect = rootRef.current?.getBoundingClientRect();
     const native = event.nativeEvent as MouseEvent;
@@ -1866,7 +2017,7 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
 
   const openGroupContextMenu = (
     group: DesktopTaskbarGroup,
-    event: React.MouseEvent<HTMLElement>
+    event: React.MouseEvent<HTMLElement> | React.PointerEvent<HTMLElement>
   ) => {
     if (!contextMenuEnabled) {
       return;
@@ -1984,6 +2135,12 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
   };
 
   const handleRootKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape' && activeSelectedIconIds.length > 0) {
+      event.preventDefault();
+      commitIconSelection([]);
+      return;
+    }
+
     if (commandPalette && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
       setCommandOpen((open) => !open);
@@ -2138,16 +2295,20 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
           className={cx(classes.desktop)}
           data-desktop-area="true"
           tabIndex={-1}
+          onPointerDown={startIconSelection}
         >
-          <div className={cx(classes.icons)}>
+          <div className={cx(classes.icons)} aria-label={labels.icons} role="group">
             {icons.map((icon) => {
               const app = icon.appId ? appsById.get(icon.appId) : undefined;
+              const selected = selectedIconIdSet.has(icon.id);
 
               return (
                 <button
                   key={icon.id}
                   type="button"
-                  className={cx(classes.iconButton)}
+                  className={cx(classes.iconButton, {
+                    [classes.iconButtonSelected]: selected
+                  })}
                   style={
                     icon.x !== undefined || icon.y !== undefined
                       ? {
@@ -2158,7 +2319,19 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
                       : undefined
                   }
                   aria-label={icon.label}
-                  onClick={() => {
+                  aria-pressed={iconSelection ? selected : undefined}
+                  data-desktop-icon-id={icon.id}
+                  data-selected={selected || undefined}
+                  onClick={(event) => {
+                    if (iconSelection && (event.ctrlKey || event.metaKey || event.shiftKey)) {
+                      commitIconSelection(
+                        selected
+                          ? activeSelectedIconIds.filter((id) => id !== icon.id)
+                          : [...activeSelectedIconIds, icon.id]
+                      );
+                      return;
+                    }
+
                     if (icon.onOpen) {
                       icon.onOpen();
                     } else if (icon.appId) {
@@ -2175,6 +2348,26 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
               );
             })}
           </div>
+          {iconSelectionBox && (
+            <div
+              className={cx(classes.selectionBox)}
+              style={{
+                left: iconSelectionBox.x,
+                top: iconSelectionBox.y,
+                width: iconSelectionBox.width,
+                height: iconSelectionBox.height
+              }}
+              aria-hidden="true"
+            />
+          )}
+          {iconSelection && activeSelectedIconIds.length > 0 && (
+            <span className={cx(classes.visuallyHidden)} role="status">
+              {labels.selectedIcons(activeSelectedIconIds.length)}
+            </span>
+          )}
+          {widgets && widgets.length > 0 && (
+            <DesktopWidgets widgets={widgets} title={widgetsTitle} onClose={onWidgetsClose} />
+          )}
           {displayZones.map((display) => (
             <div
               key={display.id}
@@ -2390,7 +2583,16 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
           compact={isCompact}
           showClock={showClock}
           clockValue={clockValue}
-          systemTray={systemTray}
+          systemTray={
+            connectionStatus ? (
+              <>
+                <DesktopConnectionStatus />
+                {systemTray}
+              </>
+            ) : (
+              systemTray
+            )
+          }
           taskbarActions={taskbarActions}
           showLauncher={showLauncher}
           launcherOpen={launcherOpen}
@@ -2414,10 +2616,38 @@ const Desktop = forwardRef<HTMLDivElement, DesktopProps>((props, ref) => {
           overviewOpen={overviewOpen}
           onToggleOverview={() => setOverviewOpen((open) => !open)}
           notifications={notifications}
+          onClockClick={
+            calendar
+              ? (rect) => {
+                  setCalendarAnchor(rect);
+                  setCalendarOpen((open) => !open);
+                }
+              : undefined
+          }
+          clockExpanded={calendar ? calendarOpen : undefined}
           classNames={classNames}
           styles={styles}
           unstyled={unstyled}
         />
+        {calendar && (
+          <DesktopCalendarFlyout
+            open={calendarOpen}
+            onClose={() => setCalendarOpen(false)}
+            anchorRect={calendarAnchor ?? undefined}
+            placement={
+              calendarAnchor &&
+              calendarAnchor.top > (typeof window !== 'undefined' ? window.innerHeight / 2 : 0)
+                ? 'top'
+                : 'bottom'
+            }
+            date={calendarDate}
+            onDateChange={(date) => {
+              setCalendarDate(date);
+              onCalendarDateChange?.(date);
+            }}
+          />
+        )}
+        {offlineBanner && <DesktopOfflineBanner position="top" />}
         {contextMenu && (
           <DesktopContextMenu
             x={contextMenu.x}

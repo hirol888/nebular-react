@@ -611,6 +611,78 @@ export const useStyles = createStyles((_theme) => ({
     fontSize: '0.78rem'
   },
 
+  undoBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    flex: '0 0 auto',
+    padding: '0.3rem 0.5rem',
+    borderBottom:
+      '1px solid var(--file-explorer-border-color, var(--border-basic-color-3, #e4e9f2))',
+    backgroundColor:
+      'var(--file-explorer-undo-background-color, var(--background-basic-color-2, #f7f9fc))',
+    fontSize: '0.8rem'
+  },
+
+  trashHint: {
+    margin: '0 0 0.5rem',
+    color: 'var(--text-hint-color, #8f9bb3)',
+    fontSize: '0.8rem'
+  },
+
+  trashList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.15rem',
+    margin: 0,
+    padding: 0,
+    listStyle: 'none'
+  },
+
+  trashItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    minHeight: '2rem',
+    padding: '0.25rem 0.35rem',
+    borderBottom:
+      '1px solid var(--file-explorer-border-color, var(--border-basic-color-3, #e4e9f2))',
+    fontSize: '0.8125rem'
+  },
+
+  trashEntryText: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '1 1 auto',
+    minWidth: 0
+  },
+
+  trashEntryName: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  trashEntryPath: {
+    overflow: 'hidden',
+    color: 'var(--text-hint-color, #8f9bb3)',
+    fontSize: '0.72rem',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+
+  trashStatus: {
+    margin: 0,
+    color: 'var(--text-hint-color, #8f9bb3)',
+    fontSize: '0.8rem'
+  },
+
+  trashError: {
+    margin: 0,
+    color: 'var(--color-danger-500, #ff3d71)',
+    fontSize: '0.8rem'
+  },
+
   empty: {
     display: 'flex',
     alignItems: 'center',

@@ -181,6 +181,49 @@ export function UploadsAndPermissions() {
   );
 }
 
+const trashSeed: FileEntry[] = [
+  {
+    id: 'projects',
+    name: 'Projects',
+    path: '/Projects',
+    type: 'folder',
+    modifiedAt: '2026-03-01'
+  },
+  {
+    id: 'brief',
+    name: 'brief.md',
+    path: '/Projects/brief.md',
+    type: 'file',
+    mimeType: 'text/markdown',
+    size: 940,
+    modifiedAt: '2026-03-02'
+  },
+  {
+    id: 'old-notes',
+    name: 'old-notes.txt',
+    path: '/old-notes.txt',
+    type: 'file',
+    mimeType: 'text/plain',
+    size: 320,
+    modifiedAt: '2026-03-03'
+  }
+];
+
+export function TrashAndUndo() {
+  const provider = useMemo(() => createMemoryFileSystemProvider(trashSeed), []);
+
+  return (
+    <div style={{ height: '34rem' }}>
+      <FileExplorer
+        provider={provider}
+        defaultPath="/"
+        undoTimeoutMs={10000}
+        ariaLabel="File explorer with trash and undo"
+      />
+    </div>
+  );
+}
+
 export function DualPane() {
   const provider = useMemo(() => createMemoryFileSystemProvider(seed), []);
 

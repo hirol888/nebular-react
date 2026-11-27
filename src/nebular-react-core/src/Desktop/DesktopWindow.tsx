@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useStyles } from './Desktop.styles';
+import { useSwipeGesture } from './Desktop.gestures';
 import type {
   DesktopApp,
   DesktopLabels,
@@ -145,6 +146,22 @@ function DesktopWindowFrameComponent({
   const title = windowTitleText(windowState, app, labels.window);
   const titleContent = windowTitleNode(windowState, app, labels.window);
   const icon = windowIconNode(windowState, app);
+  const titleSwipe = useSwipeGesture<HTMLDivElement>({
+    directions: ['up', 'down'],
+    onSwipe: (direction) => {
+      if (direction === 'down') {
+        if (windowState.maximized) {
+          onRestore(windowState.id);
+        } else {
+          onMinimize(windowState.id);
+        }
+      } else if (direction === 'up' && !windowState.maximized) {
+        onMaximize(windowState.id);
+      }
+    }
+  });
+  const usesTouchGesture = (event: React.PointerEvent<HTMLElement>) =>
+    event.pointerType === 'touch' || event.pointerType === 'pen';
   const isMaximized = windowState.maximized;
   const isDraggable = windowState.draggable !== false && app?.draggable !== false;
   const isResizable = windowState.resizable !== false && app?.resizable !== false;
@@ -936,10 +953,33 @@ function DesktopWindowFrameComponent({
           role="toolbar"
           aria-label={labels.window}
           tabIndex={0}
-          onPointerDown={(event) => beginInteraction(event, 'drag')}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerCancel}
+          onPointerDown={(event) => {
+            if (usesTouchGesture(event)) {
+              titleSwipe.handlers.onPointerDown(event);
+            }
+            beginInteraction(event, 'drag');
+          }}
+          onPointerMove={(event) => {
+            if (usesTouchGesture(event)) {
+              titleSwipe.handlers.onPointerMove(event);
+            }
+            handlePointerMove(event);
+          }}
+          onPointerUp={(event) => {
+            if (usesTouchGesture(event)) {
+              titleSwipe.handlers.onPointerUp(event);
+            }
+            handlePointerEnd(event);
+          }}
+          onPointerCancel={(event) => {
+            titleSwipe.handlers.onPointerCancel(event);
+            handlePointerCancel(event);
+          }}
+          onPointerLeave={(event) => {
+            if (usesTouchGesture(event)) {
+              titleSwipe.handlers.onPointerLeave(event);
+            }
+          }}
           onDoubleClick={toggleMaximize}
           onKeyDown={handleTitleKeyDown}
         >

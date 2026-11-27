@@ -42,8 +42,9 @@ Também adiciona abas por janela com tear-off, slots `toolbar`/`footer` e os com
 `WindowBreadcrumb`/`WindowStatusBar` para compor a chrome interna das janelas.
 
 Adiciona utilitários de layout (`sanitizeDesktopLayout`, `exportDesktopLayout`,
-`importDesktopLayout`, `createDesktopLayoutTemplate`), `DesktopLayoutTemplates` para aplicar
-templates salvos e resolução de conflito de revision em `DesktopLayoutSettings`. O contrato de
+`importDesktopLayout`, `createDesktopLayoutTemplate`), `DesktopLayoutPreferences` conecta o transporte versionado à UI (resumo, save e conflito),
+`DesktopLayoutTemplates` aplica templates salvos e a resolução de conflito de revision fica
+disponível em `DesktopLayoutSettings`. O contrato de
 colaboração `DesktopCollaborationAdapter` com implementação `BroadcastChannel` para
 presença/layout same-origin é acompanhado de transporte WebSocket, merge de layouts e hooks de
 presença. O Desktop ganha Alt+Tab visual, flyout de snap layouts e transições de
@@ -57,3 +58,10 @@ O catálogo i18n ganhou as chaves `desktop.*`, `desktopLayoutSettings.*`,
 pacote de ícones essenciais ganhou `menu-outline`,
 `more-horizontal-outline`, `folder-outline`, `refresh-outline`, `monitor-outline` e
 `cloud-upload-outline`.
+
+Também entram widgets (`DesktopWidgets`), flyout de calendário no relógio
+(`DesktopCalendarFlyout`), seleção de ícones do wallpaper com marquee, gestos touch
+(`useLongPress`/`useSwipeGesture`), status online/offline (`useOnlineStatus`,
+`DesktopOfflineBanner`, `DesktopConnectionStatus`) e suporte a Playwright para testes de
+ponteiro, múltiplas janelas e regressão visual. O FileExplorer ganha lixeira com
+`trash`/`restore`/`listTrash`/`emptyTrash`, undo e painel de restauração.

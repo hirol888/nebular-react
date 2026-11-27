@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import {
@@ -9,6 +9,7 @@ import {
   createRestFileSystemProvider,
   type FileEntry,
   type FileListOptions,
+  type FileListResponse,
   type FileListResult,
   type FileSystemProvider,
   type FileUploadProgress
@@ -79,6 +80,10 @@ function createDataTransfer() {
 
 function createProvider() {
   return createMemoryFileSystemProvider(seed);
+}
+
+function entriesOf(result: FileListResponse): FileEntry[] {
+  return Array.isArray(result) ? result : result.entries;
 }
 
 function createUploadMockProvider() {
@@ -252,7 +257,7 @@ describe('FileExplorer', () => {
   it('deletes entries after confirmation', async () => {
     const user = userEvent.setup();
 
-    render(<FileExplorer provider={createProvider()} />);
+    render(<FileExplorer provider={createProvider()} trashEnabled={false} />);
 
     await screen.findByText('README.md');
     await user.click(screen.getByRole('option', { name: /README\.md/ }));
@@ -655,6 +660,205 @@ describe('FileExplorer', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.test/files/entries?path=%2F&page=1&pageSize=5',
       expect.objectContaining({ credentials: 'same-origin' })
+    );
+  });
+});
+
+describe('FileExplorer trash and undo', () => {
+  it('moves entries to the trash and restores them with undo', async () => {
+    const user = userEvent.setup();
+    const base = createProvider();
+    const trash = jest.fn((paths: string[]) => base.trash!(paths));
+    const restore = jest.fn((paths: string[]) => base.restore!(paths));
+    const remove = jest.fn((paths: string[]) => base.remove!(paths));
+    const onTrash = jest.fn();
+    const onRestore = jest.fn();
+    const provider: FileSystemProvider = { ...base, trash, restore, remove };
+
+    const { container } = render(
+      <FileExplorer provider={provider} onTrash={onTrash} onRestore={onRestore} ariaLabel="Files" />
+    );
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(trash).toHaveBeenCalledWith(['/README.md']));
+    expect(remove).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+    const message = await screen.findByText('1 item(s) moved to trash');
+    const status = message.closest('[role="status"]') as HTMLElement;
+
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(onTrash).toHaveBeenCalledWith([expect.objectContaining({ path: '/README.md' })]);
+    expect(await axe(container)).toHaveNoViolations();
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+
+    await user.click(within(status).getByRole('button', { name: 'Undo' }));
+
+    await waitFor(() => expect(restore).toHaveBeenCalledWith(['/README.md']));
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText('1 item(s) moved to trash')).not.toBeInTheDocument()
+    );
+    expect(onRestore).toHaveBeenCalledWith([expect.objectContaining({ path: '/README.md' })]);
+  });
+
+  it('auto-dismisses the undo bar after the configured timeout', async () => {
+    jest.useFakeTimers();
+
+    try {
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+
+      render(<FileExplorer provider={createProvider()} undoTimeoutMs={5000} />);
+
+      await screen.findByText('README.md');
+      await user.click(screen.getByRole('option', { name: /README\.md/ }));
+      await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+      expect(await screen.findByText('1 item(s) moved to trash')).toBeInTheDocument();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(screen.queryByText('1 item(s) moved to trash')).not.toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('keeps the confirmation flow when the provider has no trash', async () => {
+    const user = userEvent.setup();
+    const base = createProvider();
+    const remove = jest.fn((paths: string[]) => base.remove!(paths));
+    const provider: FileSystemProvider = {
+      list: base.list,
+      search: base.search,
+      createFolder: base.createFolder,
+      rename: base.rename,
+      remove,
+      move: base.move,
+      copy: base.copy,
+      upload: base.upload,
+      download: base.download
+    };
+
+    render(<FileExplorer provider={provider} />);
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    const dialog = screen.getByRole('alertdialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(remove).toHaveBeenCalledWith(['/README.md']));
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+    expect(screen.queryByText(/moved to trash/)).not.toBeInTheDocument();
+  });
+
+  it('lists, restores and empties the trash from an accessible dialog', async () => {
+    const user = userEvent.setup();
+    const base = createProvider();
+    const restore = jest.fn((paths: string[]) => base.restore!(paths));
+    const emptyTrash = jest.fn(() => base.emptyTrash!());
+    const onRestore = jest.fn();
+    const provider: FileSystemProvider = { ...base, restore, emptyTrash };
+
+    render(<FileExplorer provider={provider} onRestore={onRestore} />);
+
+    await screen.findByText('README.md');
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Trash' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Trash' });
+
+    expect(within(dialog).getByText('Items stay here until you empty the trash.')).toBeVisible();
+    expect(within(dialog).getByText('Trash')).toBeInTheDocument();
+    expect(await within(dialog).findByText('README.md')).toBeInTheDocument();
+    await waitFor(() => expect(dialog).toHaveFocus());
+
+    expect(await axe(dialog)).toHaveNoViolations();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Restore README.md' }));
+
+    await waitFor(() => expect(restore).toHaveBeenCalledWith(['/README.md']));
+    expect(onRestore).toHaveBeenCalledWith([expect.objectContaining({ path: '/README.md' })]);
+    expect(await within(dialog).findByText('Trash is empty')).toBeInTheDocument();
+    expect(await screen.findByText('README.md')).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('option', { name: /README\.md/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(screen.queryByText('README.md')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Trash' }));
+
+    const reopened = await screen.findByRole('dialog', { name: 'Trash' });
+    await within(reopened).findByText('README.md');
+    await user.click(within(reopened).getByRole('button', { name: 'Empty trash' }));
+
+    await waitFor(() => expect(emptyTrash).toHaveBeenCalledTimes(1));
+    expect(await within(reopened).findByText('Trash is empty')).toBeInTheDocument();
+    expect(await base.listTrash!()).toEqual([]);
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+});
+
+describe('createMemoryFileSystemProvider trash', () => {
+  it('moves folders and their descendants to the trash and restores them', async () => {
+    const provider = createProvider();
+
+    await provider.trash!(['/Documents']);
+
+    const rootPaths = entriesOf(await provider.list('/')).map((entry) => entry.path);
+
+    expect(rootPaths).not.toContain('/Documents');
+    expect(rootPaths).toEqual(expect.arrayContaining(['/README.md', '/Pictures']));
+    expect(await provider.listTrash!()).toEqual([
+      expect.objectContaining({ name: 'Documents', path: '/Documents', type: 'folder' })
+    ]);
+
+    await provider.restore!(['/Documents']);
+
+    expect(await provider.listTrash!()).toEqual([]);
+    expect(entriesOf(await provider.list('/')).map((entry) => entry.path)).toContain('/Documents');
+    expect(await provider.list('/Documents')).toEqual([
+      expect.objectContaining({ name: 'notes.md', path: '/Documents/notes.md' })
+    ]);
+  });
+
+  it('is idempotent and keeps remove permanent', async () => {
+    const provider = createProvider();
+
+    await expect(provider.trash!(['/missing'])).resolves.toBeUndefined();
+    await expect(provider.restore!(['/missing'])).resolves.toBeUndefined();
+    expect(await provider.listTrash!()).toEqual([]);
+
+    await provider.trash!(['/README.md']);
+    await provider.remove!(['/Pictures']);
+
+    expect(await provider.listTrash!()).toEqual([expect.objectContaining({ path: '/README.md' })]);
+    expect(entriesOf(await provider.list('/')).map((entry) => entry.path)).not.toContain(
+      '/Pictures'
+    );
+
+    await provider.emptyTrash!();
+    await expect(provider.emptyTrash!()).resolves.toBeUndefined();
+    expect(await provider.listTrash!()).toEqual([]);
+
+    await provider.restore!(['/README.md']);
+    expect(entriesOf(await provider.list('/')).map((entry) => entry.path)).not.toContain(
+      '/README.md'
     );
   });
 });

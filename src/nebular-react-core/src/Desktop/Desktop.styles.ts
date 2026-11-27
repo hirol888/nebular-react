@@ -249,6 +249,29 @@ export const useStyles = createStyles((_theme) => ({
     fontVariantNumeric: 'tabular-nums'
   },
 
+  clockButton: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0.2rem 0.35rem',
+    border: 0,
+    borderRadius: 'var(--desktop-taskbar-item-radius, 0.3rem)',
+    backgroundColor: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    cursor: 'pointer',
+
+    '&:hover': {
+      backgroundColor:
+        'var(--desktop-taskbar-item-hover-background-color, var(--background-basic-color-2, #f7f9fc))'
+    },
+
+    '&:focus-visible': {
+      outline: '2px solid var(--color-primary-500, #3366ff)',
+      outlineOffset: '1px'
+    }
+  },
+
   tray: {
     display: 'flex',
     alignItems: 'center',
@@ -934,6 +957,21 @@ export const useStyles = createStyles((_theme) => ({
       outline: '2px solid var(--color-primary-500, #3366ff)',
       outlineOffset: '1px'
     }
+  },
+
+  iconButtonSelected: {
+    borderColor: 'var(--desktop-icon-selected-border-color, var(--color-primary-500, #3366ff))',
+    backgroundColor: 'var(--desktop-icon-selected-background-color, rgba(51, 102, 255, 0.14))'
+  },
+
+  selectionBox: {
+    position: 'absolute',
+    zIndex: 1,
+    border:
+      '1px solid var(--desktop-icon-selection-border-color, var(--color-primary-500, #3366ff))',
+    borderRadius: 'var(--desktop-icon-radius, 0.4rem)',
+    backgroundColor: 'var(--desktop-icon-selection-background-color, rgba(51, 102, 255, 0.12))',
+    pointerEvents: 'none'
   },
 
   iconGlyph: {

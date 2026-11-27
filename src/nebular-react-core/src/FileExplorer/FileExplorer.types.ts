@@ -68,7 +68,16 @@ export interface FileSystemProvider {
   search?(query: string, options?: FileSearchOptions): Promise<FileListResponse>;
   createFolder?(parentPath: string, name: string): Promise<FileEntry>;
   rename?(path: string, name: string): Promise<FileEntry>;
+  /** Permanently deletes the given paths. The explorer only uses it when `trash` is unavailable or disabled. */
   remove?(paths: string[]): Promise<void>;
+  /** Moves the given paths to a recoverable trash. When present, the explorer uses it instead of `remove`. */
+  trash?(paths: string[]): Promise<void>;
+  /** Restores entries previously moved to the trash, returning them to their original paths. */
+  restore?(paths: string[]): Promise<void>;
+  /** Lists the entries currently held in the trash. Enables the trash panel when provided. */
+  listTrash?(): Promise<FileEntry[]>;
+  /** Permanently discards every entry in the trash. Must be idempotent. */
+  emptyTrash?(): Promise<void>;
   move?(paths: string[], destinationPath: string): Promise<void>;
   copy?(paths: string[], destinationPath: string): Promise<void>;
   upload?(
@@ -110,6 +119,15 @@ export interface FileExplorerLabels {
   deleteTitle: string;
   deleteMessage(count: number): string;
   confirmDelete: string;
+  trash: string;
+  trashTitle: string;
+  trashHint: string;
+  trashEmpty: string;
+  restore: string;
+  emptyTrash: string;
+  movedToTrash(count: number): string;
+  restored(count: number): string;
+  undo: string;
   cancel: string;
   save: string;
   name: string;
@@ -165,12 +183,18 @@ export interface FileExplorerProps
   onOpenFolder?(entry: FileEntry): void;
   onRename?(entry: FileEntry, name: string): void;
   onDelete?(entries: FileEntry[]): void;
+  onTrash?(entries: FileEntry[]): void;
+  onRestore?(entries: FileEntry[]): void;
   onMove?(entries: FileEntry[], destinationPath: string): void;
   onCopy?(entries: FileEntry[], destinationPath: string): void;
   onCreateFolder?(parentPath: string, name: string): void;
   onUpload?(entries: FileEntry[]): void;
   onDownload?(entry: FileEntry): void;
   readOnly?: boolean;
+  /** Enables the trash flow when the provider implements `trash`. Defaults to `true`. */
+  trashEnabled?: boolean;
+  /** Auto-dismiss delay (ms) for the undo bar. Set to `0` or less to keep it visible. Defaults to `8000`. */
+  undoTimeoutMs?: number;
   accept?: string;
   multiple?: boolean;
   /** Page size forwarded to `provider.list`/`provider.search`. Enables "Load more" when supported. */

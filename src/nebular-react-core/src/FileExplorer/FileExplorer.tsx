@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useS
 import { useComponentDefaultProps, useNebularLocale } from '@nebular-react/styles';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { Icon } from '../Icon';
+import { Modal } from '../Modal';
 import { useStyles } from './FileExplorer.styles';
 import type {
   FileEntry,
@@ -41,6 +42,8 @@ const defaultProps: Partial<FileExplorerProps> = {
   selectionMode: 'multiple',
   readOnly: false,
   multiple: true,
+  trashEnabled: true,
+  undoTimeoutMs: 8000,
   virtualizeThreshold: 200,
   ariaLabel: 'File explorer',
   sidebarWidth: '14rem'
@@ -304,12 +307,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
     onOpenFolder,
     onRename,
     onDelete,
+    onTrash,
+    onRestore,
     onMove,
     onCopy,
     onCreateFolder,
     onUpload,
     onDownload,
     readOnly,
+    trashEnabled,
+    undoTimeoutMs,
     accept,
     multiple,
     pageSize,
@@ -368,6 +375,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       deleteMessage: (count) =>
         t('fileExplorer.deleteMessage', 'Delete {count} item(s)?', { count }),
       confirmDelete: t('fileExplorer.confirmDelete', 'Delete'),
+      trash: t('fileExplorer.trash', 'Trash'),
+      trashTitle: t('fileExplorer.trashTitle', 'Trash'),
+      trashHint: t('fileExplorer.trashHint', 'Items stay here until you empty the trash.'),
+      trashEmpty: t('fileExplorer.trashEmpty', 'Trash is empty'),
+      restore: t('fileExplorer.restore', 'Restore'),
+      emptyTrash: t('fileExplorer.emptyTrash', 'Empty trash'),
+      movedToTrash: (count) =>
+        t('fileExplorer.movedToTrash', '{count} item(s) moved to trash', { count }),
+      restored: (count) => t('fileExplorer.restored', '{count} item(s) restored', { count }),
+      undo: t('fileExplorer.undo', 'Undo'),
       cancel: t('fileExplorer.cancel', 'Cancel'),
       save: t('fileExplorer.save', 'Save'),
       name: t('fileExplorer.name', 'Name'),
@@ -445,6 +462,11 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const [renaming, setRenaming] = useState<FileEntry | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [deleting, setDeleting] = useState<FileEntry[] | null>(null);
+  const [pendingUndo, setPendingUndo] = useState<FileEntry[] | null>(null);
+  const [trashPanelOpen, setTrashPanelOpen] = useState(false);
+  const [trashItems, setTrashItems] = useState<FileEntry[]>([]);
+  const [trashLoading, setTrashLoading] = useState(false);
+  const [trashError, setTrashError] = useState<unknown>(undefined);
   const [clipboard, setClipboard] = useState<{
     mode: 'copy' | 'cut';
     entries: FileEntry[];
@@ -651,6 +673,8 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
   const selectedCanRead = selectedEntries.length > 0 && selectedEntries.every(canReadEntry);
   const selectedCanWrite = selectedEntries.length > 0 && selectedEntries.every(canWriteEntry);
   const selectedCanDelete = selectedEntries.length > 0 && selectedEntries.every(canDeleteEntry);
+  const canTrash = !readOnly && trashEnabled !== false && !!provider.trash;
+  const showTrashPanel = !readOnly && trashEnabled !== false && !!provider.listTrash;
 
   const virtualEnabled =
     (view === 'list' || view === 'details') &&
@@ -717,6 +741,19 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       scrollRef.current.scrollTop = 0;
     }
   }, [path, query, view]);
+
+  useEffect(() => {
+    setPendingUndo(null);
+  }, [path]);
+
+  useEffect(() => {
+    if (!pendingUndo || undoTimeoutMs <= 0) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setPendingUndo(null), undoTimeoutMs);
+    return () => window.clearTimeout(timer);
+  }, [pendingUndo, undoTimeoutMs]);
 
   const ensureIndexVisible = (index: number) => {
     if (!virtualEnabled) {
@@ -932,7 +969,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       return;
     } else if (event.key === 'Delete' && !readOnly && selectedCanDelete) {
       event.preventDefault();
-      setDeleting(selectedEntries);
+      requestDelete(selectedEntries);
       return;
     } else if (event.key === 'Escape') {
       applySelection([], sortedEntries);
@@ -1009,6 +1046,117 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
       setRefreshToken((token) => token + 1);
     } catch (reason) {
       setError(reason);
+    }
+  };
+
+  const moveEntriesToTrash = async (targets: FileEntry[]) => {
+    const deletable = targets.filter(canDeleteEntry);
+
+    if (!provider.trash || deletable.length === 0) {
+      return;
+    }
+
+    try {
+      await provider.trash(deletable.map((entry) => entry.path));
+      onTrash?.(deletable);
+      setDeleting(null);
+      applySelection([], sortedEntries);
+      setPendingUndo(deletable);
+      setRefreshToken((token) => token + 1);
+    } catch (reason) {
+      setError(reason);
+    }
+  };
+
+  const requestDelete = (targets: FileEntry[]) => {
+    if (canTrash) {
+      moveEntriesToTrash(targets).catch(() => undefined);
+      return;
+    }
+
+    setDeleting(targets);
+  };
+
+  const undoTrash = async () => {
+    const pending = pendingUndo;
+
+    if (!provider.restore || !pending || pending.length === 0) {
+      return;
+    }
+
+    try {
+      await provider.restore(pending.map((entry) => entry.path));
+      onRestore?.(pending);
+      setPendingUndo(null);
+      setRefreshToken((token) => token + 1);
+    } catch (reason) {
+      setError(reason);
+    }
+  };
+
+  const loadTrashItems = async () => {
+    if (!provider.listTrash) {
+      return;
+    }
+
+    setTrashLoading(true);
+    setTrashError(undefined);
+
+    try {
+      setTrashItems(await provider.listTrash());
+    } catch (reason) {
+      setTrashError(reason);
+    } finally {
+      setTrashLoading(false);
+    }
+  };
+
+  const openTrashPanel = () => {
+    setMenu(null);
+    setTrashItems([]);
+    setTrashPanelOpen(true);
+    loadTrashItems().catch(() => undefined);
+  };
+
+  const closeTrashPanel = () => {
+    setTrashPanelOpen(false);
+  };
+
+  const restoreTrashEntry = async (entry: FileEntry) => {
+    if (!provider.restore) {
+      return;
+    }
+
+    try {
+      await provider.restore([entry.path]);
+      onRestore?.([entry]);
+      setPendingUndo((current) => {
+        if (!current) {
+          return current;
+        }
+
+        const remaining = current.filter((candidate) => candidate.path !== entry.path);
+        return remaining.length > 0 ? remaining : null;
+      });
+      setRefreshToken((token) => token + 1);
+      await loadTrashItems();
+    } catch (reason) {
+      setTrashError(reason);
+    }
+  };
+
+  const emptyAllTrash = async () => {
+    if (!provider.emptyTrash) {
+      return;
+    }
+
+    try {
+      await provider.emptyTrash();
+      setTrashItems([]);
+      setPendingUndo(null);
+      setRefreshToken((token) => token + 1);
+    } catch (reason) {
+      setTrashError(reason);
     }
   };
 
@@ -1866,13 +2014,13 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                 {labels.rename}
               </button>
             )}
-            {provider.remove && selectedEntries.length > 0 && (
+            {(provider.remove || canTrash) && selectedEntries.length > 0 && (
               <button
                 type="button"
                 className={cx(classes.actionButton, classes.danger)}
                 disabled={!selectedCanDelete}
                 title={selectedCanDelete ? undefined : labels.permissionDenied(labels.delete)}
-                onClick={() => setDeleting(selectedEntries)}
+                onClick={() => requestDelete(selectedEntries)}
               >
                 {labels.delete}
               </button>
@@ -1936,9 +2084,30 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                 />
               </>
             )}
+            {showTrashPanel && (
+              <button type="button" className={cx(classes.actionButton)} onClick={openTrashPanel}>
+                {labels.trash}
+              </button>
+            )}
           </div>
         )}
       </div>
+      {pendingUndo && pendingUndo.length > 0 && (
+        <div className={cx(classes.undoBar)} role="status" aria-live="polite" aria-atomic="true">
+          <span>{labels.movedToTrash(pendingUndo.length)}</span>
+          {provider.restore && (
+            <button
+              type="button"
+              className={cx(classes.actionButton)}
+              onClick={() => {
+                undoTrash().catch(() => undefined);
+              }}
+            >
+              {labels.undo}
+            </button>
+          )}
+        </div>
+      )}
       {creating && (
         <div className={cx(classes.createBar)}>
           <input
@@ -2262,7 +2431,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                   {labels.download}
                 </button>
               )}
-              {provider.remove && !readOnly && (
+              {(provider.remove || canTrash) && !readOnly && (
                 <>
                   <div className={cx(classes.menuSeparator)} role="separator" />
                   <button
@@ -2272,7 +2441,7 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                     disabled={!menuEntryCanDelete}
                     title={menuEntryCanDelete ? undefined : labels.permissionDenied(labels.delete)}
                     onClick={() => {
-                      setDeleting([menu.entry as FileEntry]);
+                      requestDelete([menu.entry as FileEntry]);
                       setMenu(null);
                     }}
                   >
@@ -2324,6 +2493,16 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
                 {labels.paste}
               </button>
             )}
+          {!menu.entry && showTrashPanel && (
+            <button
+              type="button"
+              role="menuitem"
+              className={cx(classes.menuItem)}
+              onClick={openTrashPanel}
+            >
+              {labels.trash}
+            </button>
+          )}
         </div>
       )}
       <span id={`${listboxId}-status`} className={cx(classes.visuallyHidden)} aria-live="polite">
@@ -2342,6 +2521,77 @@ export const FileExplorer = forwardRef<HTMLDivElement, FileExplorerProps>((props
         }}
         onCancel={() => setDeleting(null)}
       />
+      <Modal
+        opened={trashPanelOpen && showTrashPanel}
+        onClose={closeTrashPanel}
+        title={labels.trashTitle}
+        size={480}
+        zIndex={2100000000}
+        withCloseButton={false}
+        footer={
+          <>
+            {provider.emptyTrash && (
+              <button
+                type="button"
+                className={cx(classes.actionButton)}
+                disabled={trashLoading || trashItems.length === 0}
+                onClick={() => {
+                  emptyAllTrash().catch(() => undefined);
+                }}
+              >
+                {labels.emptyTrash}
+              </button>
+            )}
+            <button
+              type="button"
+              className={cx(classes.actionButton)}
+              aria-label={labels.closePreview}
+              title={labels.closePreview}
+              onClick={closeTrashPanel}
+            >
+              <Icon icon="close-outline" pack="nebular-essentials" aria-hidden="true" />
+            </button>
+          </>
+        }
+      >
+        <p className={cx(classes.trashHint)}>{labels.trashHint}</p>
+        {trashError ? (
+          <p className={cx(classes.trashError)} role="alert">
+            {labels.error}
+          </p>
+        ) : null}
+        {trashLoading ? (
+          <p className={cx(classes.trashStatus)} role="status">
+            {labels.loading}
+          </p>
+        ) : trashItems.length === 0 ? (
+          <p className={cx(classes.trashStatus)}>{labels.trashEmpty}</p>
+        ) : (
+          <ul className={cx(classes.trashList)}>
+            {trashItems.map((entry) => (
+              <li key={entry.path} className={cx(classes.trashItem)}>
+                <span className={cx(classes.entryIcon)}>{getEntryIcon(entry)}</span>
+                <span className={cx(classes.trashEntryText)}>
+                  <span className={cx(classes.trashEntryName)}>{entry.name}</span>
+                  <span className={cx(classes.trashEntryPath)}>{entry.path}</span>
+                </span>
+                {provider.restore && (
+                  <button
+                    type="button"
+                    className={cx(classes.actionButton)}
+                    aria-label={`${labels.restore} ${entry.name}`}
+                    onClick={() => {
+                      restoreTrashEntry(entry).catch(() => undefined);
+                    }}
+                  >
+                    {labels.restore}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Modal>
     </div>
   );
 });

@@ -48,6 +48,9 @@ yarn test          # prettier + syncpack + typecheck + lint + jest
 yarn coverage      # cobertura com thresholds
 yarn lint:package  # publint (exports/package.json)
 yarn lint:types    # attw (tipos ESM/CJS)
+yarn e2e           # Storybook estático + Playwright (pointer, janelas, snap, compacto)
+yarn e2e:update    # regrava o baseline visual (opcional)
+yarn e2e:install   # instala o Chromium do Playwright
 ```
 
 ## Documentation

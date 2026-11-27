@@ -4,7 +4,7 @@
 
 | Categoria   | Componentes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `DesktopLayoutTemplates`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
+| Estrutura   | `Card`, `Layout`, `Sidebar`, `List`, `Table`, `Tabset`, `Accordion`, `Stepper`, `Pagination`, `Breadcrumbs`, `Divider`, `ScrollArea`, `Spoiler`, `AspectRatio`, `PageHeader`, `Kbd`, `CopyButton`, `Anchor`, `Carousel`, `AppShell`, `SplitPane`, `Desktop`, `DesktopLayoutSettings`, `DesktopLayoutTemplates`, `DesktopLayoutPreferences`, `DesktopWidgets`, `DesktopCalendarFlyout`, `WindowBreadcrumb`, `WindowStatusBar`, `ErrorBoundary`, `VisuallyHidden`, `Typography`, `Stack`, `Flex`, `Grid`, `Container`, `Affix`, `BackTop`, `FloatButton`, `Watermark`, `SortableList`, `Masonry`, `Fieldset`, `ThemeIcon`                                                                                                                                                                                                                                                                                                                                                                                         |
 | Dados       | `DataGrid`, `PivotTable`, `TreeTable`, `Scheduler`, `GanttChart`, `Charts` (`Line`/`Area`/`Bar`/`Donut`/`Combo`/`Stacked`/`Funnel`/`TreeMap`/`Waterfall`/`Bullet`/`Sankey`/`Chord`/`Sunburst`/`BoxPlot`/`Candlestick`/`WordCloud`/`StreamGraph`/`StepLine`/`PolarArea`/`Violin`/`Waffle`/`Hexbin`/`RadialBar`/`ParallelCoordinates`/`Mekko`/`Network`/`Pictogram`/`Bubble`/`Dendrogram`/`Pie`/`Scatter`/`Radar`/`Gauge`/`Heatmap`/`Sparkline`), `ChartDataTable`, `Badge`, `User`, `AvatarGroup`, `Indicator`, `Icon`, `ThemeIcon`, `Chat`, `Stat`/`KpiCard`, `Timeline`, `Descriptions`, `Tree`, `Transfer`, `Image`, `QRCode`, `Barcode`, `CodeBlock`, `JsonViewer`, `JsonEditor`, `DiffViewer`, `Markdown`, `VirtualList`, `InfiniteScroll`, `Kanban`, `DashboardGrid`, `OrgChart`, `FileManager`, `FileExplorer`, `FileExplorerDualPane`, `CalendarHeatmap`, `NumberFormatter`, `ColorSwatch` |
 | Formulários | `Input`, `Checkbox`, `Radio`, `Toggle`, `Select`, `Autocomplete`, `Tags`, `Search`, `Button`, `ButtonGroup`, `Actions`, `SegmentedControl`, `MultiSelect`, `Chip`, `ChipGroup`, `SwitchGroup`, `FormControl`, `Form`, `Wizard`, `CheckboxGroup`, `InputGroup`, `PinInput`, `PhoneInput`, `DocumentInput`, `MaskedInput`, `CurrencyInput`, `FileInput`, `FileButton`, `CronInput`, `Textarea`, `NumberInput`, `PasswordInput`, `PasswordStrength`, `NativeSelect`, `Rating`, `Slider`, `RangeSlider`, `ColorPicker`, `Dropzone`, `RichTextEditor`, `CodeEditor`, `MarkdownEditor`, `EmojiPicker`, `TreeSelect`, `Cascader`, `FilterBuilder`, `ImageCropper`, `AvatarEditor`, `Mentions`, `SignaturePad`                                                                                                                                                                                           |
 | Datas       | `Calendar`, `Datepicker`, `Rangepicker`, `DatetimePicker`, `DateTimeRangePicker`, `Timepicker`, `TimeRangePicker`, `MonthPicker`, `YearPicker`, `WeekPicker`, `QuarterPicker`, `MonthRangePicker`, `YearRangePicker`, `TimeZonePicker`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -1992,6 +1992,16 @@ const apps = [
   (SignalR/WebSocket) e `isCollaboratorStale` apoia a poda de presenças.
 - `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
   pode ser definido por app/janela.
+- `widgets` renderiza `DesktopWidgets` (painel flutuante colapsável) e `calendar` transforma
+  o relógio da taskbar em botão que abre `DesktopCalendarFlyout`.
+- `iconSelection` (padrão `true`) habilita seleção de ícones do wallpaper por
+  `Ctrl/Cmd/Shift+clique` ou retângulo de seleção; `selectedIconIds`/
+  `defaultSelectedIconIds`/`onIconSelectionChange` permitem controlar a seleção e `Escape`
+  limpa.
+- `connectionStatus` mostra o indicador online/offline na taskbar e `offlineBanner` exibe
+  o banner de modo offline. Os hooks `useOnlineStatus`, `useLongPress` e `useSwipeGesture`
+  são exportados para hosts; em telas touch/pen, swipe para baixo no título minimiza
+  (ou restaura, se maximizada) e swipe para cima maximiza.
 - `alwaysOnTop` mantém a janela acima das demais; `skipTaskbar` oculta o botão da taskbar;
   `keepInBounds` (padrão `true`) impede que drag/resize saiam da área do desktop.
 - `displayMode="span"` + `displays` habilita snap/maximize por monitor, divisórias visuais,
@@ -2093,6 +2103,69 @@ Seletor de templates de layout prontos (`DesktopLayoutTemplate`), útil para per
   apps (`createTemplateWindows`) ou por `window.state`.
 - `labels` permitem tradução; o componente é acessível por teclado e tem `axe` no CI.
 
+## DesktopLayoutPreferences
+
+Conecta um `VersionedLayoutTransport` (REST/GraphQL) à UI de layout: carrega o snapshot e a
+revision, mostra o resumo, salva sob demanda e resolve conflitos `local` × `remote`.
+
+```tsx
+const transport = useMemo(() => createDirectoryLayoutTransport({ deviceId, tenantId }), []);
+
+<DesktopLayoutPreferences
+  transport={transport}
+  snapshot={snapshot}
+  deviceId={deviceId}
+  onLoaded={setSnapshot}
+  onApplySnapshot={setSnapshot}
+/>
+```
+
+- `useDesktopLayoutPreferences` expõe `status`, `revision`, `conflict`, `remoteSnapshot`,
+  `noLayout`, `adapter`, `saveNow`, `refresh` e `resolveConflict`.
+- `adapter` é estável e pode ser passado direto ao `<Desktop layoutAdapter>` para que a
+  gravação automática e a UI compartilhem a mesma revision.
+- Em conflito, `local` regrava com a revisão remota e `remote` aplica
+  `onApplySnapshot(remoteSnapshot)`.
+- `showSummary={false}` oculta a contagem de janelas e o último salvamento.
+
+## DesktopWidgets
+
+Painel flutuante de widgets para o Desktop:
+
+```tsx
+<Desktop
+  widgets={[
+    { id: 'clock', title: 'World clock', content: <WorldClock /> },
+    { id: 'sticky', title: 'Notes', content: <StickyNote /> }
+  ]}
+  widgetsTitle="Widgets"
+/>
+```
+
+- Controlado por `collapsed`/`onCollapsedChange` ou não controlado; cada widget pode
+  iniciar colapsado com `defaultCollapsed`.
+- `onClose` remove o painel quando o host permitir; sem widgets, mostra
+  `desktop.noWidgets`.
+- Posição e aparência via CSS vars `--desktop-widgets-*`.
+
+## DesktopCalendarFlyout
+
+Flyout de calendário ancorado no relógio da taskbar, habilitado por `calendar` no
+`Desktop` ou usado diretamente:
+
+```tsx
+<DesktopCalendarFlyout
+  open={open}
+  onClose={() => setOpen(false)}
+  anchorRect={clockRect}
+  date={date}
+  onDateChange={setDate}
+/>
+```
+
+- `role="dialog"`, foco inicial, restauração de foco, Escape e clique fora.
+- `anchorRect` posiciona abaixo/acima do gatilho; sem âncora, centraliza na viewport.
+
 ## WindowBreadcrumb
 
 Breadcrumb compacto para a toolbar de uma janela (`toolbar` no `DesktopApp`/janela):
@@ -2165,6 +2238,10 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
   input/drag-and-drop e preview de imagem, texto, áudio, vídeo e PDF (com `noPreview`
   quando o tipo não é suportado).
 - Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
+- Se o provider implementar `trash`, excluir move para a lixeira e mostra uma barra com
+  **Undo** (`undoTimeoutMs`, padrão 8s); `restore` desfaz, e `listTrash`/`emptyTrash`
+  habilitam o painel de lixeira com restauração e esvaziamento. Sem `trash`, `remove`
+  continua sendo exclusão permanente com confirmação.
 - `FileEntry.permissions` (`read`/`write`/`delete`/`download`) desabilita ações e atenua
   entradas sem leitura; `readOnly` continua global.
 - Providers podem retornar `{ entries, total, hasMore }` para paginação (`page` 0-based,

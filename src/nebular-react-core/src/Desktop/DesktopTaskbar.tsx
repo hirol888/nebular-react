@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useStyles } from './Desktop.styles';
+import { useLongPress } from './Desktop.gestures';
 import type {
   DesktopApp,
   DesktopLabels,
@@ -51,7 +52,10 @@ export interface DesktopTaskbarProps extends DesktopStyleProps {
   showWorkspaceSwitcher: boolean;
   onSwitchWorkspace(workspaceId: string): void;
   onGroupClick(group: DesktopTaskbarGroup): void;
-  onGroupContextMenu(group: DesktopTaskbarGroup, event: React.MouseEvent<HTMLElement>): void;
+  onGroupContextMenu(
+    group: DesktopTaskbarGroup,
+    event: React.MouseEvent<HTMLElement> | React.PointerEvent<HTMLElement>
+  ): void;
   onGroupMenu(group: DesktopTaskbarGroup, event: React.MouseEvent<HTMLElement>): void;
   onOverflowMenu(groups: DesktopTaskbarGroup[], event: React.MouseEvent<HTMLElement>): void;
   startMenuSearch: boolean;
@@ -59,6 +63,9 @@ export interface DesktopTaskbarProps extends DesktopStyleProps {
   overviewOpen: boolean;
   onToggleOverview(): void;
   notifications?: NotificationItem[];
+  /** When provided, the clock becomes a button that opens the calendar flyout. */
+  onClockClick?(rect: DOMRect): void;
+  clockExpanded?: boolean;
 }
 
 export function DesktopTaskbar({
@@ -95,6 +102,8 @@ export function DesktopTaskbar({
   overviewOpen,
   onToggleOverview,
   notifications,
+  onClockClick,
+  clockExpanded,
   classNames,
   styles,
   unstyled
@@ -153,6 +162,19 @@ export function DesktopTaskbar({
     maxTaskbarItems === undefined ? groups : groups.slice(0, Math.max(0, maxTaskbarItems));
   const overflowGroups =
     maxTaskbarItems === undefined ? [] : groups.slice(Math.max(0, maxTaskbarItems));
+  const groupLongPress = useLongPress({
+    delayMs: 550,
+    onLongPress: (event) => {
+      const target = event.target as HTMLElement | null;
+      const key = target?.closest<HTMLElement>('[data-desktop-taskbar-key]')?.dataset
+        .desktopTaskbarKey;
+      const group = groups.find((candidate) => candidate.key === key);
+
+      if (group) {
+        onGroupContextMenu(group, event as React.PointerEvent<HTMLElement>);
+      }
+    }
+  });
 
   const handleItemsKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const buttons = Array.from(
@@ -253,6 +275,7 @@ export function DesktopTaskbar({
           [classes.taskbarItemsVertical]: taskbarVertical
         })}
         onKeyDown={handleItemsKeyDown}
+        {...groupLongPress.handlers}
       >
         {visibleGroups.map((group) => {
           const count = group.windows.length;
@@ -363,7 +386,20 @@ export function DesktopTaskbar({
             role="timer"
             aria-label={labels.clock}
           >
-            <span className={cx(classes.clockTime)}>{clockValue}</span>
+            {onClockClick ? (
+              <button
+                type="button"
+                className={cx(classes.clockButton)}
+                aria-label={labels.calendar}
+                aria-haspopup="dialog"
+                aria-expanded={clockExpanded ?? false}
+                onClick={(event) => onClockClick(event.currentTarget.getBoundingClientRect())}
+              >
+                <span className={cx(classes.clockTime)}>{clockValue}</span>
+              </button>
+            ) : (
+              <span className={cx(classes.clockTime)}>{clockValue}</span>
+            )}
           </div>
         )}
       </div>

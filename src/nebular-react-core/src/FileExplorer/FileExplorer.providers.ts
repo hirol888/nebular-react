@@ -72,12 +72,18 @@ export interface MemoryFileSystemProvider extends FileSystemProvider {
   entries(): FileEntry[];
 }
 
+interface MemoryTrashRecord {
+  root: FileEntry;
+  entries: FileEntry[];
+}
+
 /**
  * In-memory provider used by stories, tests and prototypes.
  * Paths are canonical (`/`, `/Documents`, `/Documents/file.txt`).
  */
 export function createMemoryFileSystemProvider(seed: FileEntry[] = []): MemoryFileSystemProvider {
   const entries = new Map<string, FileEntry>();
+  const trashed = new Map<string, MemoryTrashRecord>();
 
   seed.forEach((entry) => {
     const path = normalizePath(entry.path);
@@ -176,6 +182,41 @@ export function createMemoryFileSystemProvider(seed: FileEntry[] = []): MemoryFi
     },
     async remove(paths) {
       paths.forEach(removeTree);
+    },
+    async trash(paths) {
+      paths.forEach((path) => {
+        const normalized = normalizePath(path);
+        const snapshot = Array.from(entries.values())
+          .filter((entry) => entry.path === normalized || entry.path.startsWith(`${normalized}/`))
+          .map((entry) => ({ ...entry }));
+        const root = snapshot.find((entry) => entry.path === normalized);
+
+        if (!root) {
+          return;
+        }
+
+        trashed.set(normalized, { root, entries: snapshot });
+        removeTree(normalized);
+      });
+    },
+    async restore(paths) {
+      paths.forEach((path) => {
+        const key = normalizePath(path);
+        const record = trashed.get(key);
+
+        if (!record) {
+          return;
+        }
+
+        trashed.delete(key);
+        record.entries.forEach((entry) => entries.set(entry.path, { ...entry }));
+      });
+    },
+    async listTrash() {
+      return Array.from(trashed.values()).map((record) => ({ ...record.root }));
+    },
+    async emptyTrash() {
+      trashed.clear();
     },
     async move(paths, destinationPath) {
       paths.forEach((path) => {

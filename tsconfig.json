@@ -7,7 +7,9 @@
     "./scripts",
     "./configuration",
     "./configuration/types",
-    "./tests"
+    "./tests",
+    "./e2e",
+    "./playwright.config.ts"
   ],
   "exclude": [
     "public",

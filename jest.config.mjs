@@ -1,10 +1,12 @@
 /** @type {import('jest').Config} */
 export default {
   testEnvironment: 'jest-environment-jsdom',
+  testTimeout: 10_000,
   transform: {
     '^.+\\.tsx?$': ['@sucrase/jest-plugin', { jsxRuntime: 'automatic' }]
   },
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
   setupFilesAfterEnv: ['./configuration/jest/jsdom.mocks.js'],
   moduleNameMapper: {
     '@nebular-react/(.*)': '<rootDir>/src/nebular-react-$1/src'

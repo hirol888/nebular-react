@@ -484,6 +484,51 @@ export function PersistedLayout() {
   );
 }
 
+export function WidgetsAndCalendar() {
+  return (
+    <Desktop
+      fullscreen
+      apps={apps}
+      calendar
+      connectionStatus
+      defaultWindows={[windowState('widgets-notes', 'notes', 80, 64, 1)]}
+      icons={[
+        {
+          id: 'widgets-mail',
+          label: 'Mail',
+          appId: 'mail',
+          icon: <Icon icon="email-outline" pack="nebular-essentials" aria-hidden="true" />
+        },
+        {
+          id: 'widgets-settings',
+          label: 'Settings',
+          appId: 'settings',
+          icon: <Icon icon="settings-outline" pack="nebular-essentials" aria-hidden="true" />
+        }
+      ]}
+      widgets={[
+        {
+          id: 'world-clock',
+          title: 'World clock',
+          description: 'Local time in three offices.',
+          content: (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <span>Lisbon · 10:00</span>
+              <span>New York · 05:00</span>
+              <span>Tokyo · 19:00</span>
+            </div>
+          )
+        },
+        {
+          id: 'sticky',
+          title: 'Sticky note',
+          content: <p style={{ margin: 0 }}>Review the desktop layout before the release.</p>
+        }
+      ]}
+    />
+  );
+}
+
 export function WindowSwitcherAndSnapLayouts() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

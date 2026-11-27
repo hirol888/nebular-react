@@ -56,6 +56,14 @@ function pointerEvent(type: string, clientX: number, clientY: number): MouseEven
   });
 }
 
+function touchPointerEvent(type: string, clientX: number, clientY: number): MouseEvent {
+  const event = pointerEvent(type, clientX, clientY);
+
+  Object.defineProperty(event, 'pointerType', { value: 'touch' });
+
+  return event;
+}
+
 function mockDesktopArea(container: HTMLElement): HTMLElement {
   const area = container.querySelector('[data-desktop-area]') as HTMLElement;
 
@@ -1373,6 +1381,122 @@ describe('Desktop', () => {
 
     expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
     expect(onIconOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'notes-shortcut' }));
+  });
+
+  it('selects wallpaper icons with Ctrl+click and clears with Escape', async () => {
+    const user = userEvent.setup();
+    const onIconSelectionChange = jest.fn();
+
+    render(
+      <Desktop
+        apps={apps}
+        icons={[
+          { id: 'notes-shortcut', label: 'Notes shortcut', appId: 'notes' },
+          { id: 'settings-shortcut', label: 'Settings shortcut', appId: 'settings' }
+        ]}
+        onIconSelectionChange={onIconSelectionChange}
+      />
+    );
+
+    const notes = screen.getByRole('button', { name: 'Notes shortcut' });
+    const settings = screen.getByRole('button', { name: 'Settings shortcut' });
+
+    await user.keyboard('{Control>}');
+    await user.click(notes);
+    await user.click(settings);
+    await user.keyboard('{/Control}');
+
+    expect(notes).toHaveAttribute('aria-pressed', 'true');
+    expect(settings).toHaveAttribute('aria-pressed', 'true');
+    expect(onIconSelectionChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ id: 'notes-shortcut' }),
+      expect.objectContaining({ id: 'settings-shortcut' })
+    ]);
+    expect(screen.queryByRole('dialog', { name: 'Notes' })).not.toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+
+    expect(notes).toHaveAttribute('aria-pressed', 'false');
+    expect(settings).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('selects icons with a marquee over the desktop', () => {
+    const onIconSelectionChange = jest.fn();
+    const { container } = render(
+      <Desktop
+        apps={apps}
+        icons={[{ id: 'notes-shortcut', label: 'Notes shortcut', appId: 'notes' }]}
+        onIconSelectionChange={onIconSelectionChange}
+      />
+    );
+    const area = mockDesktopArea(container);
+    const icon = screen.getByRole('button', { name: 'Notes shortcut' });
+
+    Object.defineProperty(icon, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        left: 20,
+        top: 20,
+        width: 88,
+        height: 70,
+        right: 108,
+        bottom: 90,
+        x: 20,
+        y: 20,
+        toJSON: () => ({})
+      })
+    });
+
+    fireEvent(area, pointerEvent('pointerdown', 0, 0));
+    fireEvent(window, pointerEvent('pointermove', 200, 160));
+    fireEvent(window, pointerEvent('pointerup', 200, 160));
+
+    expect(icon).toHaveAttribute('aria-pressed', 'true');
+    expect(onIconSelectionChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ id: 'notes-shortcut' })
+    ]);
+  });
+
+  it('minimizes a window with a downward touch swipe on the title bar', () => {
+    render(<Desktop apps={apps} defaultWindows={[createWindow()]} />);
+
+    const dialog = screen.getByRole('dialog', { name: 'Notes' });
+    const titleBar = within(dialog).getByRole('toolbar', { name: 'Window' });
+    const windowElement = screen.getByRole('dialog', { name: 'Notes' });
+
+    fireEvent(titleBar, touchPointerEvent('pointerdown', 200, 120));
+    fireEvent(titleBar, touchPointerEvent('pointermove', 200, 220));
+    fireEvent(titleBar, touchPointerEvent('pointerup', 200, 220));
+
+    expect(windowElement).toHaveAttribute('hidden');
+  });
+
+  it('renders widgets and opens the calendar flyout from the clock', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Desktop
+        apps={apps}
+        calendar
+        widgets={[
+          {
+            id: 'world-clock',
+            title: 'World clock',
+            content: <p>Lisbon 10:00</p>
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText('World clock')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Calendar' }));
+
+    expect(screen.getByRole('dialog', { name: 'Calendar' })).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog', { name: 'Calendar' })).not.toBeInTheDocument();
   });
 
   it('shows the overview and focuses a window from it', async () => {

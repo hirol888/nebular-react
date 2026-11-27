@@ -1,5 +1,6 @@
 import React from 'react';
 import { DefaultProps } from '@nebular-react/styles';
+import type { DesktopWidget } from '../DesktopWidgets';
 import type { CommandPaletteAction } from '../CommandPalette';
 import type { NotificationItem } from '../NotificationCenter';
 import type { DesktopStylesNames } from './Desktop.styles';
@@ -276,6 +277,11 @@ export interface DesktopLabels {
   closeOverview: string;
   windowSwitcher: string;
   windowSwitcherHint: string;
+  icons: string;
+  selectedIcons(count: string | number): string;
+  clearIconSelection: string;
+  calendar: string;
+  closeCalendar: string;
 }
 
 export interface DesktopWindowContextValue {
@@ -352,6 +358,23 @@ export interface DesktopProps
   /** Shortcuts rendered on the wallpaper. */
   icons?: DesktopIcon[];
   onIconOpen?(icon: DesktopIcon): void;
+  /** Controlled selection of wallpaper icons. */
+  selectedIconIds?: string[];
+  defaultSelectedIconIds?: string[];
+  onIconSelectionChange?(icons: DesktopIcon[]): void;
+  /** Enables marquee/Ctrl selection for wallpaper icons. Defaults to true. */
+  iconSelection?: boolean;
+  /** Floating widgets rendered above the windows. */
+  widgets?: DesktopWidget[];
+  widgetsTitle?: string;
+  onWidgetsClose?(): void;
+  /** Enables the calendar flyout when the taskbar clock is clicked. */
+  calendar?: boolean;
+  onCalendarDateChange?(date: Date): void;
+  /** Shows a banner while the browser is offline. */
+  offlineBanner?: boolean;
+  /** Shows a compact online/offline indicator in the taskbar. */
+  connectionStatus?: boolean;
   /** Enables Ctrl/Cmd+K command palette. */
   commandPalette?: boolean;
   commands?: CommandPaletteAction[];

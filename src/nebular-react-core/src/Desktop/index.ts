@@ -11,6 +11,37 @@ export type {
   DesktopAppFrameStylesNames
 } from './DesktopAppFrame';
 export {
+  DESKTOP_LONG_PRESS_DEFAULT_DELAY,
+  DESKTOP_LONG_PRESS_DEFAULT_MOVE_THRESHOLD,
+  DESKTOP_SWIPE_DEFAULT_THRESHOLD,
+  useLongPress,
+  useOnlineStatus,
+  useSwipeGesture
+} from './Desktop.gestures';
+export type {
+  DesktopGesturePointerType,
+  DesktopLongPressHandlers,
+  DesktopSwipeDirection,
+  DesktopSwipeHandlers,
+  UseLongPressOptions,
+  UseLongPressResult,
+  UseSwipeGestureOptions,
+  UseSwipeGestureResult
+} from './Desktop.gestures';
+export { DesktopOfflineBanner } from './DesktopOfflineBanner';
+export type {
+  DesktopOfflineBannerLabels,
+  DesktopOfflineBannerPosition,
+  DesktopOfflineBannerProps,
+  DesktopOfflineBannerStylesNames
+} from './DesktopOfflineBanner';
+export { DesktopConnectionStatus } from './DesktopConnectionStatus';
+export type {
+  DesktopConnectionStatusLabels,
+  DesktopConnectionStatusProps,
+  DesktopConnectionStatusStylesNames
+} from './DesktopConnectionStatus';
+export {
   createDesktopSurfaceBus,
   getDesktopSurfaceDisplayId,
   openDesktopSurfaces,

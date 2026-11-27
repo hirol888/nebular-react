@@ -159,16 +159,17 @@
   janela com tear-off, toolbar/footer (`WindowBreadcrumb`/`WindowStatusBar`), Alt+Tab visual,
   flyout de snap layouts, transições, ícones, command palette, overview, notificações, error
   boundary por janela, associação de arquivos, modo compacto e janelas filhas modais.
-  Colaboração via `BroadcastChannel` ou WebSocket, merge LWW, presença e templates/conflito
+  colaboração via `BroadcastChannel` ou WebSocket, merge LWW, presença e templates/conflito
   de layout. Inclui app registry com permissões/deep links/lazy loading, `DesktopAppFrame`
-  sandbox e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST, navegação,
-  views, copiar/cortar/colar, abas, drag para pasta (inclusive entre panes), fila de upload,
-  permissões, paginação, virtualização, preview de imagem/texto/áudio/vídeo/PDF e arrastar
-  entre panes.
-- **Testes**: 3.243 testes em 266 suítes, incluindo interação, teclado,
+  sandbox, widgets, flyout de calendário, seleção de ícones do wallpaper, gestos touch,
+  status online/offline e `FileExplorer`/`FileExplorerDualPane` com providers de memória/REST,
+  navegação, views, copiar/cortar/colar, abas, drag para pasta (inclusive entre panes), fila
+  de upload, permissões, paginação, virtualização, preview de mídia e lixeira/restore/undo.
+- **Testes**: 3.317 testes em 271 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
-  DataGrid, novos componentes e `jest-axe`. A cobertura é de 90,77% de instruções,
-  80,32% de branches, 91,08% de funções e 90,71% de linhas, com limites mínimos no CI.
+  DataGrid, novos componentes, `jest-axe` e Playwright para ponteiro real, múltiplas janelas,
+  snap, modo compacto e regressão visual opcional. A cobertura é de 90,74% de instruções,
+  80,39% de branches, 91,10% de funções e 90,68% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora
