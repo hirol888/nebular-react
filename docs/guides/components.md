@@ -1923,9 +1923,10 @@ const apps = [
 - Apps com `pinned: true` aparecem na seção **Fixados**, os últimos apps abertos aparecem em
   **Recentes** e `startMenuSearch` (padrão `true`) habilita a busca no menu Iniciar.
 - `groups` recebe uma árvore de `DesktopAppGroup` e `DesktopApp.groupId` associa cada app ao
-  seu grupo. O menu Iniciar abre uma coluna lateral por nível no hover, clique ou
-  `ArrowRight`; `ArrowLeft`/`Escape` voltam um nível. A busca continua plana e o modo
-  `compact` mantém a lista vertical tradicional.
+  seu grupo. O menu Iniciar abre uma caixa lateral independente por nível no hover, clique ou
+  `ArrowRight`; `ArrowLeft`/`Escape` voltam um nível. O painel raiz mantém o tamanho e a
+  posição ao abrir submenus. A busca continua plana e o modo `compact` mantém a lista vertical
+  tradicional.
 - `enableContextMenu` (padrão `true`) habilita o menu de contexto por clique direito ou
   `Shift+F10` em janelas e botões da taskbar, com minimizar, maximizar/restaurar, fechar e
   mover para outra área de trabalho.
@@ -2023,6 +2024,8 @@ const apps = [
   `window.state.deepLink` (`{ path, query }`) e `onDeepLink` recebe o link e o id da janela.
   Apps `hidden` continuam acessíveis por deep link; o registry é reativo
   (`subscribe`/`getVersion`) e aceita `component`/`lazy` explícitos no manifesto.
+- `groups` + `DesktopApp.groupId` organizam os apps em grupos/subgrupos no menu Iniciar,
+  sem alterar a taskbar nem a abertura de janelas.
 - `onBeforeClose(window)` permite confirmar/salvar antes de fechar; retorne `false` (ou uma
   promise que resolve `false`) para manter a janela. `requestCloseWindow(id)` respeita o
   guard; `closeWindow(id)` continua sendo fechamento forçado.
@@ -2326,7 +2329,8 @@ const provider = createMemoryFileSystemProvider(seed); // ou createRestFileSyste
 - Upload em fila por arquivo com progresso individual, cancelar, retry, dismiss e `aria-live`.
 - `FileExplorerProps.authorize(request)` permite autorização assíncrona por operação
   (`read`, `rename`, `delete`, `move`, `upload` etc.); negações abortam a ação sem chamar o
-  provider. `virtualRowHeight` ajusta a virtualização e a altura das linhas.
+  provider. É uma camada de UX: o servidor deve reforçar as mesmas permissões.
+  `virtualRowHeight` ajusta a virtualização e a altura das linhas.
 - O provider REST (`createRestFileSystemProvider`) aceita `routes`, `query`, `parseList`,
   `parseEntry`, `parseUpload` e `mapError`; endpoints de lixeira (`trash`, `restore`,
   `trashList`, `emptyTrash`) só são habilitados quando a rota correspondente é informada.

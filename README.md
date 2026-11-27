@@ -53,6 +53,9 @@ yarn e2e:update    # regrava o baseline visual (opcional)
 yarn e2e:install   # instala o Chromium do Playwright
 ```
 
+O workflow `.github/workflows/e2e.yml` roda os testes de ponteiro no Linux a cada push/PR.
+O job manual `visual-baseline` gera o PNG Linux e o publica como artifact para ser commitado.
+
 ## Documentation
 
 Documentação pública: **https://hirol888.github.io/nebular-react/**

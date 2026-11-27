@@ -53,6 +53,20 @@ export async function buildPackage(_packageName: string, options?: BuildOptions)
       }
     }
 
+    if (packageName === '@nebular-react/core') {
+      for (const file of ['esm/client.js', 'cjs/client.js']) {
+        const clientPath = path.join(packagePath, file);
+
+        if (await fs.pathExists(clientPath)) {
+          const content = await fs.readFile(clientPath, 'utf-8');
+
+          if (!content.startsWith("'use client'")) {
+            await fs.writeFile(clientPath, `'use client';\n${content}`);
+          }
+        }
+      }
+    }
+
     logger.info(
       `Package ${chalk.cyan(packageName)} was built in ${chalk.green(
         `${((Date.now() - startTime) / 1000).toFixed(2)}s`

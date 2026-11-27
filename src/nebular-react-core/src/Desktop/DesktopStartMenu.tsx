@@ -62,6 +62,38 @@ function groupHasApps(group: DesktopAppGroup, appsByGroup: Map<string, DesktopAp
   return (group.groups ?? []).some((child) => groupHasApps(child, appsByGroup));
 }
 
+interface DesktopStartMenuFlyoutAnchor {
+  top?: number;
+  bottom?: number;
+  maxHeight: number;
+}
+
+function measureFlyoutAnchor(item: HTMLElement, panel: HTMLElement): DesktopStartMenuFlyoutAnchor {
+  const itemRect = item.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const root = item.closest<HTMLElement>('[data-taskbar-position]');
+  const rootRect = root?.getBoundingClientRect();
+  const viewportTop = rootRect?.top ?? 0;
+  const viewportBottom =
+    rootRect?.bottom ?? (typeof window === 'undefined' ? itemRect.bottom : window.innerHeight);
+  const padding = 8;
+  const spaceBelow = viewportBottom - itemRect.top - padding;
+  const spaceAbove = itemRect.bottom - viewportTop - padding;
+  const flip = spaceBelow < 240 && spaceAbove > spaceBelow;
+
+  if (flip) {
+    return {
+      bottom: Math.max(0, panelRect.bottom - itemRect.bottom),
+      maxHeight: Math.max(160, spaceAbove)
+    };
+  }
+
+  return {
+    top: Math.max(0, itemRect.top - panelRect.top),
+    maxHeight: Math.max(160, spaceBelow)
+  };
+}
+
 export function DesktopStartMenu({
   apps,
   groups,
@@ -86,6 +118,9 @@ export function DesktopStartMenu({
   const pendingFocusRef = useRef<(() => void) | null>(null);
   const [query, setQuery] = useState('');
   const [activePath, setActivePath] = useState<string[]>([]);
+  const [flyoutAnchors, setFlyoutAnchors] = useState<Record<number, DesktopStartMenuFlyoutAnchor>>(
+    {}
+  );
   const [viewport, setViewport] = useState<{
     maxHeight?: number;
     maxWidth?: number;
@@ -293,9 +328,27 @@ export function DesktopStartMenu({
     }
   };
 
-  const activateGroup = (parentPath: string[], group: DesktopAppGroup, depth: number) => {
+  const openGroup = (
+    parentPath: string[],
+    group: DesktopAppGroup,
+    element: HTMLElement,
+    focusChild = false
+  ) => {
+    const depth = parentPath.length;
+    const panel =
+      depth === 0 ? containerRef.current : element.closest<HTMLElement>('[data-start-flyout]');
+
+    if (panel) {
+      const anchor = measureFlyoutAnchor(element, panel);
+
+      setFlyoutAnchors((previous) => ({ ...previous, [depth]: anchor }));
+    }
+
     setActivePath([...parentPath, group.id]);
-    pendingFocusRef.current = () => focusInColumn(depth + 1);
+
+    if (focusChild) {
+      pendingFocusRef.current = () => focusInColumn(depth + 1);
+    }
   };
 
   const renderApp = (app: DesktopApp, depth = 0) => (
@@ -338,13 +391,13 @@ export function DesktopStartMenu({
           classes.startMenuGroupItem,
           open && classes.startMenuGroupItemOpen
         )}
-        onMouseEnter={() => setActivePath([...parentPath, group.id])}
-        onClick={() => setActivePath([...parentPath, group.id])}
+        onMouseEnter={(event) => openGroup(parentPath, group, event.currentTarget)}
+        onClick={(event) => openGroup(parentPath, group, event.currentTarget)}
         onKeyDown={(event) => {
           if (event.key === 'ArrowRight') {
             event.preventDefault();
             event.stopPropagation();
-            activateGroup(parentPath, group, depth);
+            openGroup(parentPath, group, event.currentTarget, true);
           }
         }}
       >
@@ -391,9 +444,44 @@ export function DesktopStartMenu({
     </div>
   );
 
+  const renderFlyout = (group: DesktopAppGroup, index: number): React.ReactNode => {
+    const parentPath = activeGroups.slice(0, index + 1).map((entry) => entry.id);
+    const anchor = flyoutAnchors[index];
+    const next = activeGroups[index + 1];
+
+    return (
+      <div
+        key={`${group.id}-${index}`}
+        id={`desktop-start-menu-${group.id}`}
+        role="group"
+        aria-label={group.title}
+        className={cx(
+          classes.startMenuFlyout,
+          taskbarPosition === 'right' ? classes.startMenuFlyoutLeft : classes.startMenuFlyoutRight
+        )}
+        style={{
+          top: anchor?.top,
+          bottom: anchor?.bottom,
+          maxHeight: anchor?.maxHeight
+        }}
+        data-start-column={index + 1}
+        data-start-flyout
+      >
+        <div className={cx(classes.startMenuSection)} aria-hidden="true">
+          {group.title}
+        </div>
+        <div className={cx(classes.startMenuFlyoutList)}>
+          {visibleGroups(group.groups).map((child) => renderGroup(child, parentPath, index + 1))}
+          {(appsByGroup.get(group.id) ?? []).map((app) => renderApp(app, index + 1))}
+        </div>
+        {next && renderFlyout(next, index + 1)}
+      </div>
+    );
+  };
+
   const renderGroupedMenu = () => (
-    <div role="menu" aria-label={labels.apps} className={cx(classes.startMenuColumns)}>
-      <div className={cx(classes.startMenuColumn)} data-start-column={0}>
+    <div role="menu" aria-label={labels.apps} className={cx(classes.startMenuGroupedBody)}>
+      <div className={cx(classes.startMenuRootList)} data-start-column={0}>
         {pinnedApps.length > 0 && (
           <div role="group" aria-label={labels.pinned}>
             <div className={cx(classes.startMenuSection)} aria-hidden="true">
@@ -413,27 +501,7 @@ export function DesktopStartMenu({
         {rootApps.map((app) => renderApp(app, 0))}
         {visibleGroups(groups).map((group) => renderGroup(group, [], 0))}
       </div>
-      {activeGroups.map((group, index) => {
-        const parentPath = activeGroups.slice(0, index + 1).map((entry) => entry.id);
-        const appsInGroup = appsByGroup.get(group.id) ?? [];
-
-        return (
-          <div
-            key={group.id}
-            id={`desktop-start-menu-${group.id}`}
-            role="group"
-            aria-label={group.title}
-            className={cx(classes.startMenuColumn)}
-            data-start-column={index + 1}
-          >
-            <div className={cx(classes.startMenuSection)} aria-hidden="true">
-              {group.title}
-            </div>
-            {visibleGroups(group.groups).map((child) => renderGroup(child, parentPath, index + 1))}
-            {appsInGroup.map((app) => renderApp(app, index + 1))}
-          </div>
-        );
-      })}
+      {activeGroups.length > 0 && renderFlyout(activeGroups[0], 0)}
     </div>
   );
 

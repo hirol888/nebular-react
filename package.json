@@ -38,7 +38,7 @@
     "exports": "esno scripts/check-exports",
     "conflicts": "esno scripts/check-conflicts",
     "lint:package": "publint --pack npm src/nebular-react-core && publint --pack npm src/nebular-react-hooks && publint --pack npm src/nebular-react-styles && publint --pack npm src/nebular-react-ssr && publint --pack npm src/nebular-react-next",
-    "lint:types": "attw --pack src/nebular-react-core && attw --pack src/nebular-react-hooks && attw --pack src/nebular-react-styles && attw --pack src/nebular-react-ssr && attw --pack src/nebular-react-next",
+    "lint:types": "attw --pack src/nebular-react-core --profile node16 && attw --pack src/nebular-react-hooks && attw --pack src/nebular-react-styles && attw --pack src/nebular-react-ssr && attw --pack src/nebular-react-next",
     "clean": "rimraf --glob \"src/*/esm\" \"src/*/cjs\" \"src/*/lib\" \"src/*/lib-cjs\" \"src/*/dist\" \"src/**/*.tsbuildinfo\"",
     "storybook": "esno scripts/storybook-start",
     "build-storybook": "storybook build -c .storybook -o storybook-static",

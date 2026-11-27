@@ -176,11 +176,11 @@
   injetáveis, codec próprio na colaboração WebSocket e provider REST do FileExplorer com
   rotas/query/parsers customizáveis. Nada no núcleo depende do AllApp ou de um backend
   específico.
-- **Testes**: 3.386 testes em 279 suítes, incluindo interação, teclado,
+- **Testes**: 3.388 testes em 280 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
   DataGrid, novos componentes, `jest-axe` e Playwright para ponteiro real, múltiplas janelas,
-  snap, modo compacto e regressão visual opcional. A cobertura é de 90,82% de instruções,
-  80,28% de branches, 91,42% de funções e 90,77% de linhas, com limites mínimos no CI.
+  snap, modo compacto e regressão visual opcional. A cobertura é de 90,80% de instruções,
+  80,34% de branches, 91,38% de funções e 90,75% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora

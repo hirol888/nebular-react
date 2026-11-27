@@ -234,6 +234,30 @@ export function TaskbarPositions() {
   );
 }
 
+export function GroupedApps() {
+  const groupedApps = apps.map((app, index) => ({
+    ...app,
+    groupId: index % 2 === 0 ? 'work' : 'tools'
+  }));
+
+  return (
+    <div style={{ height: '32rem' }}>
+      <Desktop
+        apps={groupedApps}
+        groups={[
+          { id: 'work', title: 'Work' },
+          {
+            id: 'tools',
+            title: 'Tools',
+            groups: [{ id: 'admin', title: 'Administration' }]
+          }
+        ]}
+        defaultWindows={[windowState('grouped-notes', 'notes', 40, 40, 1)]}
+      />
+    </div>
+  );
+}
+
 export function GroupedWindows() {
   return (
     <div style={{ height: '32rem' }}>

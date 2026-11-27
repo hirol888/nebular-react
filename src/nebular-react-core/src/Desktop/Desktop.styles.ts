@@ -378,26 +378,64 @@ export const useStyles = createStyles((_theme) => ({
   },
 
   startMenuGrouped: {
-    width: 'auto',
-    overflowY: 'auto'
+    overflow: 'visible'
   },
 
-  startMenuColumns: {
+  startMenuGroupedBody: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.25rem',
+    flexDirection: 'column',
+    flex: '1 1 auto',
     minHeight: 0
   },
 
-  startMenuColumn: {
+  startMenuRootList: {
     display: 'flex',
     flexDirection: 'column',
-    flex: '0 0 auto',
+    flex: '1 1 auto',
     gap: '0.2rem',
-    minWidth: 'var(--desktop-start-menu-column-width, 13rem)',
-    maxHeight: 'inherit',
+    minHeight: 0,
     overflowY: 'auto',
-    paddingInline: '0.1rem'
+    paddingInlineEnd: '0.1rem'
+  },
+
+  startMenuFlyout: {
+    position: 'absolute',
+    zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    width: 'var(--desktop-start-menu-column-width, 13rem)',
+    maxWidth: 'calc(100vw - 1rem)',
+    padding: '0.35rem',
+    border:
+      '1px solid var(--desktop-start-menu-border-color, var(--border-basic-color-3, #e4e9f2))',
+    borderRadius: 'var(--desktop-start-menu-radius, 0.5rem)',
+    backgroundColor:
+      'var(--desktop-start-menu-background-color, var(--background-basic-color-1, #ffffff))',
+    boxShadow: 'var(--desktop-start-menu-shadow, 0 12px 32px rgba(0, 0, 0, 0.18))',
+    animation: `${menuIn} var(--desktop-animation-duration, 110ms) ease-out`,
+
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
+  },
+
+  startMenuFlyoutRight: {
+    left: 'calc(100% + 0.4rem)'
+  },
+
+  startMenuFlyoutLeft: {
+    right: 'calc(100% + 0.4rem)'
+  },
+
+  startMenuFlyoutList: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: '1 1 auto',
+    gap: '0.2rem',
+    minHeight: 0,
+    overflowY: 'auto',
+    paddingInlineEnd: '0.1rem'
   },
 
   startMenuGroupItem: {

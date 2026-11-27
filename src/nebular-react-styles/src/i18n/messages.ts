@@ -608,6 +608,8 @@ const ptBRMessages: NebularMessages = {
   'desktop.close': 'Fechar {name}',
   'desktop.resize': 'Redimensionar {name}',
   'desktop.window': 'Janela',
+  'desktop.tabList': 'Abas da janela',
+  'desktop.closeTab': 'Fechar {name}',
   'desktop.clock': 'Relógio',
   'desktop.noApps': 'Nenhum aplicativo disponível',
   'desktop.pinned': 'Fixados',

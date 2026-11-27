@@ -21,6 +21,17 @@
       "default": "./cjs/index.js"
     },
     "./lib/*": "./lib/*",
+    "./client": {
+      "import": {
+        "types": "./lib/client.d.ts",
+        "default": "./esm/client.js"
+      },
+      "require": {
+        "types": "./lib-cjs/client.d.cts",
+        "default": "./cjs/client.js"
+      },
+      "default": "./cjs/client.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

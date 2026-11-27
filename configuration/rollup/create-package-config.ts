@@ -37,7 +37,12 @@ export default async function createPackageConfig(config: PkgConfigInput): Promi
   const useConditionalIconPacks =
     packageJson.name === '@nebular-react/styles' && config.format !== 'umd';
   const entry = config.entry || path.resolve(config.basePath, 'src/index.ts');
+  const clientEntry = path.resolve(config.basePath, 'src/client.ts');
   let input: RollupOptions['input'] = entry;
+
+  if (packageJson.name === '@nebular-react/core' && fs.existsSync(clientEntry)) {
+    input = [entry, clientEntry];
+  }
 
   if (useConditionalIconPacks) {
     input = [
