@@ -86,6 +86,16 @@ function mockDesktopArea(container: HTMLElement): HTMLElement {
   return area;
 }
 
+function IndependentCounter() {
+  const [count, setCount] = React.useState(0);
+
+  return (
+    <button type="button" onClick={() => setCount((current) => current + 1)}>
+      Increment {count}
+    </button>
+  );
+}
+
 function DeepLinkContent() {
   const { window } = useDesktopWindow();
   const state = window.state as
@@ -680,6 +690,7 @@ describe('Desktop', () => {
     render(
       <Desktop
         apps={apps}
+        groupTaskbar
         defaultWindows={[createWindow(), createWindow({ id: 'notes-window-2', zIndex: 2 })]}
       />
     );
@@ -1390,6 +1401,31 @@ describe('Desktop', () => {
 
     expect(screen.getByRole('dialog', { name: 'Notes' })).toBeInTheDocument();
     expect(onIconOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'notes-shortcut' }));
+  });
+
+  it('opens two windows of the same app with independent taskbar items', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Desktop
+        apps={[{ id: 'notes', title: 'Notes', content: <IndependentCounter /> }]}
+        defaultWindows={[
+          createWindow({ id: 'first-window' }),
+          createWindow({ id: 'second-window', x: 320, zIndex: 2 })
+        ]}
+      />
+    );
+
+    const dialogs = screen.getAllByRole('dialog', { name: 'Notes' });
+    const taskbarItems = document.querySelectorAll('[data-desktop-taskbar-item]');
+
+    expect(dialogs).toHaveLength(2);
+    expect(taskbarItems).toHaveLength(2);
+
+    await user.click(within(dialogs[0]).getByRole('button', { name: 'Increment 0' }));
+
+    expect(within(dialogs[0]).getByRole('button', { name: 'Increment 1' })).toBeInTheDocument();
+    expect(within(dialogs[1]).getByRole('button', { name: 'Increment 0' })).toBeInTheDocument();
   });
 
   it('opens a deep link registered in the app registry', async () => {

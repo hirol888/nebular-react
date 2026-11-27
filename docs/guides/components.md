@@ -1999,6 +1999,11 @@ const apps = [
   debounce.
 - `createCollaborationRoom(tenantId, appId)` gera um nome estável de sala para o servidor
   (SignalR/WebSocket) e `isCollaboratorStale` apoia a poda de presenças.
+- Abrir o mesmo app novamente cria outra janela independente; cada janela tem estado,
+  navegação e contexto próprios. A exceção é `DesktopApp.singleInstance`, que foca a janela
+  existente.
+- `groupTaskbar` é opt-in (`false` por padrão): cada janela aparece como um item próprio na
+  taskbar. Com `groupTaskbar`, janelas do mesmo app viram um botão com contador e menu.
 - `initialPosition` (`'cascade'` ou `'center'`) define a posição inicial; `centerOnOpen`
   pode ser definido por app/janela.
 - `appRegistry` mescla manifestos visíveis aos `apps`; `deepLink` abre `app://...` uma vez e

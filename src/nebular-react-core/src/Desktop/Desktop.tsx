@@ -72,7 +72,7 @@ const defaultProps: Partial<DesktopProps> = {
   ariaLabel: 'Desktop',
   snapThreshold: 24,
   keepInBounds: true,
-  groupTaskbar: true,
+  groupTaskbar: false,
   enableContextMenu: true,
   autoCompact: true,
   compactBreakpoint: 640,

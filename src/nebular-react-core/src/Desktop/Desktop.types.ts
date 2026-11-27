@@ -415,7 +415,7 @@ export interface DesktopProps
   keepInBounds?: boolean;
   /** Enables localStorage persistence of open windows and their bounds. */
   storageKey?: string;
-  /** Groups windows of the same app into a single taskbar button. */
+  /** Groups windows of the same app into a single taskbar button. Defaults to `false`. */
   groupTaskbar?: boolean;
   /** Renders the remaining taskbar groups in an overflow menu. */
   maxTaskbarItems?: number;

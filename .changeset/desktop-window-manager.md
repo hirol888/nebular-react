@@ -71,3 +71,7 @@ A camada de integração ficou agnóstica de backend: `appRegistry`/`deepLink`/`
 `createRestLayoutTransport` (query, body, parsers e erros de conflito configuráveis),
 `getDesktopDeviceId` com storage/generator injetáveis, codec customizável na colaboração
 WebSocket e provider REST do FileExplorer com rotas, query e parsers próprios.
+
+A taskbar agora mostra uma entrada por janela por padrão (`groupTaskbar` passou a ser opt-in),
+permitindo várias janelas do mesmo app com navegação independente; o agrupamento por app com
+contador e menu continua disponível via `groupTaskbar`.

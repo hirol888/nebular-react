@@ -239,6 +239,7 @@ export function GroupedWindows() {
     <div style={{ height: '32rem' }}>
       <Desktop
         apps={apps}
+        groupTaskbar
         defaultWindows={[
           windowState('notes-1', 'notes', 40, 40, 1),
           windowState('notes-2', 'notes', 120, 100, 2),

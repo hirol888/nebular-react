@@ -153,7 +153,8 @@
   `labels` tipados nos componentes com mais strings.
 - **Desktop**: gerenciador de janelas em tela cheia com taskbar configurável, menu Iniciar
   com busca/fixados/recentes, drag/resize, snap e snap layouts, minimizar/maximizar,
-  agrupamento e overflow, menu de contexto, foco/A11y, persistência local ou via adapter
+  uma entrada por janela (agrupamento por app opt-in) e overflow, menu de contexto,
+  foco/A11y, persistência local ou via adapter
   assíncrono, estado por janela, áreas de trabalho virtuais com tema, multi-display span,
   surfaces de produção (fullscreen por display, hot-plug, reconciliação de órfãs), abas por
   janela com tear-off, toolbar/footer (`WindowBreadcrumb`/`WindowStatusBar`), Alt+Tab visual,
@@ -170,11 +171,11 @@
   injetáveis, codec próprio na colaboração WebSocket e provider REST do FileExplorer com
   rotas/query/parsers customizáveis. Nada no núcleo depende do AllApp ou de um backend
   específico.
-- **Testes**: 3.330 testes em 273 suítes, incluindo interação, teclado,
+- **Testes**: 3.331 testes em 273 suítes, incluindo interação, teclado,
   virtualização plana e agrupada, adapters de data (nativo/Moment/dayjs/date-fns/Temporal),
   DataGrid, novos componentes, `jest-axe` e Playwright para ponteiro real, múltiplas janelas,
-  snap, modo compacto e regressão visual opcional. A cobertura é de 90,69% de instruções,
-  80,33% de branches, 91,06% de funções e 90,64% de linhas, com limites mínimos no CI.
+  snap, modo compacto e regressão visual opcional. A cobertura é de 90,67% de instruções,
+  80,30% de branches, 91,05% de funções e 90,61% de linhas, com limites mínimos no CI.
 - **Strict null em todos os pacotes**: `hooks`, `styles`, `ssr`, `core` e `next` compilam
   com `strictNullChecks` via `tsconfig.strict.json`, integrados ao `yarn typecheck`.
 - **Rollup 4**: toolchain de build modernizada (Rollup 4.68 + plugins atuais). O build agora
